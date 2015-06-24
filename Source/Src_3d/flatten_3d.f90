@@ -15,14 +15,14 @@ contains
 
     implicit none
 
-    integer lo(3),hi(3)
-    integer q_l1,q_l2,q_l3,q_h1,q_h2,q_h3
+    integer, intent(in) :: lo(3),hi(3)
+    integer, intent(in) ::  q_l1,q_l2,q_l3,q_h1,q_h2,q_h3
     
-    double precision p(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3)
-    double precision u(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3)
-    double precision v(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3)
-    double precision w(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3)
-    double precision flatn(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3)
+    double precision, intent(in ) :: p    (q_l1:q_h1,q_l2:q_h2,q_l3:q_h3)
+    double precision, intent(in ) :: u    (q_l1:q_h1,q_l2:q_h2,q_l3:q_h3)
+    double precision, intent(in ) :: v    (q_l1:q_h1,q_l2:q_h2,q_l3:q_h3)
+    double precision, intent(in ) :: w    (q_l1:q_h1,q_l2:q_h2,q_l3:q_h3)
+    double precision, intent(out) :: flatn(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3)
 
     integer i, j, k, idx, ishft
     integer nx,ny,nz,nmax

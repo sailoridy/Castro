@@ -677,10 +677,11 @@ contains
 ! ::: ------------------------------------------------------------------
 ! ::: 
 
-  subroutine ctoprim(lo,hi,          uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
-                     q,c,gamc,csml,flatn,  q_l1,  q_l2,  q_l3,  q_h1,  q_h2,  q_h3, &
-                     src,                src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
-                     srcQ,               srQ_l1,srQ_l2,srQ_l3,srQ_h1,srQ_h2,srQ_h3, &
+  subroutine ctoprim(lo,hi, &
+                     uin, ulo, uhi, &
+                     q,c,gamc,csml,flatn, qlo, qhi, &
+                     src, srclo, srchi, &
+                     srcQ, slo, shi, &
                      courno,dx,dy,dz,dt,ngp,ngf)
     !
     !     Will give primitive variables on lo-ngp:hi+ngp, and flatn on lo-ngf:hi+ngf
@@ -706,29 +707,25 @@ contains
 
     double precision, parameter:: small = 1.d-8
 
-    integer lo(3), hi(3)
-    integer uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3
-    integer q_l1,q_l2,q_l3,q_h1,q_h2,q_h3
-    integer src_l1,src_l2,src_l3,src_h1,src_h2,src_h3
-    integer srQ_l1,srQ_l2,srQ_l3,srQ_h1,srQ_h2,srQ_h3
-    
-    double precision :: uin(uin_l1:uin_h1,uin_l2:uin_h2,uin_l3:uin_h3,NVAR)
-    double precision :: q(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR)
-    double precision :: c(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3)
-    double precision :: gamc(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3)
-    double precision :: csml(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3)
-    double precision :: flatn(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3)
-    double precision ::  src(src_l1:src_h1,src_l2:src_h2,src_l3:src_h3,NVAR)
-    double precision :: srcQ(srQ_l1:srQ_h1,srQ_l2:srQ_h2,srQ_l3:srQ_h3,QVAR)
-    double precision :: dx, dy, dz, dt, courno
+    integer, intent(in) :: lo(3), hi(3), ulo(3), uhi(3), qlo(3), qhi(3), srclo(3), srchi(3), slo(3), shi(3)
+    double precision, intent(in ) :: uin  (ulo(1):uhi(1),ulo(2):uhi(2),ulo(3):uhi(3),NVAR)
+    double precision, intent(out) :: q    (qlo(1):qhi(1),qlo(2):qhi(2),qlo(3):qhi(3),QVAR)
+    double precision, intent(out) :: c    (qlo(1):qhi(1),qlo(2):qhi(2),qlo(3):qhi(3))
+    double precision, intent(out) :: gamc (qlo(1):qhi(1),qlo(2):qhi(2),qlo(3):qhi(3))
+    double precision, intent(out) :: csml (qlo(1):qhi(1),qlo(2):qhi(2),qlo(3):qhi(3))
+    double precision, intent(out) :: flatn(qlo(1):qhi(1),qlo(2):qhi(2),qlo(3):qhi(3))
+    double precision, intent(in ) :: src  (srclo(1):srchi(1),srclo(2):srchi(2),srclo(3):srchi(3),NVAR)
+    double precision, intent(out) :: srcQ (slo(1):shi(1),slo(2):shi(2),slo(3):shi(3),QVAR)
+    double precision, intent(in   ) :: dx, dy, dz, dt
+    double precision, intent(inout) :: courno
+    integer         , intent(in   ) :: ngp, ngf
 
     double precision, allocatable:: dpdrho(:,:,:)
     double precision, allocatable:: dpde(:,:,:)
-    double precision, allocatable:: dpdX_er(:,:,:,:)
+!    double precision, allocatable:: dpdX_er(:,:,:,:)
 
     integer          :: i, j, k
     integer          :: pt_index(3)
-    integer          :: ngp, ngf, loq(3), hiq(3)
     integer          :: n, nq
     integer          :: iadv, ispec, iaux
     double precision :: courx, coury, courz, courmx, courmy, courmz
@@ -738,21 +735,17 @@ contains
 
     type (eos_t) :: eos_state
 
-    allocate( dpdrho(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3))
-    allocate(   dpde(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3))
-    allocate(dpdX_er(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,nspec))
+    allocate( dpdrho(qlo(1):qhi(1),qlo(2):qhi(2),qlo(3):qhi(3)))
+    allocate(   dpde(qlo(1):qhi(1),qlo(2):qhi(2),qlo(3):qhi(3)))
+!    allocate(dpdX_er(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,nspec))
 
-    do i=1,3
-       loq(i) = lo(i)-ngp
-       hiq(i) = hi(i)+ngp
-    enddo
     !
     ! Make q (all but p), except put e in slot for rho.e, fix after eos call.
     ! The temperature is used as an initial guess for the eos call and will be overwritten.
     !
-    do k = loq(3),hiq(3)
-       do j = loq(2),hiq(2)
-          do i = loq(1),hiq(1)
+    do       k = qlo(3), qhi(3)
+       do    j = qlo(2), qhi(2)
+          do i = qlo(1), qhi(1)
              
              if (uin(i,j,k,URHO) .le. ZERO) then
                 print *,'   '
@@ -795,9 +788,9 @@ contains
     do ipassive = 1, npassive
        n = upass_map(ipassive)
        nq = qpass_map(ipassive)
-       do k = loq(3),hiq(3)
-          do j = loq(2),hiq(2)
-             do i = loq(1),hiq(1)
+       do       k = qlo(3), qhi(3)
+          do    j = qlo(2), qhi(2)
+             do i = qlo(1), qhi(1)
                 q(i,j,k,nq) = uin(i,j,k,n)/q(i,j,k,QRHO)
              enddo
           enddo
@@ -805,9 +798,9 @@ contains
     enddo
 
     ! Get gamc, p, T, c, csml using q state
-    do k = loq(3), hiq(3)
-       do j = loq(2), hiq(2)
-          do i = loq(1), hiq(1)
+    do       k = qlo(3), qhi(3)
+       do    j = qlo(2), qhi(2)
+          do i = qlo(1), qhi(1)
              
              pt_index(:) = (/i, j, k/)
 
@@ -859,9 +852,9 @@ contains
     end do
 
     ! compute srcQ terms
-    do k = lo(3)-1, hi(3)+1
-       do j = lo(2)-1, hi(2)+1
-          do i = lo(1)-1, hi(1)+1
+    do       k = slo(3), shi(3)
+       do    j = slo(2), shi(2)
+          do i = slo(1), shi(1)
              
              srcQ(i,j,k,QRHO  ) = src(i,j,k,URHO)
              srcQ(i,j,k,QU    ) = (src(i,j,k,UMX) - q(i,j,k,QU) * srcQ(i,j,k,QRHO)) / q(i,j,k,QRHO)
@@ -890,9 +883,9 @@ contains
        n = upass_map(ipassive)
        nq = qpass_map(ipassive)
 
-       do k = lo(3)-1, hi(3)+1
-          do j = lo(2)-1, hi(2)+1
-             do i = lo(1)-1, hi(1)+1
+       do       k = slo(3), shi(3)
+          do    j = slo(2), shi(2)
+             do i = slo(1), shi(1)
                 srcQ(i,j,k,nq) = ( src(i,j,k,n) - q(i,j,k,nq) * srcQ(i,j,k,QRHO) ) / &
                      q(i,j,k,QRHO)
              enddo
@@ -952,16 +945,12 @@ contains
 
     ! Compute flattening coef for slope calculations
     if (use_flattening == 1) then
-       do n=1,3
-          loq(n)=lo(n)-ngf
-          hiq(n)=hi(n)+ngf
-       enddo
-       call uflaten(loq,hiq, &
-                    q(q_l1,q_l2,q_l3,QPRES), &
-                    q(q_l1,q_l2,q_l3,QU), &
-                    q(q_l1,q_l2,q_l3,QV), &
-                    q(q_l1,q_l2,q_l3,QW), &
-                    flatn,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3)
+       call uflaten(lo-ngf,hi+ngf, &
+                    q(:,:,:,QPRES), &
+                    q(:,:,:,QU), &
+                    q(:,:,:,QV), &
+                    q(:,:,:,QW), &
+                    flatn,qlo(1),qlo(2),qlo(3),qhi(1),qhi(2),qhi(3))
     else
        flatn = ONE
     endif

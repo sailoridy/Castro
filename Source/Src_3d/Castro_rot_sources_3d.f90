@@ -35,8 +35,7 @@ contains
 
 
 
-  subroutine fill_rotation_field(rot,rot_l1,rot_l2,rot_l3,rot_h1,rot_h2,rot_h3, &
-                                 q,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3,lo,hi,dx)
+  subroutine fill_rotation_field(rot,rlo,rhi,q,qlo,qhi,lo,hi,dx)
 
     ! fill_rotation_field returns the sources to the velocity
     ! equations (not the conserved momentum equations) that are used
@@ -47,12 +46,9 @@ contains
 
     implicit none
 
-    integer         , intent(in   ) :: lo(3), hi(3)
-    integer         , intent(in   ) :: rot_l1,rot_l2,rot_l3,rot_h1,rot_h2,rot_h3
-    integer         , intent(in   ) :: q_l1,q_l2,q_l3,q_h1,q_h2,q_h3
-
-    double precision, intent(inout) :: rot(rot_l1:rot_h1,rot_l2:rot_h2,rot_l3:rot_h3,3)
-    double precision, intent(in   ) :: q(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR)
+    integer         , intent(in   ) :: lo(3), hi(3), rlo(3), rhi(3), qlo(3), qhi(3)
+    double precision, intent(inout) :: rot(rlo(1):rhi(1),rlo(2):rhi(2),rlo(3):rhi(3),3)
+    double precision, intent(in   ) :: q  (qlo(1):qhi(1),qlo(2):qhi(2),qlo(3):qhi(3),QVAR)
     double precision, intent(in   ) :: dx(3)
 
     integer          :: i,j,k

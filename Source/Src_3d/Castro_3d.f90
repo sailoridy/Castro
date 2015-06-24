@@ -86,29 +86,34 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   
   double precision dx,dy,dz
   integer ngq,ngf
-  integer q_l1, q_l2, q_l3, q_h1, q_h2, q_h3
+  integer qlo(3), qhi(3), slo(3), shi(3), flo(3), fhi(3)
 
+  integer :: q_l1, q_l2, q_l3, q_h1, q_h2, q_h3
+  
   ngq = NHYP
   ngf = 1
-    
-  q_l1 = lo(1)-NHYP
-  q_l2 = lo(2)-NHYP
-  q_l3 = lo(3)-NHYP
-  q_h1 = hi(1)+NHYP
-  q_h2 = hi(2)+NHYP
-  q_h3 = hi(3)+NHYP
 
-  allocate(     q(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR))
-  allocate(  gamc(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3))
-  allocate( flatn(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3))
-  allocate(     c(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3))
-  allocate(  csml(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3))
-  allocate(   div(lo(1):hi(1)+1,lo(2):hi(2)+1,lo(3):hi(3)+1))
+  qlo = lo-NHYP  ! for primitives with NHYP (i.e., 4) ghost cells
+  qhi = hi+NHYP
+
+  slo = lo-1  ! for source terms with one ghost cell
+  shi = hi+1
+
+  flo = lo    ! for variables on the face
+  fhi = hi+1
+  
+  allocate(     q(qlo(1):qhi(1),qlo(2):qhi(2),qlo(3):qhi(3),QVAR))
+  allocate(  gamc(qlo(1):qhi(1),qlo(2):qhi(2),qlo(3):qhi(3)))
+  allocate( flatn(qlo(1):qhi(1),qlo(2):qhi(2),qlo(3):qhi(3)))
+  allocate(     c(qlo(1):qhi(1),qlo(2):qhi(2),qlo(3):qhi(3)))
+  allocate(  csml(qlo(1):qhi(1),qlo(2):qhi(2),qlo(3):qhi(3)))
+
+  allocate(   div(flo(1):fhi(1),flo(2):fhi(2),flo(3):fhi(3)))
   
   allocate( pdivu(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)))
   
-  allocate(  srcQ(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1,QVAR))
-  allocate(   rot(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1,QVAR))
+  allocate(  srcQ(slo(1):shi(1),slo(2):shi(2),slo(3):shi(3),QVAR))
+  allocate(   rot(slo(1):shi(1),slo(2):shi(2),slo(3):shi(3),3))
   
   dx = delta(1)
   dy = delta(2)
@@ -119,24 +124,30 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   !    Note that (q,c,gamc,csml,flatn) are all dimensioned the same
   !    and set to correspond to coordinates of (lo:hi)
   ! 3) Translate source terms
-  call ctoprim(lo,hi,uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
-               q,c,gamc,csml,flatn,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
-               src,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
-               srcQ,lo(1)-1,lo(2)-1,lo(3)-1,hi(1)+1,hi(2)+1,hi(3)+1, &
+  call ctoprim(lo,hi, &
+               uin, (/uin_l1,uin_l2,uin_l3/), (/uin_h1,uin_h2,uin_h3/), &
+               q,c,gamc,csml,flatn, qlo,qhi, &
+               src, (/src_l1,src_l2,src_l3/), (/src_h1,src_h2,src_h3/), &
+               srcQ, slo, shi, &
                courno,dx,dy,dz,dt,ngq,ngf)
 
   ! Compute the rotation field, which depends on position and velocity
 
   if (do_rotation .eq. 1) then
      
-     call fill_rotation_field(rot,lo(1)-1,lo(2)-1,lo(3)-1,hi(1)+1,hi(2)+1,hi(3)+1, &
-                              q,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
-                              lo,hi,delta)
+     call fill_rotation_field(rot,slo,shi, q,qlo,qhi, lo,hi,delta)
 
   else
      rot = 0.d0
   endif
 
+  q_l1 = qlo(1)
+  q_l2 = qlo(2)
+  q_l3 = qlo(3)
+  q_h1 = qhi(1)
+  q_h2 = qhi(2)
+  q_h3 = qhi(3)
+  
   ! Compute hyperbolic fluxes using unsplit Godunov
   call umeth3d(q,c,gamc,csml,flatn,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
                srcQ,lo(1)-1,lo(2)-1,lo(3)-1,hi(1)+1,hi(2)+1,hi(3)+1, &
