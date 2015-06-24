@@ -86,7 +86,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   
   double precision dx,dy,dz
   integer ngq,ngf
-  integer qlo(3), qhi(3), slo(3), shi(3), flo(3), fhi(3)
+  integer qlo(3), qhi(3), glo(3), ghi(3), flo(3), fhi(3)
 
   ngq = NHYP
   ngf = 1
@@ -94,8 +94,8 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   qlo = lo-NHYP  ! for primitives with NHYP (i.e., 4) ghost cells
   qhi = hi+NHYP
 
-  slo = lo-1  ! for source terms with one ghost cell
-  shi = hi+1
+  glo = lo-1  ! for source terms with one ghost cell
+  ghi = hi+1
 
   flo = lo    ! for variables on the face
   fhi = hi+1
@@ -110,8 +110,8 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   
   allocate( pdivu(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)))
   
-  allocate(  srcQ(slo(1):shi(1),slo(2):shi(2),slo(3):shi(3),QVAR))
-  allocate(   rot(slo(1):shi(1),slo(2):shi(2),slo(3):shi(3),3))
+  allocate(  srcQ(glo(1):ghi(1),glo(2):ghi(2),glo(3):ghi(3),QVAR))
+  allocate(   rot(glo(1):ghi(1),glo(2):ghi(2),glo(3):ghi(3),3))
   
   dx = delta(1)
   dy = delta(2)
@@ -126,14 +126,14 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                uin, (/uin_l1,uin_l2,uin_l3/), (/uin_h1,uin_h2,uin_h3/), &
                q,c,gamc,csml,flatn, qlo,qhi, &
                src, (/src_l1,src_l2,src_l3/), (/src_h1,src_h2,src_h3/), &
-               srcQ, slo, shi, &
+               srcQ, glo, ghi, &
                courno,dx,dy,dz,dt,ngq,ngf)
 
   ! Compute the rotation field, which depends on position and velocity
 
   if (do_rotation .eq. 1) then
      
-     call fill_rotation_field(rot,slo,shi, q,qlo,qhi, lo,hi,delta)
+     call fill_rotation_field(rot,glo,ghi, q,qlo,qhi, lo,hi,delta)
 
   else
      rot = 0.d0
@@ -142,7 +142,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   ! Compute hyperbolic fluxes using unsplit Godunov
   call umeth3d(lo, hi, dx, dy, dz, dt, domlo, domhi, &
                q,c,gamc,csml,flatn,qlo,qhi, &
-               srcQ,rot,slo,shi, &
+               srcQ,rot,glo,ghi, &
                grav, (/gv_l1,gv_l2,gv_l3/), (/gv_h1,gv_h2,gv_h3/), &
                flux1, (/flux1_l1,flux1_l2,flux1_l3/),(/flux1_h1,flux1_h2,flux1_h3/), &
                flux2, (/flux2_l1,flux2_l2,flux2_l3/),(/flux2_h1,flux2_h2,flux2_h3/), &

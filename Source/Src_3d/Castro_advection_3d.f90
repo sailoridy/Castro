@@ -44,7 +44,7 @@ contains
                      ugdz, ugzlo, ugzhi, &
                      pdivu, plo, phi )
 
-    use meth_params_module, only : QVAR, NVAR, QPRES, QRHO, QU, QFS, QFX, QTEMP, QREINT, ppm_type, &
+    use meth_params_module, only : QVAR, NVAR, QPRES, QRHO, QU, QW, QFS, QFX, QTEMP, QREINT, ppm_type, &
                                    use_pslope, ppm_trace_grav, ppm_trace_rot, ppm_temp_fix, &
                                    do_grav, do_rotation, hybrid_riemann
     use trace_ppm_module, only : tracexy_ppm, tracez_ppm
@@ -277,11 +277,13 @@ contains
     
     if (ppm_type .gt. 0) then
 
-    !    do n=1,QVAR
-    !       call ppm(q(:,:,:,n), q(:,:,:,QU:QW), c, flatn, qlo, qhi, &
-    !                Ip(:,:,:,:,:,n),Im(:,:,:,:,:,n), glo, ghi, &
-    !                lo,hi,dx,dy,dz,dt)
-    !    end do
+       do n=1,QVAR
+          call ppm(q(:,:,:,n), qlo, qhi, &
+                   q(:,:,:,QU:QW), c, qlo, qhi, &
+                   flatn, qlo, qhi, &
+                   Ip(:,:,:,:,:,n),Im(:,:,:,:,:,n), glo, ghi, &
+                   lo,hi,dx,dy,dz,dt)
+       end do
        
     !    if (do_grav .eq. 1 .and. ppm_trace_grav .eq. 1) then
     !       do n=1,3
