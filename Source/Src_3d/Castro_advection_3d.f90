@@ -34,8 +34,9 @@ contains
 
   subroutine umeth3d(lo, hi, dx, dy, dz, dt, domlo, domhi, &
                      q, c, gamc, csml, flatn, qlo, qhi, &
-                     srcQ, rot, slo, shi, &
+                     srcQ, slo, shi, &
                      grav, gvlo, gvhi, &
+                     rot, rlo, rhi, &
                      flux1, f1lo, f1hi, &
                      flux2, f2lo, f2hi, &
                      flux3, f3lo, f3hi, &
@@ -60,7 +61,7 @@ contains
 
     implicit none
 
-    integer, intent(in) :: lo(3), hi(3), domlo(3), domhi(3), qlo(3), qhi(3), slo(3), shi(3)
+    integer, intent(in) :: lo(3), hi(3), domlo(3), domhi(3), qlo(3), qhi(3), slo(3), shi(3), rlo(3), rhi(3)
     integer, intent(in) :: gvlo(3), gvhi(3), f1lo(3), f1hi(3), f2lo(3), f2hi(3), f3lo(3), f3hi(3)
     integer, intent(in) :: ugxlo(3), ugxhi(3), ugylo(3), ugyhi(3), ugzlo(3), ugzhi(3), plo(3), phi(3)
     double precision, intent(in) :: dx, dy, dz, dt
@@ -70,7 +71,7 @@ contains
     double precision,intent(in   ):: csml (qlo(1):qhi(1),qlo(2):qhi(2),qlo(3):qhi(3))
     double precision,intent(in   ):: flatn(qlo(1):qhi(1),qlo(2):qhi(2),qlo(3):qhi(3))
     double precision,intent(in   ):: srcQ (slo(1):shi(1),slo(2):shi(2),slo(3):shi(3),QVAR)
-    double precision,intent(in   ):: rot  (slo(1):shi(1),slo(2):shi(2),slo(3):shi(3),3)
+    double precision,intent(in   ):: rot  (rlo(1):rhi(1),rlo(2):rhi(2),rlo(3):rhi(3),3)
     double precision,intent(in   ):: grav (gvlo(1):gvhi(1),gvlo(2):gvhi(2),gvlo(3):gvhi(3),3)
     double precision,intent(inout):: flux1(f1lo(1):f1hi(1),f1lo(2):f1hi(2),f1lo(3):f1hi(3),NVAR)
     double precision,intent(inout):: flux2(f2lo(1):f2hi(1),f2lo(2):f2hi(2),f2lo(3):f2hi(3),NVAR)
@@ -285,34 +286,34 @@ contains
                    lo,hi,dx,dy,dz,dt)
        end do
        
-    !    if (do_grav .eq. 1 .and. ppm_trace_grav .eq. 1) then
-    !       do n=1,3
-    !          call ppm(grav(:,:,:,n),gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
-    !                   q(:,:,:,QU:),c,qlo(1),qlo(2),qlo(3),qhi(1),qhi(2),qhi(3), &
-    !                   flatn,qlo(1),qlo(2),qlo(3),qhi(1),qhi(2),qhi(3), &
-    !                   Ip_g(:,:,:,:,:,n),Im_g(:,:,:,:,:,n), &
-    !                   ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc)
-    !       enddo
-    !    endif
+       if (do_grav .eq. 1 .and. ppm_trace_grav .eq. 1) then
+          do n=1,3
+             call ppm(grav(:,:,:,n), gvlo, gvhi, &
+                      q(:,:,:,QU:),c, qlo, qhi, &
+                      flatn, qlo, qhi, &
+                      Ip_g(:,:,:,:,:,n),Im_g(:,:,:,:,:,n), glo, ghi, &
+                      lo,hi,dx,dy,dz,dt)
+          enddo
+       endif
 
-    !    if (do_rotation .eq. 1 .and. ppm_trace_rot .eq. 1) then
-    !       do n=1,3
-    !          call ppm(rot(:,:,:,n),rt_l1,rt_l2,rt_l3,rt_h1,rt_h2,rt_h3, &
-    !               q(:,:,:,QU:),c,qlo(1),qlo(2),qlo(3),qhi(1),qhi(2),qhi(3), &
-    !               flatn,qlo(1),qlo(2),qlo(3),qhi(1),qhi(2),qhi(3), &
-    !               Ip_r(:,:,:,:,:,n),Im_r(:,:,:,:,:,n), &
-    !               ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc)
-    !       enddo
-    !    endif
+       if (do_rotation .eq. 1 .and. ppm_trace_rot .eq. 1) then
+          do n=1,3
+             call ppm(rot(:,:,:,n), slo, shi, &
+                  q(:,:,:,QU:),c, qlo, qhi, &
+                  flatn, qlo, qhi, &
+                  Ip_r(:,:,:,:,:,n),Im_r(:,:,:,:,:,n), glo, ghi, &
+                  lo,hi,dx,dy,dz,dt)
+          enddo
+       endif
 
 
-    !    if (ppm_temp_fix /= 1) then
-    !       call ppm(gamc(:,:,:),qlo(1),qlo(2),qlo(3),qhi(1),qhi(2),qhi(3), &
-    !            q(:,:,:,QU:),c,qlo(1),qlo(2),qlo(3),qhi(1),qhi(2),qhi(3), &
-    !            flatn,qlo(1),qlo(2),qlo(3),qhi(1),qhi(2),qhi(3), &
-    !            Ip_gc(:,:,:,:,:,1),Im_gc(:,:,:,:,:,1), &
-    !            ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc)
-    !    endif
+       if (ppm_temp_fix /= 1) then
+          call ppm(gamc(:,:,:), qlo, qhi, &
+               q(:,:,:,QU:),c, qlo, qhi, &
+               flatn, qlo, qhi, &
+               Ip_gc(:,:,:,:,:,1),Im_gc(:,:,:,:,:,1), glo, qhi, &
+               lo,hi,dx,dy,dz,dt)
+       endif
        
     !    ! temperature-based PPM
     !    if (ppm_temp_fix == 1) then

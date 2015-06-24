@@ -105,13 +105,13 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   allocate( flatn(qlo(1):qhi(1),qlo(2):qhi(2),qlo(3):qhi(3)))
   allocate(     c(qlo(1):qhi(1),qlo(2):qhi(2),qlo(3):qhi(3)))
   allocate(  csml(qlo(1):qhi(1),qlo(2):qhi(2),qlo(3):qhi(3)))
+  allocate(   rot(qlo(1):ghi(1),qlo(2):ghi(2),qlo(3):ghi(3),3))
 
   allocate(   div(flo(1):fhi(1),flo(2):fhi(2),flo(3):fhi(3)))
   
   allocate( pdivu(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)))
   
   allocate(  srcQ(glo(1):ghi(1),glo(2):ghi(2),glo(3):ghi(3),QVAR))
-  allocate(   rot(glo(1):ghi(1),glo(2):ghi(2),glo(3):ghi(3),3))
   
   dx = delta(1)
   dy = delta(2)
@@ -133,7 +133,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
 
   if (do_rotation .eq. 1) then
      
-     call fill_rotation_field(rot,glo,ghi, q,qlo,qhi, lo,hi,delta)
+     call fill_rotation_field(rot,qlo,qhi, q,qlo,qhi, lo,hi,delta)
 
   else
      rot = 0.d0
@@ -142,8 +142,9 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   ! Compute hyperbolic fluxes using unsplit Godunov
   call umeth3d(lo, hi, dx, dy, dz, dt, domlo, domhi, &
                q,c,gamc,csml,flatn,qlo,qhi, &
-               srcQ,rot,glo,ghi, &
+               srcQ,glo,ghi, &
                grav, (/gv_l1,gv_l2,gv_l3/), (/gv_h1,gv_h2,gv_h3/), &
+               rot, qlo, qhi, &
                flux1, (/flux1_l1,flux1_l2,flux1_l3/),(/flux1_h1,flux1_h2,flux1_h3/), &
                flux2, (/flux2_l1,flux2_l2,flux2_l3/),(/flux2_h1,flux2_h2,flux2_h3/), &
                flux3, (/flux3_l1,flux3_l2,flux3_l3/),(/flux3_h1,flux3_h2,flux3_h3/), &
