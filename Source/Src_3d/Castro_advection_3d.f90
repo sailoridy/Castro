@@ -48,7 +48,7 @@ contains
     use meth_params_module, only : QVAR, NVAR, QPRES, QRHO, QU, QW, QFS, QFX, QTEMP, QREINT, ppm_type, &
                                    use_pslope, ppm_trace_grav, ppm_trace_rot, ppm_temp_fix, &
                                    do_grav, do_rotation, hybrid_riemann
-    use trace_ppm_module, only : tracexy_ppm, tracez_ppm
+    use trace_ppm_module, only : trace_ppm
     use trace_module, only : tracexy, tracez
     use transverse_module
     use ppm_module, only : ppm
@@ -315,50 +315,51 @@ contains
                lo,hi,dx,dy,dz,dt)
        endif
        
-    !    ! temperature-based PPM
-    !    if (ppm_temp_fix == 1) then
-    !       do j = ilo2-1, ihi2+1
-    !          do i = ilo1-1, ihi1+1
-    !             do idim = 1, 3
-    !                do iwave = 1, 3
-    !                   eos_state % rho = Ip(i,j,kc,idim,iwave,QRHO)
-    !                   eos_state % T   = Ip(i,j,kc,idim,iwave,QTEMP)
-    !                   eos_state % xn  = Ip(i,j,kc,idim,iwave,QFS:QFS-1+nspec)
-    !                   eos_state % aux = Ip(i,j,kc,idim,iwave,QFX:QFX-1+naux)
-                      
-    !                   call eos(eos_input_rt, eos_state, .false.)
-                      
-    !                   Ip(i,j,kc,idim,iwave,QPRES) = eos_state%p
-    !                   Ip(i,j,kc,idim,iwave,QREINT) = Ip(i,j,kc,idim,iwave,QRHO)*eos_state%e
-    !                   Ip_gc(i,j,kc,idim,iwave,1) = eos_state%gam1
-                      
-                      
-    !                   eos_state % rho = Im(i,j,kc,idim,iwave,QRHO)
-    !                   eos_state % T   = Im(i,j,kc,idim,iwave,QTEMP)
-    !                   eos_state % xn  = Im(i,j,kc,idim,iwave,QFS:QFS-1+nspec)
-    !                   eos_state % aux = Im(i,j,kc,idim,iwave,QFX:QFX-1+naux)
-                      
-    !                   call eos(eos_input_rt, eos_state, .false.)
-                      
-    !                   Im(i,j,kc,idim,iwave,QPRES) = eos_state%p
-    !                   Im(i,j,kc,idim,iwave,QREINT) = Im(i,j,kc,idim,iwave,QRHO)*eos_state%e
-    !                   Im_gc(i,j,kc,idim,iwave,1) = eos_state%gam1
-                      
-    !                enddo
-    !             enddo
-    !          enddo
-    !       enddo
+       ! temperature-based PPM
+       if (ppm_temp_fix == 1) then
+          do k = glo(3), ghi(3)
+          do j = glo(2), ghi(2)
+          do i = glo(1), ghi(1)
+             do idim = 1, 3
+                do iwave = 1, 3
+                   eos_state % rho = Ip(i,j,k,idim,iwave,QRHO)
+                   eos_state % T   = Ip(i,j,k,idim,iwave,QTEMP)
+                   eos_state % xn  = Ip(i,j,k,idim,iwave,QFS:QFS-1+nspec)
+                   eos_state % aux = Ip(i,j,k,idim,iwave,QFX:QFX-1+naux)
+                   
+                   call eos(eos_input_rt, eos_state, .false.)
+                   
+                   Ip(i,j,k,idim,iwave,QPRES) = eos_state%p
+                   Ip(i,j,k,idim,iwave,QREINT) = Ip(i,j,k,idim,iwave,QRHO)*eos_state%e
+                   Ip_gc(i,j,k,idim,iwave,1) = eos_state%gam1
+                   
+                   
+                   eos_state % rho = Im(i,j,k,idim,iwave,QRHO)
+                   eos_state % T   = Im(i,j,k,idim,iwave,QTEMP)
+                   eos_state % xn  = Im(i,j,k,idim,iwave,QFS:QFS-1+nspec)
+                   eos_state % aux = Im(i,j,k,idim,iwave,QFX:QFX-1+naux)
+                   
+                   call eos(eos_input_rt, eos_state, .false.)
+                   
+                   Im(i,j,k,idim,iwave,QPRES) = eos_state%p
+                   Im(i,j,k,idim,iwave,QREINT) = Im(i,j,k,idim,iwave,QRHO)*eos_state%e
+                   Im_gc(i,j,k,idim,iwave,1) = eos_state%gam1
+                   
+                enddo
+             enddo
+          enddo
+          enddo
+          enddo
           
-    !    endif
+       endif
 
-    !    ! Compute U_x and U_y at kc (k3d)
-    !    call tracexy_ppm(q,c,flatn,qlo(1),qlo(2),qlo(3),qhi(1),qhi(2),qhi(3), &
-    !         Ip,Im,Ip_g,Im_g,Ip_r,Im_r,Ip_gc,Im_gc, &
-    !         qxm,qxp,qym,qyp,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
-    !         gamc,qlo(1),qlo(2),qlo(3),qhi(1),qhi(2),qhi(3), &
-    !         ilo1,ilo2,ihi1,ihi2,dt,kc,k3d)
+       ! Compute U_x and U_y
+       call trace_ppm(q,c,gamc,flatn, qlo,qhi, &
+                      Ip,Im,Ip_g,Im_g,Ip_r,Im_r,Ip_gc,Im_gc, glo, qhi, &
+                      qxm,qxp,qym,qyp,qzm,qzp, fglo, fghi, &
+                      lo,hi,dt)
        
-    ! else
+    else
        
     !    ! Compute all slopes at kc (k3d)
     !    call uslope(q,flatn,qlo(1),qlo(2),qlo(3),qhi(1),qhi(2),qhi(3), &
