@@ -8,21 +8,19 @@ contains
 ! ::: ------------------------------------------------------------------
 ! ::: 
 
-  subroutine uflaten(lo,hi,p,u,v,w,flatn,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3)
+  subroutine uflaten(lo,hi,p,u,v,w,flatn,qlo,qhi)
 
     use meth_params_module, only : iorder, small_pres
     use bl_constants_module
 
     implicit none
 
-    integer, intent(in) :: lo(3),hi(3)
-    integer, intent(in) ::  q_l1,q_l2,q_l3,q_h1,q_h2,q_h3
-    
-    double precision, intent(in ) :: p    (q_l1:q_h1,q_l2:q_h2,q_l3:q_h3)
-    double precision, intent(in ) :: u    (q_l1:q_h1,q_l2:q_h2,q_l3:q_h3)
-    double precision, intent(in ) :: v    (q_l1:q_h1,q_l2:q_h2,q_l3:q_h3)
-    double precision, intent(in ) :: w    (q_l1:q_h1,q_l2:q_h2,q_l3:q_h3)
-    double precision, intent(out) :: flatn(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3)
+    integer, intent(in) :: lo(3),hi(3),qlo(3),qhi(3)
+    double precision, intent(in ) :: p    (qlo(1):qhi(1),qlo(2):qhi(2),qlo(3):qhi(3))
+    double precision, intent(in ) :: u    (qlo(1):qhi(1),qlo(2):qhi(2),qlo(3):qhi(3))
+    double precision, intent(in ) :: v    (qlo(1):qhi(1),qlo(2):qhi(2),qlo(3):qhi(3))
+    double precision, intent(in ) :: w    (qlo(1):qhi(1),qlo(2):qhi(2),qlo(3):qhi(3))
+    double precision, intent(out) :: flatn(qlo(1):qhi(1),qlo(2):qhi(2),qlo(3):qhi(3))
 
     integer i, j, k, idx, ishft
     integer nx,ny,nz,nmax

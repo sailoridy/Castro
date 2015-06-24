@@ -88,8 +88,6 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   integer ngq,ngf
   integer qlo(3), qhi(3), slo(3), shi(3), flo(3), fhi(3)
 
-  integer :: q_l1, q_l2, q_l3, q_h1, q_h2, q_h3
-  
   ngq = NHYP
   ngf = 1
 
@@ -141,33 +139,25 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
      rot = 0.d0
   endif
 
-  q_l1 = qlo(1)
-  q_l2 = qlo(2)
-  q_l3 = qlo(3)
-  q_h1 = qhi(1)
-  q_h2 = qhi(2)
-  q_h3 = qhi(3)
-  
   ! Compute hyperbolic fluxes using unsplit Godunov
-  call umeth3d(q,c,gamc,csml,flatn,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
-               srcQ,lo(1)-1,lo(2)-1,lo(3)-1,hi(1)+1,hi(2)+1,hi(3)+1, &
-               grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
-               rot,lo(1)-1,lo(2)-1,lo(3)-1,hi(1)+1,hi(2)+1,hi(3)+1, &
-               lo(1),lo(2),lo(3),hi(1),hi(2),hi(3),dx,dy,dz,dt, &
-               flux1,flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3, &
-               flux2,flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3, &
-               flux3,flux3_l1,flux3_l2,flux3_l3,flux3_h1,flux3_h2,flux3_h3, &
-               ugdnvx_out,ugdnvx_l1,ugdnvx_l2,ugdnvx_l3,ugdnvx_h1,ugdnvx_h2,ugdnvx_h3, &
-               ugdnvy_out,ugdnvy_l1,ugdnvy_l2,ugdnvy_l3,ugdnvy_h1,ugdnvy_h2,ugdnvy_h3, &
-               ugdnvz_out,ugdnvz_l1,ugdnvz_l2,ugdnvz_l3,ugdnvz_h1,ugdnvz_h2,ugdnvz_h3, &
-               pdivu, domlo, domhi)
+  call umeth3d(lo, hi, dx, dy, dz, dt, domlo, domhi, &
+               q,c,gamc,csml,flatn,qlo,qhi, &
+               srcQ,rot,slo,shi, &
+               grav, (/gv_l1,gv_l2,gv_l3/), (/gv_h1,gv_h2,gv_h3/), &
+               flux1, (/flux1_l1,flux1_l2,flux1_l3/),(/flux1_h1,flux1_h2,flux1_h3/), &
+               flux2, (/flux2_l1,flux2_l2,flux2_l3/),(/flux2_h1,flux2_h2,flux2_h3/), &
+               flux3, (/flux3_l1,flux3_l2,flux3_l3/),(/flux3_h1,flux3_h2,flux3_h3/), &
+               ugdnvx_out,(/ugdnvx_l1,ugdnvx_l2,ugdnvx_l3/),(/ugdnvx_h1,ugdnvx_h2,ugdnvx_h3/), &
+               ugdnvy_out,(/ugdnvy_l1,ugdnvy_l2,ugdnvy_l3/),(/ugdnvy_h1,ugdnvy_h2,ugdnvy_h3/), &
+               ugdnvz_out,(/ugdnvz_l1,ugdnvz_l2,ugdnvz_l3/),(/ugdnvz_h1,ugdnvz_h2,ugdnvz_h3/), &
+               pdivu, lo, hi)
 
   ! Compute divergence of velocity field (on surroundingNodes(lo,hi))
-  call divu(lo,hi,q,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
-            dx,dy,dz,div,lo(1),lo(2),lo(3),hi(1)+1,hi(2)+1,hi(3)+1)
+  call divu(lo,hi,q,qlo,qhi,dx,dy,dz,div,flo,fhi)
 
   ! Conservative update
-  call consup(uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
+  call consup(lo,hi, &
+              uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
               uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3, &
               src ,  src_l1,  src_l2,  src_l3,  src_h1,  src_h2,  src_h3, &
               flux1,flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3, &
@@ -177,7 +167,9 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
               area2,area2_l1,area2_l2,area2_l3,area2_h1,area2_h2,area2_h3, &
               area3,area3_l1,area3_l2,area3_l3,area3_h1,area3_h2,area3_h3, &
               vol,vol_l1,vol_l2,vol_l3,vol_h1,vol_h2,vol_h3, &
-              div,pdivu,lo,hi,dx,dy,dz,dt,E_added_flux,&
+              div, flo, fhi, &
+              pdivu, lo, hi, &
+              dx,dy,dz,dt,E_added_flux,&
               xmom_added_flux,ymom_added_flux,zmom_added_flux)
 
   ! Add the radiative cooling -- for SGS only.
@@ -437,9 +429,9 @@ subroutine ca_enforce_nonnegative_species(uout,uout_l1,uout_l2,uout_l3, &
   
   implicit none
   
-  integer          :: lo(3), hi(3)
-  integer          :: uout_l1, uout_l2, uout_l3, uout_h1, uout_h2, uout_h3
-  double precision :: uout(uout_l1:uout_h1,uout_l2:uout_h2,uout_l3:uout_h3,NVAR)
+  integer, intent(in) :: lo(3), hi(3)
+  integer, intent(in) :: uout_l1, uout_l2, uout_l3, uout_h1, uout_h2, uout_h3
+  double precision,intent(inout):: uout(uout_l1:uout_h1,uout_l2:uout_h2,uout_l3:uout_h3,NVAR)
   
   ! Local variables
   integer          :: i,j,k,n
