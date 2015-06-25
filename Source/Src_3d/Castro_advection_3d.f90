@@ -354,6 +354,11 @@ contains
        endif
 
        ! Compute U_x and U_y
+       ! Inputs: q, c, gamc, flatn             : lo-4:hi+4
+       !         Ip,Im,Ip_g,Im_g,Ip_r,Im_r,... : lo-1:hi+1
+       ! Outputs: qxm, qxp                     : xface, +-1 at y & z
+       !          qym, qyp                     : yface, +-1 at x & z
+       !          qzm, qzp                     : zface, +-1 at x & y
        call trace_ppm(q,c,gamc,flatn, qlo,qhi, &
                       Ip,Im,Ip_g,Im_g,Ip_r,Im_r,Ip_gc,Im_gc, glo, qhi, &
                       qxm,qxp,qym,qyp,qzm,qzp, fglo, fghi, &
@@ -382,13 +387,17 @@ contains
        
     end if
     
-    !    ! Compute \tilde{F}^x at kc (k3d)
-    !    call cmpflx(qxm,qxp,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
-    !                fx,ilo1,ilo2-1,1,ihi1+1,ihi2+1,2, &
-    !                ugdnvx,pgdnvx,gegdnvx,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
-    !                gamc,csml,c,qlo(1),qlo(2),qlo(3),qhi(1),qhi(2),qhi(3), &
-    !                shk,ilo1-1,ilo2-1,ilo3-1,ihi1+1,ihi2+1,ihi3+1, &
-    !                1,ilo1,ihi1+1,ilo2-1,ihi2+1,kc,kc,k3d,domlo,domhi)
+    ! Compute \tilde{F}^x
+    ! Inputs: qxm, qxp                     : xface, +-1 at y & z
+    !         gamc, csml, c                : +-4
+    !         shk                          : +-1
+    ! Outputs: fx, ugdnvx, pgdnvx, gegdnvx : xface, +-1 at y & z
+    call cmpflx(qxm,qxp, fglo, fghi, &
+                fx, glo, ghi, &
+                ugdnvx,pgdnvx,gegdnvx, fglo, fghi, &
+                gamc,csml,c, qlo, qhi, &
+                shk, glo, ghi, &
+                1, (/lo(1),lo(2)-1,lo(3)-1/), hi+1, domlo, domhi)
 
     !    ! Compute \tilde{F}^y at kc (k3d)
     !    call cmpflx(qym,qyp,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
