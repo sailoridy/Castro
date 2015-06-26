@@ -570,14 +570,14 @@ contains
     !         gamc, grav, rot                 : +-4
     !         srcQ                            : +-1
     ! Outputs: qyl, qyr                       : yface, +-0 at x & z
-!    call transxz(qym,qyl,qyp,qyr, fglo, fghi, &
-!                 fxz, fzx, glo, ghi, &
-!                 ugdnvxz,pgdnvxz,gegdnvxz,ugdnvzx,pgdnvzx,gegdnvzx, fglo, fghi, &
-!                 gamc, qlo, qhi, &
-!                 srcQ, slo, shi, &
-!                 grav, gvlo, gvhi, &
-!                 rot, rlo, rhi, &
-!                 hdt,hdtdx,hdtdz,lo,hi)
+    call transxz(qym,qyl,qyp,qyr, fglo, fghi, &
+                 fxz, fzx, glo, ghi, &
+                 ugdnvxz,pgdnvxz,gegdnvxz,ugdnvzx,pgdnvzx,gegdnvzx, fglo, fghi, &
+                 gamc, qlo, qhi, &
+                 srcQ, slo, shi, &
+                 grav, gvlo, gvhi, &
+                 rot, rlo, rhi, &
+                 hdt,hdtdx,hdtdz,lo,hi)
 
     nullify(fzx, ugdnvzx, pgdnvzx, gegdnvzx)
     nullify(fxz, ugdnvxz, pgdnvxz, gegdnvxz)
