@@ -1743,23 +1743,21 @@ contains
   !===========================================================================
   ! transxy
   !===========================================================================
-  subroutine transxy(qm,qmo,qp,qpo,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                     fxy,fx_l1,fx_l2,fx_l3,fx_h1,fx_h2,fx_h3, &
-                     fyx,fy_l1,fy_l2,fy_l3,fy_h1,fy_h2,fy_h3, &
-                     ugdnvx,pgdnvx,gegdnvx,pgdx_l1,pgdx_l2,pgdx_l3,pgdx_h1,pgdx_h2,pgdx_h3, &
-                     ugdnvy,pgdnvy,gegdnvy,pgdy_l1,pgdy_l2,pgdy_l3,pgdy_h1,pgdy_h2,pgdy_h3, &
-                     gamc,gd_l1,gd_l2,gd_l3,gd_h1,gd_h2,gd_h3, &
-                     srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
-                     grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
-                     rot,rt_l1,rt_l2,rt_l3,rt_h1,rt_h2,rt_h3, &
-                     hdt,cdtdx,cdtdy,ilo,ihi,jlo,jhi,kc,km,k3d)
+  subroutine transxy(qm,qmo,qp,qpo, qlo, qhi, &
+                     fxy,fyx, flo, fhi, &
+                     ugdnvx,pgdnvx,gegdnvx,ugdnvy,pgdnvy,gegdnvy, gdlo, gdhi, &
+                     gamc,gclo,gchi, &
+                     srcQ,slo,shi, &
+                     grav,gvlo,gvhi, &
+                     rot,rlo,rhi, &
+                     hdt,hdtdx,hdtdy,lo,hi)
     
     use network, only : nspec, naux
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
                                    QPRES, QREINT, QGAME, QESGS, QFA, QFS, &
                                    URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, UFA, UFS, &
                                    nadv, small_pres, small_temp, &
-                                   npassive, upass_map, qpass_map, &            
+                                   npassive, upass_map, qpass_map, &
                                    ppm_predict_gammae, &
                                    transverse_use_eos, transverse_reset_density, transverse_reset_rhoe, &
                                    ppm_type, ppm_trace_grav, rot_period, ppm_trace_rot, &
@@ -1767,38 +1765,28 @@ contains
     use eos_module
 
     implicit none
-    
-    integer qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3
-    integer fx_l1,fx_l2,fx_l3,fx_h1,fx_h2,fx_h3
-    integer fy_l1,fy_l2,fy_l3,fy_h1,fy_h2,fy_h3
-    integer pgdx_l1,pgdx_l2,pgdx_l3,pgdx_h1,pgdx_h2,pgdx_h3
-    integer pgdy_l1,pgdy_l2,pgdy_l3,pgdy_h1,pgdy_h2,pgdy_h3
-    integer gd_l1,gd_l2,gd_l3,gd_h1,gd_h2,gd_h3
-    integer src_l1,src_l2,src_l3,src_h1,src_h2,src_h3
-    integer gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3
-    integer rt_l1,rt_l2,rt_l3,rt_h1,rt_h2,rt_h3
-    integer ilo,ihi,jlo,jhi,km,kc,k3d
-    
-    double precision  qm(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
-    double precision qmo(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
-    double precision  qp(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
-    double precision qpo(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
-    double precision fxy(fx_l1:fx_h1,fx_l2:fx_h2,fx_l3:fx_h3,NVAR)
-    double precision fyx(fy_l1:fy_h1,fy_l2:fy_h2,fy_l3:fy_h3,NVAR)
-    double precision ugdnvx(pgdx_l1:pgdx_h1,pgdx_l2:pgdx_h2,pgdx_l3:pgdx_h3)
-    double precision pgdnvx(pgdx_l1:pgdx_h1,pgdx_l2:pgdx_h2,pgdx_l3:pgdx_h3)
-    double precision gegdnvx(pgdx_l1:pgdx_h1,pgdx_l2:pgdx_h2,pgdx_l3:pgdx_h3)
-    double precision ugdnvy(pgdy_l1:pgdy_h1,pgdy_l2:pgdy_h2,pgdy_l3:pgdy_h3)
-    double precision pgdnvy(pgdy_l1:pgdy_h1,pgdy_l2:pgdy_h2,pgdy_l3:pgdy_h3)
-    double precision gegdnvy(pgdy_l1:pgdy_h1,pgdy_l2:pgdy_h2,pgdy_l3:pgdy_h3)
-    double precision gamc(gd_l1:gd_h1,gd_l2:gd_h2,gd_l3:gd_h3)
-    double precision srcQ(src_l1:src_h1,src_l2:src_h2,src_l3:src_h3,QVAR)
-    double precision grav(gv_l1:gv_h1,gv_l2:gv_h2,gv_l3:gv_h3,3)
-    double precision rot(rt_l1:rt_h1,rt_l2:rt_h2,rt_l3:rt_h3,3)
-    double precision hdt,cdtdx,cdtdy
-    
-    integer i, j
-    integer n , nq
+
+    integer, intent(in) :: qlo(3),qhi(3),flo(3),fhi(3),gdlo(3),gdhi(3),gclo(3),gchi(3), &
+         slo(3),shi(3),gvlo(3),gvhi(3),rlo(3),rhi(3),lo(3),hi(3)
+    double precision, intent(in) :: hdt, hdtdx, hdtdy
+    double precision,intent(in )::     qm( qlo(1): qhi(1), qlo(2): qhi(2), qlo(3): qhi(3),QVAR)
+    double precision,intent(out)::    qmo( qlo(1): qhi(1), qlo(2): qhi(2), qlo(3): qhi(3),QVAR)
+    double precision,intent(in )::     qp( qlo(1): qhi(1), qlo(2): qhi(2), qlo(3): qhi(3),QVAR)
+    double precision,intent(out)::    qpo( qlo(1): qhi(1), qlo(2): qhi(2), qlo(3): qhi(3),QVAR)
+    double precision,intent(in )::    fxy( flo(1): fhi(1), flo(2): fhi(2), flo(3): fhi(3),NVAR)
+    double precision,intent(in )::    fyx( flo(1): fhi(1), flo(2): fhi(2), flo(3): fhi(3),NVAR)
+    double precision,intent(in ):: ugdnvx(gdlo(1):gdhi(1),gdlo(2):gdhi(2),gdlo(3):gdhi(3))
+    double precision,intent(in ):: pgdnvx(gdlo(1):gdhi(1),gdlo(2):gdhi(2),gdlo(3):gdhi(3))
+    double precision,intent(in )::gegdnvx(gdlo(1):gdhi(1),gdlo(2):gdhi(2),gdlo(3):gdhi(3))
+    double precision,intent(in ):: ugdnvy(gdlo(1):gdhi(1),gdlo(2):gdhi(2),gdlo(3):gdhi(3))
+    double precision,intent(in ):: pgdnvy(gdlo(1):gdhi(1),gdlo(2):gdhi(2),gdlo(3):gdhi(3))
+    double precision,intent(in )::gegdnvy(gdlo(1):gdhi(1),gdlo(2):gdhi(2),gdlo(3):gdhi(3))
+    double precision,intent(in )::   gamc(gclo(1):gchi(1),gclo(2):gchi(2),gclo(3):gchi(3))
+    double precision,intent(in )::   srcQ( slo(1): shi(1), slo(2): shi(2), slo(3): shi(3),QVAR)
+    double precision,intent(in )::   grav(gvlo(1):gvhi(1),gvlo(2):gvhi(2),gvlo(3):gvhi(3),3)
+    double precision,intent(in )::    rot( rlo(1): rhi(1), rlo(2): rhi(2), rlo(3): rhi(3),3)
+
+    integer i, j, k, n, nq, ipassive    
     
     double precision rrr, rur, rvr, rwr, rer, ekenr, rhoekenr
     double precision rrl, rul, rvl, rwl, rel, ekenl, rhoekenl
@@ -1813,8 +1801,6 @@ contains
     double precision uxavm, gexavm, dgexm, uyavm, geyavm, dgeym
     double precision compr, compl, compnr, compnl
     
-    integer ipassive
-
     type (eos_t) :: eos_state
 
     !-------------------------------------------------------------------------    
@@ -1825,108 +1811,113 @@ contains
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
-       do j = jlo, jhi
-          do i = ilo, ihi
-             
-             rrr = qp(i,j,kc,QRHO)
-             rrl = qm(i,j,kc,QRHO)
-             
-             compr = rrr*qp(i,j,kc,nq)
-             compl = rrl*qm(i,j,kc,nq)
-             
-             rrnewr = rrr - cdtdx*(fxy(i+1,j,kc,URHO) - fxy(i,j,kc,URHO)) &
-                          - cdtdy*(fyx(i,j+1,kc,URHO) - fyx(i,j,kc,URHO))
-             rrnewl = rrl - cdtdx*(fxy(i+1,j,km,URHO) - fxy(i,j,km,URHO)) &
-                          - cdtdy*(fyx(i,j+1,km,URHO) - fyx(i,j,km,URHO))
 
-             compnr = compr - cdtdx*(fxy(i+1,j,kc,n) - fxy(i,j,kc,n)) &
-                            - cdtdy*(fyx(i,j+1,kc,n) - fyx(i,j,kc,n))
-             compnl = compl - cdtdx*(fxy(i+1,j,km,n) - fxy(i,j,km,n)) &
-                            - cdtdy*(fyx(i,j+1,km,n) - fyx(i,j,km,n))
-             
-             qpo(i,j,kc,nq) = compnr/rrnewr + hdt*srcQ(i,j,k3d  ,nq)
-             qmo(i,j,kc,nq) = compnl/rrnewl + hdt*srcQ(i,j,k3d-1,nq)
-             
+       do    k = lo(3), hi(3)+1
+          do j = lo(2), hi(2) 
+          do i = lo(1), hi(1)
+             rrr = qp(i,j,k,QRHO)
+             compr = rrr*qp(i,j,k,nq)
+             rrnewr = rrr - hdtdx*(fxy(i+1,j,k,URHO) - fxy(i,j,k,URHO)) &
+                          - hdtdy*(fyx(i,j+1,k,URHO) - fyx(i,j,k,URHO))
+             compnr = compr - hdtdx*(fxy(i+1,j,k,n) - fxy(i,j,k,n)) &
+                            - hdtdy*(fyx(i,j+1,k,n) - fyx(i,j,k,n))
+             qpo(i,j,k,nq) = compnr/rrnewr + hdt*srcQ(i,j,k,nq)
+          end do
+          end do
+       end do
+
+       do    k = lo(3)-1, hi(3)
+          do j = lo(2)  , hi(2) 
+          do i = lo(1)  , hi(1)
+             rrl = qm(i,j,k+1,QRHO)
+             compl = rrl*qm(i,j,k+1,nq)
+             rrnewl = rrl - hdtdx*(fxy(i+1,j,k,URHO) - fxy(i,j,k,URHO)) &
+                          - hdtdy*(fyx(i,j+1,k,URHO) - fyx(i,j,k,URHO))
+             compnl = compl - hdtdx*(fxy(i+1,j,k,n) - fxy(i,j,k,n)) &
+                            - hdtdy*(fyx(i,j+1,k,n) - fyx(i,j,k,n))
+             qmo(i,j,k+1,nq) = compnl/rrnewl + hdt*srcQ(i,j,k,nq)
+          enddo
           enddo
        enddo
     enddo
 
-    do j = jlo, jhi 
-       do i = ilo, ihi 
+    do    k = lo(3)-1, hi(3)+1
+       do j = lo(2)  , hi(2) 
+       do i = lo(1)  , hi(1)
 
           !-------------------------------------------------------------------
           ! add the transverse xy and yx differences to the z-states for the
           ! fluid variables
           !-------------------------------------------------------------------          
 
-          pgxp = pgdnvx(i+1,j,kc)
-          pgxm = pgdnvx(i,j,kc)
-          ugxp = ugdnvx(i+1,j,kc)          
-          ugxm = ugdnvx(i,j,kc)
-          gegxp = gegdnvx(i+1,j,kc)          
-          gegxm = gegdnvx(i,j,kc)
+          pgxp = pgdnvx(i+1,j,k)
+          pgxm = pgdnvx(i,j,k)
+          ugxp = ugdnvx(i+1,j,k)          
+          ugxm = ugdnvx(i,j,k)
+          gegxp = gegdnvx(i+1,j,k)          
+          gegxm = gegdnvx(i,j,k)
           
-          pgyp = pgdnvy(i,j+1,kc)
-          pgym = pgdnvy(i,j,kc)
-          ugyp = ugdnvy(i,j+1,kc)
-          ugym = ugdnvy(i,j,kc)
-          gegyp = gegdnvy(i,j+1,kc)
-          gegym = gegdnvy(i,j,kc)
+          pgyp = pgdnvy(i,j+1,k)
+          pgym = pgdnvy(i,j,k)
+          ugyp = ugdnvy(i,j+1,k)
+          ugym = ugdnvy(i,j,k)
+          gegyp = gegdnvy(i,j+1,k)
+          gegym = gegdnvy(i,j,k)
           
-          pgxpm = pgdnvx(i+1,j,km)
-          pgxmm = pgdnvx(i,j,km)
-          ugxpm = ugdnvx(i+1,j,km)
-          ugxmm = ugdnvx(i,j,km)
-          gegxpm = gegdnvx(i+1,j,km)
-          gegxmm = gegdnvx(i,j,km)
+          pgxpm = pgdnvx(i+1,j,k)
+          pgxmm = pgdnvx(i,j,k)
+          ugxpm = ugdnvx(i+1,j,k)
+          ugxmm = ugdnvx(i,j,k)
+          gegxpm = gegdnvx(i+1,j,k)
+          gegxmm = gegdnvx(i,j,k)
           
-          pgypm = pgdnvy(i,j+1,km)
-          pgymm = pgdnvy(i,j,km)
-          ugypm = ugdnvy(i,j+1,km)
-          ugymm = ugdnvy(i,j,km)
-          gegypm = gegdnvy(i,j+1,km)
-          gegymm = gegdnvy(i,j,km)
+          pgypm = pgdnvy(i,j+1,k)
+          pgymm = pgdnvy(i,j,k)
+          ugypm = ugdnvy(i,j+1,k)
+          ugymm = ugdnvy(i,j,k)
+          gegypm = gegdnvy(i,j+1,k)
+          gegymm = gegdnvy(i,j,k)
           
           ! Convert to conservation form
-          rrr = qp(i,j,kc,QRHO)
-          rur = rrr*qp(i,j,kc,QU)
-          rvr = rrr*qp(i,j,kc,QV)
-          rwr = rrr*qp(i,j,kc,QW)
-          ekenr = HALF*rrr*(qp(i,j,kc,QU)**2 + qp(i,j,kc,QV)**2 + &
-               qp(i,j,kc,QW)**2)
-          rer = qp(i,j,kc,QREINT) + ekenr
+          rrr = qp(i,j,k,QRHO)
+          rur = rrr*qp(i,j,k,QU)
+          rvr = rrr*qp(i,j,k,QV)
+          rwr = rrr*qp(i,j,k,QW)
+          ekenr = HALF*rrr*(qp(i,j,k,QU)**2 + qp(i,j,k,QV)**2 + &
+               qp(i,j,k,QW)**2)
+          rer = qp(i,j,k,QREINT) + ekenr
           
-          rrl = qm(i,j,kc,QRHO)
-          rul = rrl*qm(i,j,kc,QU)
-          rvl = rrl*qm(i,j,kc,QV)
-          rwl = rrl*qm(i,j,kc,QW)
-          ekenl = HALF*rrl*(qm(i,j,kc,QU)**2 + qm(i,j,kc,QV)**2 + &
-               qm(i,j,kc,QW)**2)
-          rel = qm(i,j,kc,QREINT) + ekenl
+          rrl = qm(i,j,k+1,QRHO)
+          rul = rrl*qm(i,j,k+1,QU)
+          rvl = rrl*qm(i,j,k+1,QV)
+          rwl = rrl*qm(i,j,k+1,QW)
+          ekenl = HALF*rrl*(qm(i,j,k+1,QU)**2 + qm(i,j,k+1,QV)**2 + &
+               qm(i,j,k+1,QW)**2)
+          rel = qm(i,j,k+1,QREINT) + ekenl
           
           ! Add transverse predictor
-          rrnewr = rrr - cdtdx*(fxy(i+1,j,kc,URHO) - fxy(i,j,kc,URHO)) &
-                       - cdtdy*(fyx(i,j+1,kc,URHO) - fyx(i,j,kc,URHO))
-          runewr = rur - cdtdx*(fxy(i+1,j,kc,UMX) - fxy(i,j,kc,UMX)) &
-                       - cdtdy*(fyx(i,j+1,kc,UMX) - fyx(i,j,kc,UMX))
-          rvnewr = rvr - cdtdx*(fxy(i+1,j,kc,UMY) - fxy(i,j,kc,UMY)) &
-                       - cdtdy*(fyx(i,j+1,kc,UMY) - fyx(i,j,kc,UMY))
-          rwnewr = rwr - cdtdx*(fxy(i+1,j,kc,UMZ) - fxy(i,j,kc,UMZ)) &
-                       - cdtdy*(fyx(i,j+1,kc,UMZ) - fyx(i,j,kc,UMZ))
-          renewr = rer - cdtdx*(fxy(i+1,j,kc,UEDEN) - fxy(i,j,kc,UEDEN)) &
-                       - cdtdy*(fyx(i,j+1,kc,UEDEN) - fyx(i,j,kc,UEDEN))
+          rrnewr = rrr - hdtdx*(fxy(i+1,j,k,URHO) - fxy(i,j,k,URHO)) &
+                       - hdtdy*(fyx(i,j+1,k,URHO) - fyx(i,j,k,URHO))
+          runewr = rur - hdtdx*(fxy(i+1,j,k,UMX) - fxy(i,j,k,UMX)) &
+                       - hdtdy*(fyx(i,j+1,k,UMX) - fyx(i,j,k,UMX))
+          rvnewr = rvr - hdtdx*(fxy(i+1,j,k,UMY) - fxy(i,j,k,UMY)) &
+                       - hdtdy*(fyx(i,j+1,k,UMY) - fyx(i,j,k,UMY))
+          rwnewr = rwr - hdtdx*(fxy(i+1,j,k,UMZ) - fxy(i,j,k,UMZ)) &
+                       - hdtdy*(fyx(i,j+1,k,UMZ) - fyx(i,j,k,UMZ))
+          renewr = rer - hdtdx*(fxy(i+1,j,k,UEDEN) - fxy(i,j,k,UEDEN)) &
+                       - hdtdy*(fyx(i,j+1,k,UEDEN) - fyx(i,j,k,UEDEN))
 
 
-          rrnewl = rrl - cdtdx*(fxy(i+1,j,km,URHO) - fxy(i,j,km,URHO)) &
-                       - cdtdy*(fyx(i,j+1,km,URHO) - fyx(i,j,km,URHO))
-          runewl = rul - cdtdx*(fxy(i+1,j,km,UMX) - fxy(i,j,km,UMX)) &
-                       - cdtdy*(fyx(i,j+1,km,UMX) - fyx(i,j,km,UMX))
-          rvnewl = rvl - cdtdx*(fxy(i+1,j,km,UMY) - fxy(i,j,km,UMY)) &
-                       - cdtdy*(fyx(i,j+1,km,UMY) - fyx(i,j,km,UMY))
-          rwnewl = rwl - cdtdx*(fxy(i+1,j,km,UMZ) - fxy(i,j,km,UMZ)) &
-                       - cdtdy*(fyx(i,j+1,km,UMZ) - fyx(i,j,km,UMZ))
-          renewl = rel - cdtdx*(fxy(i+1,j,km,UEDEN) - fxy(i,j,km,UEDEN)) &
-                       - cdtdy*(fyx(i,j+1,km,UEDEN) - fyx(i,j,km,UEDEN))
+          rrnewl = rrl - hdtdx*(fxy(i+1,j,k,URHO) - fxy(i,j,k,URHO)) &
+                       - hdtdy*(fyx(i,j+1,k,URHO) - fyx(i,j,k,URHO))
+          runewl = rul - hdtdx*(fxy(i+1,j,k,UMX) - fxy(i,j,k,UMX)) &
+                       - hdtdy*(fyx(i,j+1,k,UMX) - fyx(i,j,k,UMX))
+          rvnewl = rvl - hdtdx*(fxy(i+1,j,k,UMY) - fxy(i,j,k,UMY)) &
+                       - hdtdy*(fyx(i,j+1,k,UMY) - fyx(i,j,k,UMY))
+          rwnewl = rwl - hdtdx*(fxy(i+1,j,k,UMZ) - fxy(i,j,k,UMZ)) &
+                       - hdtdy*(fyx(i,j+1,k,UMZ) - fyx(i,j,k,UMZ))
+          renewl = rel - hdtdx*(fxy(i+1,j,k,UEDEN) - fxy(i,j,k,UEDEN)) &
+                       - hdtdy*(fyx(i,j+1,k,UEDEN) - fyx(i,j,k,UEDEN))
 
           ! Reset to original value if adding transverse terms made density negative
           if (transverse_reset_density == 1) then
@@ -1955,8 +1946,8 @@ contains
           gexav = HALF*(gegxp+gegxm)
           dux = ugxp-ugxm
           dgex = gegxp-gegxm
-          pxnew = cdtdx*(duxp + pxav*dux*(gamc(i,j,k3d)-ONE))
-          gexnew = cdtdx*( (gexav-ONE)*(gexav-gamc(i,j,k3d))*dux - uxav*dgex )
+          pxnew = hdtdx*(duxp + pxav*dux*(gamc(i,j,k)-ONE))
+          gexnew = hdtdx*( (gexav-ONE)*(gexav-gamc(i,j,k))*dux - uxav*dgex )
 
           duxpm = pgxpm*ugxpm - pgxmm*ugxmm
           pxavm = HALF*(pgxpm+pgxmm)
@@ -1964,8 +1955,8 @@ contains
           gexavm = HALF*(gegxpm+gegxmm)
           duxm = ugxpm-ugxmm
           dgexm = gegxpm-gegxmm
-          pxnewm = cdtdx*(duxpm + pxavm*duxm*(gamc(i,j,k3d-1)-ONE))
-          gexnewm = cdtdx*( (gexavm-ONE)*(gexavm-gamc(i,j,k3d-1))*duxm - uxavm*dgexm )
+          pxnewm = hdtdx*(duxpm + pxavm*duxm*(gamc(i,j,k)-ONE))
+          gexnewm = hdtdx*( (gexavm-ONE)*(gexavm-gamc(i,j,k))*duxm - uxavm*dgexm )
           
           duyp = pgyp*ugyp - pgym*ugym
           pyav = HALF*(pgyp+pgym)
@@ -1973,8 +1964,8 @@ contains
           geyav = HALF*(gegyp+gegym)
           duy = ugyp-ugym
           dgey = gegyp-gegym
-          pynew = cdtdy*(duyp + pyav*duy*(gamc(i,j,k3d)-ONE))
-          geynew = cdtdy*( (geyav-ONE)*(geyav-gamc(i,j,k3d))*duy - uyav*dgey )
+          pynew = hdtdy*(duyp + pyav*duy*(gamc(i,j,k)-ONE))
+          geynew = hdtdy*( (geyav-ONE)*(geyav-gamc(i,j,k))*duy - uyav*dgey )
 
           duypm = pgypm*ugypm - pgymm*ugymm
           pyavm = HALF*(pgypm+pgymm)
@@ -1982,8 +1973,8 @@ contains
           geyavm = HALF*(gegypm+gegymm)
           duym = ugypm-ugymm
           dgeym = gegypm-gegymm
-          pynewm = cdtdy*(duypm + pyavm*duym*(gamc(i,j,k3d-1)-ONE))
-          geynewm = cdtdy*( (geyavm-ONE)*(geyavm-gamc(i,j,k3d-1))*duym - uyavm*dgeym )
+          pynewm = hdtdy*(duypm + pyavm*duym*(gamc(i,j,k)-ONE))
+          geynewm = hdtdy*( (geyavm-ONE)*(geyavm-gamc(i,j,k))*duym - uyavm*dgeym )
 
 
           !-------------------------------------------------------------------
@@ -1991,34 +1982,34 @@ contains
           !-------------------------------------------------------------------          
           
           ! Convert back to primitive form
-          qpo(i,j,kc,QRHO  ) = rrnewr        + hdt*srcQ(i,j,k3d,QRHO)
-          qpo(i,j,kc,QU    ) = runewr/rrnewr + hdt*srcQ(i,j,k3d,QU) 
-          qpo(i,j,kc,QV    ) = rvnewr/rrnewr + hdt*srcQ(i,j,k3d,QV) 
-          qpo(i,j,kc,QW    ) = rwnewr/rrnewr + hdt*srcQ(i,j,k3d,QW) 
+          qpo(i,j,k,QRHO  ) = rrnewr        + hdt*srcQ(i,j,k,QRHO)
+          qpo(i,j,k,QU    ) = runewr/rrnewr + hdt*srcQ(i,j,k,QU) 
+          qpo(i,j,k,QV    ) = rvnewr/rrnewr + hdt*srcQ(i,j,k,QV) 
+          qpo(i,j,k,QW    ) = rwnewr/rrnewr + hdt*srcQ(i,j,k,QW) 
 
           ! note: we run the risk of (rho e) being negative here
-          qpo(i,j,kc,QREINT) = renewr - rhoekenr + hdt*srcQ(i,j,k3d,QREINT)
+          qpo(i,j,k,QREINT) = renewr - rhoekenr + hdt*srcQ(i,j,k,QREINT)
 
           if (transverse_reset_rhoe == 1) then
              ! If it is negative, reset the internal energy by using the discretized
              ! expression for updating (rho e).
              
-             if (qpo(i,j,kc,QREINT) .le. ZERO) then
-                qpo(i,j,kc,QREINT) = qp(i,j,kc,QREINT) &
-                     - cdtdx*(fxy(i+1,j,kc,UEINT) - fxy(i,j,kc,UEINT) + pxav*dux) &
-                     - cdtdy*(fyx(i,j+1,kc,UEINT) - fyx(i,j,kc,UEINT) + pyav*duy) &
-                     + hdt*srcQ(i,j,k3d,QREINT)
+             if (qpo(i,j,k,QREINT) .le. ZERO) then
+                qpo(i,j,k,QREINT) = qp(i,j,k,QREINT) &
+                     - hdtdx*(fxy(i+1,j,k,UEINT) - fxy(i,j,k,UEINT) + pxav*dux) &
+                     - hdtdy*(fyx(i,j+1,k,UEINT) - fyx(i,j,k,UEINT) + pyav*duy) &
+                     + hdt*srcQ(i,j,k,QREINT)
                 
                 ! if we are still negative, then we need to reset
-                if (qpo(i,j,kc,QREINT) < ZERO) then
-                   eos_state % rho = qpo(i,j,kc,QRHO)
+                if (qpo(i,j,k,QREINT) < ZERO) then
+                   eos_state % rho = qpo(i,j,k,QRHO)
                    eos_state % T = small_temp
-                   eos_state % xn(:) = qpo(i,j,kc,QFS:QFS-1+nspec)
+                   eos_state % xn(:) = qpo(i,j,k,QFS:QFS-1+nspec)
                    
                    call eos(eos_input_rt, eos_state)
                    
-                   qpo(i,j,kc,QREINT) = qpo(i,j,kc,QRHO)*eos_state % e
-                   qpo(i,j,kc,QPRES) = eos_state % p
+                   qpo(i,j,k,QREINT) = qpo(i,j,k,QRHO)*eos_state % e
+                   qpo(i,j,k,QPRES) = eos_state % p
                 endif
              endif
           endif
@@ -2027,32 +2018,32 @@ contains
              ! Optionally, use the EOS to calculate the pressure.
 
              if (transverse_use_eos .eq. 1) then
-                eos_state % rho = qpo(i,j,kc,QRHO)
-                eos_state % e   = qpo(i,j,kc,QREINT) / qpo(i,j,kc,QRHO)
+                eos_state % rho = qpo(i,j,k,QRHO)
+                eos_state % e   = qpo(i,j,k,QREINT) / qpo(i,j,k,QRHO)
                 eos_state % T   = small_temp
-                eos_state % xn  = qpo(i,j,kc,QFS:QFS+nspec-1)
+                eos_state % xn  = qpo(i,j,k,QFS:QFS+nspec-1)
                 
                 call eos(eos_input_re, eos_state)
 
                 pnewr = eos_state % p
-                qpo(i,j,kc,QPRES ) = pnewr
-                qpo(i,j,kc,QREINT) = eos_state % e * eos_state % rho    
+                qpo(i,j,k,QPRES ) = pnewr
+                qpo(i,j,k,QREINT) = eos_state % e * eos_state % rho    
              else
                 ! add the transverse term to the p evolution eq here
-                pnewr = qp(i,j,kc,QPRES) - pxnew - pynew
-                qpo(i,j,kc,QPRES) = pnewr + hdt*srcQ(i,j,k3d,QPRES)
+                pnewr = qp(i,j,k,QPRES) - pxnew - pynew
+                qpo(i,j,k,QPRES) = pnewr + hdt*srcQ(i,j,k,QPRES)
              endif
 
-             qpo(i,j,kc,QPRES) = max(qpo(i,j,kc,QPRES),small_pres)
+             qpo(i,j,k,QPRES) = max(qpo(i,j,k,QPRES),small_pres)
 
           else
              
              ! Update gammae with its transverse terms
-             qpo(i,j,kc,QGAME) = qp(i,j,kc,QGAME) + gexnew + geynew
+             qpo(i,j,k,QGAME) = qp(i,j,k,QGAME) + gexnew + geynew
 
              ! and compute the p edge state from this and (rho e)
-             qpo(i,j,kc,QPRES) = qpo(i,j,kc,QREINT)*(qpo(i,j,kc,QGAME)-ONE)
-             qpo(i,j,kc,QPRES) = max(qpo(i,j,kc,QPRES), small_pres)
+             qpo(i,j,k,QPRES) = qpo(i,j,k,QREINT)*(qpo(i,j,k,QGAME)-ONE)
+             qpo(i,j,k,QPRES) = max(qpo(i,j,k,QPRES), small_pres)
 
           endif
 
@@ -2061,34 +2052,34 @@ contains
           ! qzmo state
           !-------------------------------------------------------------------          
 
-          qmo(i,j,kc,QRHO  ) = rrnewl        + hdt*srcQ(i,j,k3d-1,QRHO)
-          qmo(i,j,kc,QU    ) = runewl/rrnewl + hdt*srcQ(i,j,k3d-1,QU)
-          qmo(i,j,kc,QV    ) = rvnewl/rrnewl + hdt*srcQ(i,j,k3d-1,QV)
-          qmo(i,j,kc,QW    ) = rwnewl/rrnewl + hdt*srcQ(i,j,k3d-1,QW)
+          qmo(i,j,k+1,QRHO  ) = rrnewl        + hdt*srcQ(i,j,k,QRHO)
+          qmo(i,j,k+1,QU    ) = runewl/rrnewl + hdt*srcQ(i,j,k,QU)
+          qmo(i,j,k+1,QV    ) = rvnewl/rrnewl + hdt*srcQ(i,j,k,QV)
+          qmo(i,j,k+1,QW    ) = rwnewl/rrnewl + hdt*srcQ(i,j,k,QW)
 
           ! note: we run the risk of (rho e) being negative here
-          qmo(i,j,kc,QREINT) = renewl - rhoekenl + hdt*srcQ(i,j,k3d-1,QREINT)
+          qmo(i,j,k+1,QREINT) = renewl - rhoekenl + hdt*srcQ(i,j,k,QREINT)
 
           if (transverse_reset_rhoe == 1) then
              ! If it is negative, reset the internal energy by using the discretized
              ! expression for updating (rho e).
              
-             if (qmo(i,j,kc,QREINT) .le. ZERO) then
-                qmo(i,j,kc,QREINT) = qm(i,j,kc,QREINT) &
-                     - cdtdx*(fxy(i+1,j,km,UEINT) - fxy(i,j,km,UEINT) + pxavm*duxm) &
-                     - cdtdy*(fyx(i,j+1,km,UEINT) - fyx(i,j,km,UEINT) + pyavm*duym) &
-                     + hdt*srcQ(i,j,k3d-1,QREINT)
+             if (qmo(i,j,k+1,QREINT) .le. ZERO) then
+                qmo(i,j,k+1,QREINT) = qm(i,j,k+1,QREINT) &
+                     - hdtdx*(fxy(i+1,j,k,UEINT) - fxy(i,j,k,UEINT) + pxavm*duxm) &
+                     - hdtdy*(fyx(i,j+1,k,UEINT) - fyx(i,j,k,UEINT) + pyavm*duym) &
+                     + hdt*srcQ(i,j,k,QREINT)
                 
                 ! if we are still negative, then we need to reset
-                if (qmo(i,j,kc,QREINT) < ZERO) then
-                   eos_state % rho = qmo(i,j,kc,QRHO)
+                if (qmo(i,j,k+1,QREINT) < ZERO) then
+                   eos_state % rho = qmo(i,j,k+1,QRHO)
                    eos_state % T = small_temp
-                   eos_state % xn(:) = qmo(i,j,kc,QFS:QFS-1+nspec)
+                   eos_state % xn(:) = qmo(i,j,k+1,QFS:QFS-1+nspec)
                    
                    call eos(eos_input_rt, eos_state)
                    
-                   qmo(i,j,kc,QREINT) = qmo(i,j,kc,QRHO)*eos_state % e
-                   qmo(i,j,kc,QPRES) = eos_state % p
+                   qmo(i,j,k+1,QREINT) = qmo(i,j,k+1,QRHO)*eos_state % e
+                   qmo(i,j,k+1,QPRES) = eos_state % p
                 endif
              endif
           endif
@@ -2098,35 +2089,36 @@ contains
              ! Optionally, use the EOS to calculate the pressure.
 
              if (transverse_use_eos .eq. 1) then
-                eos_state % rho = qmo(i,j,kc,QRHO)
-                eos_state % e   = qmo(i,j,kc,QREINT) / qmo(i,j,kc,QRHO)
+                eos_state % rho = qmo(i,j,k+1,QRHO)
+                eos_state % e   = qmo(i,j,k+1,QREINT) / qmo(i,j,k+1,QRHO)
                 eos_state % T   = small_temp
-                eos_state % xn  = qmo(i,j,kc,QFS:QFS+nspec-1)
+                eos_state % xn  = qmo(i,j,k+1,QFS:QFS+nspec-1)
                 
                 call eos(eos_input_re, eos_state)
 
                 pnewl = eos_state % p
-                qmo(i,j,kc,QPRES ) = pnewl
-                qmo(i,j,kc,QREINT) = eos_state % e * eos_state % rho
+                qmo(i,j,k+1,QPRES ) = pnewl
+                qmo(i,j,k+1,QREINT) = eos_state % e * eos_state % rho
              else
                 ! add the transverse term to the p evolution eq here
-                pnewl = qm(i,j,kc,QPRES) - pxnewm - pynewm
-                qmo(i,j,kc,QPRES) = pnewl + hdt*srcQ(i,j,k3d-1,QPRES)
+                pnewl = qm(i,j,k+1,QPRES) - pxnewm - pynewm
+                qmo(i,j,k+1,QPRES) = pnewl + hdt*srcQ(i,j,k,QPRES)
              endif
 
-             qmo(i,j,kc,QPRES) = max(qmo(i,j,kc,QPRES),small_pres)
+             qmo(i,j,k+1,QPRES) = max(qmo(i,j,k+1,QPRES),small_pres)
           
           else
 
              ! Update gammae with its transverse terms
-             qmo(i,j,kc,QGAME) = qm(i,j,kc,QGAME) + gexnewm + geynewm
+             qmo(i,j,k+1,QGAME) = qm(i,j,k+1,QGAME) + gexnewm + geynewm
                  
              ! and compute the p edge state from this and (rho e)
-             qmo(i,j,kc,QPRES) = qmo(i,j,kc,QREINT)*(qmo(i,j,kc,QGAME)-ONE)
-             qmo(i,j,kc,QPRES) = max(qmo(i,j,kc,QPRES), small_pres)
+             qmo(i,j,k+1,QPRES) = qmo(i,j,k+1,QREINT)*(qmo(i,j,k+1,QGAME)-ONE)
+             qmo(i,j,k+1,QPRES) = max(qmo(i,j,k+1,QPRES), small_pres)
 
           endif
 
+       enddo
        enddo
     enddo
 
@@ -2134,15 +2126,23 @@ contains
     ! if ppm_trace_grav == 1, then we already added the piecewise parabolic traced
     ! gravity to the normal edge states
     if ((do_grav .eq. 1) .and. (ppm_trace_grav == 0 .or. ppm_type == 0)) then
-       do j = jlo, jhi 
-          do i = ilo, ihi          
-             qpo(i,j,kc,QU    ) = qpo(i,j,kc,QU    ) + hdt*grav(i,j,k3d,1)
-             qpo(i,j,kc,QV    ) = qpo(i,j,kc,QV    ) + hdt*grav(i,j,k3d,2)
-             qpo(i,j,kc,QW    ) = qpo(i,j,kc,QW    ) + hdt*grav(i,j,k3d,3)
-             
-             qmo(i,j,kc,QU    ) = qmo(i,j,kc,QU    ) + hdt*grav(i,j,k3d-1,1)
-             qmo(i,j,kc,QV    ) = qmo(i,j,kc,QV    ) + hdt*grav(i,j,k3d-1,2)
-             qmo(i,j,kc,QW    ) = qmo(i,j,kc,QW    ) + hdt*grav(i,j,k3d-1,3)
+       do    k = lo(3), hi(3)+1
+          do j = lo(2), hi(2) 
+          do i = lo(1), hi(1)
+             qpo(i,j,k,QU    ) = qpo(i,j,k,QU    ) + hdt*grav(i,j,k,1)
+             qpo(i,j,k,QV    ) = qpo(i,j,k,QV    ) + hdt*grav(i,j,k,2)
+             qpo(i,j,k,QW    ) = qpo(i,j,k,QW    ) + hdt*grav(i,j,k,3)
+          end do
+          end do
+       end do
+
+       do    k = lo(3)-1, hi(3)
+          do j = lo(2)  , hi(2) 
+          do i = lo(1)  , hi(1)             
+             qmo(i,j,k+1,QU    ) = qmo(i,j,k+1,QU    ) + hdt*grav(i,j,k,1)
+             qmo(i,j,k+1,QV    ) = qmo(i,j,k+1,QV    ) + hdt*grav(i,j,k,2)
+             qmo(i,j,k+1,QW    ) = qmo(i,j,k+1,QW    ) + hdt*grav(i,j,k,3)
+          enddo
           enddo
        enddo
     endif
@@ -2150,15 +2150,23 @@ contains
     ! if ppm_trace_rot == 1, then we already added the piecewise parabolic traced
     ! rotation to the normal edge states
     if ((do_rotation .eq. 1) .and. (ppm_trace_rot == 0 .or. ppm_type == 0)) then
-       do j = jlo, jhi
-          do i = ilo, ihi
-             qpo(i,j,kc,QU    ) = qpo(i,j,kc,QU    ) + hdt*rot(i,j,k3d,1)
-             qpo(i,j,kc,QV    ) = qpo(i,j,kc,QV    ) + hdt*rot(i,j,k3d,2)
-             qpo(i,j,kc,QW    ) = qpo(i,j,kc,QW    ) + hdt*rot(i,j,k3d,3)
+       do    k = lo(3), hi(3)+1
+          do j = lo(2), hi(2) 
+          do i = lo(1), hi(1)
+             qpo(i,j,k,QU    ) = qpo(i,j,k,QU    ) + hdt*rot(i,j,k,1)
+             qpo(i,j,k,QV    ) = qpo(i,j,k,QV    ) + hdt*rot(i,j,k,2)
+             qpo(i,j,k,QW    ) = qpo(i,j,k,QW    ) + hdt*rot(i,j,k,3)
+          end do
+          end do
+       end do
 
-             qmo(i,j,kc,QU    ) = qmo(i,j,kc,QU    ) + hdt*rot(i,j,k3d-1,1)
-             qmo(i,j,kc,QV    ) = qmo(i,j,kc,QV    ) + hdt*rot(i,j,k3d-1,2)
-             qmo(i,j,kc,QW    ) = qmo(i,j,kc,QW    ) + hdt*rot(i,j,k3d-1,3)
+       do    k = lo(3)-1, hi(3)
+          do j = lo(2)  , hi(2) 
+          do i = lo(1)  , hi(1)
+             qmo(i,j,k+1,QU    ) = qmo(i,j,k+1,QU    ) + hdt*rot(i,j,k,1)
+             qmo(i,j,k+1,QV    ) = qmo(i,j,k+1,QV    ) + hdt*rot(i,j,k,2)
+             qmo(i,j,k+1,QW    ) = qmo(i,j,k+1,QW    ) + hdt*rot(i,j,k,3)
+          enddo
           enddo
        enddo
     endif

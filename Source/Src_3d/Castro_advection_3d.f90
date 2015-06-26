@@ -660,14 +660,14 @@ contains
     !         gamc, grav, rot                 : +-4
     !         srcQ                            : +-1
     ! Outputs: qzl, qzr                       : zface, +-0 at x & y
-!    call transxy(qzm,qzl,qzp,qzr, fglo, fghi, &
-!                 fxy, fyx, glo, ghi, &
-!                 ugdnvxy,pgdnvxy,gegdnvxy,ugdnvyx,pgdnvyx,gegdnvyx, fglo, fghi, &
-!                 gamc, qlo, qhi, &
-!                 srcQ, slo, shi, &
-!                 grav, gvlo, gvhi, &
-!                 rot, rlo, rhi, &
-!                 hdt,hdtdx,hdtdy,lo,hi)
+    call transxy(qzm,qzl,qzp,qzr, fglo, fghi, &
+                 fxy, fyx, glo, ghi, &
+                 ugdnvxy,pgdnvxy,gegdnvxy,ugdnvyx,pgdnvyx,gegdnvyx, fglo, fghi, &
+                 gamc, qlo, qhi, &
+                 srcQ, slo, shi, &
+                 grav, gvlo, gvhi, &
+                 rot, rlo, rhi, &
+                 hdt,hdtdx,hdtdy,lo,hi)
 
     nullify(fxy, ugdnvxy, pgdnvxy, gegdnvxy)
     nullify(fyx, ugdnvyx, pgdnvyx, gegdnvyx)
