@@ -404,7 +404,6 @@ contains
     !         gamc                         : +-4
     ! Outputs: qmyx, qpyx                  : yface, +-1 at z
     !          qmzx, qpzx                  : zface, +-1 at y
-    !          
     call transx(qym,qmyx,qyp,qpyx, &
                 qzm,qmzx,qzp,qpzx, fglo, fghi, &
                 fx, glo, ghi, &
@@ -423,6 +422,19 @@ contains
                 shk, glo, ghi, &
                 2, (/lo(1)-1,lo(2),lo(3)-1/), hi+1, domlo, domhi)
 
+    ! Inputs: qxm, qxp                     : xface, +-1 at y & z
+    !         qzm, qzp                     : zface, +-1 at x & y
+    !         fy, ugdnvy, pgdnvy, gegdnvy  : yface, +-1 at x & z
+    !         gamc                         : +-4
+    ! Outputs: qmxy, qpxy                  : xface, +-1 at z
+    !          qmzy, qpzy                  : zface, +-1 at x
+    call transy(qxm,qmxy,qxp,qpxy, &
+                qzm,qmzy,qzp,qpzy, fglo, fghi, &
+                fy, glo, ghi, &
+                ugdnvy,pgdnvy,gegdnvy, fglo, fghi, &
+                gamc, qlo, qhi, &
+                cdtdy, lo, hi)
+
     ! Inputs: qzm, qzp                     : zface, +-1 at x & y
     !         gamc, csml, c                : +-4
     !         shk                          : +-1
@@ -433,6 +445,7 @@ contains
                 gamc,csml,c, qlo, qhi, &
                 shk, glo, ghi, &
                 3, (/lo(1)-1,lo(2)-1,lo(3)/), hi+1, domlo, domhi)
+
 
        
     !    ! Compute U'^y_x at kc (k3d)
