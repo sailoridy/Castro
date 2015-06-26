@@ -78,21 +78,20 @@ contains
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
 
-       do    k = lo(3)-1, hi(3)+1
-          do j = lo(2)  , hi(2)+1 
-          do i = lo(1)  , hi(1)             
-             rrnew = qyp(i,j,k,QRHO) - cdtdx*(fx(i+1,j,k,URHO) - fx(i,j,k,URHO))
-             compu = qyp(i,j,k,QRHO)*qyp(i,j,k,nq) - cdtdx*(fx(i+1,j,k,n) - fx(i,j,k,n))
-             qypo(i,j,k,nq) = compu/rrnew             
+       do       k = lo(3)-1, hi(3)+1
+          do    j = lo(2)  , hi(2)+1 
+             do i = lo(1)  , hi(1)             
+                rrnew = qyp(i,j,k,QRHO) - cdtdx*(fx(i+1,j,k,URHO) - fx(i,j,k,URHO))
+                compu = qyp(i,j,k,QRHO)*qyp(i,j,k,nq) - cdtdx*(fx(i+1,j,k,n) - fx(i,j,k,n))
+                qypo(i,j,k,nq) = compu/rrnew             
+             enddo
           enddo
-          enddo
-
-          do j = lo(2)-1, hi(2)
-          do i = lo(1)  , hi(1)
-             rrnew = qym(i,j+1,k,QRHO) - cdtdx*(fx(i+1,j,k,URHO) - fx(i,j,k,URHO))
-             compu = qym(i,j+1,k,QRHO)*qym(i,j+1,k,nq) - cdtdx*(fx(i+1,j,k,n) - fx(i,j,k,n))
-             qymo(i,j+1,k,nq) = compu/rrnew
-          enddo
+          do    j = lo(2)-1, hi(2)
+             do i = lo(1)  , hi(1)
+                rrnew = qym(i,j+1,k,QRHO) - cdtdx*(fx(i+1,j,k,URHO) - fx(i,j,k,URHO))
+                compu = qym(i,j+1,k,QRHO)*qym(i,j+1,k,nq) - cdtdx*(fx(i+1,j,k,n) - fx(i,j,k,n))
+                qymo(i,j+1,k,nq) = compu/rrnew
+             enddo
           enddo
        enddo
     enddo
@@ -102,82 +101,58 @@ contains
     ! for the fluid variables
     !-------------------------------------------------------------------
 
-    do    k = lo(3)-1, hi(3)+1
-       do j = lo(2)-1, hi(2)+1 
-       do i = lo(1)  , hi(1)             
-          
-          pgp = pgdnvx(i+1,j,k)
-          pgm = pgdnvx(i,j,k)
-          ugp = ugdnvx(i+1,j,k)
-          ugm = ugdnvx(i,j,k)
-          gegp = gegdnvx(i+1,j,k)
-          gegm = gegdnvx(i,j,k)
-          
-          ! Convert to conservation form
-          rrry = qyp(i,j,k,QRHO)
-          rury = rrry*qyp(i,j,k,QU)
-          rvry = rrry*qyp(i,j,k,QV)
-          rwry = rrry*qyp(i,j,k,QW)
-          ekenry = HALF*rrry* &
-               (qyp(i,j,k,QU)**2 + qyp(i,j,k,QV)**2 + qyp(i,j,k,QW)**2)
-          rery = qyp(i,j,k,QREINT) + ekenry
-          
-          rrly = qym(i,j+1,k,QRHO)
-          ruly = rrly*qym(i,j+1,k,QU)
-          rvly = rrly*qym(i,j+1,k,QV)
-          rwly = rrly*qym(i,j+1,k,QW)
-          ekenly = HALF*rrly* &
-               (qym(i,j+1,k,QU)**2 + qym(i,j+1,k,QV)**2 + qym(i,j+1,k,QW)**2)
-          rely = qym(i,j+1,k,QREINT) + ekenly
-          
-          ! Add transverse predictor
-          rrnewry = rrry - cdtdx*(fx(i+1,j,k,URHO) - fx(i,j,k,URHO))
-          runewry = rury - cdtdx*(fx(i+1,j,k,UMX) - fx(i,j,k,UMX))          
-          rvnewry = rvry - cdtdx*(fx(i+1,j,k,UMY) - fx(i,j,k,UMY))
-          rwnewry = rwry - cdtdx*(fx(i+1,j,k,UMZ) - fx(i,j,k,UMZ))
-          renewry = rery - cdtdx*(fx(i+1,j,k,UEDEN) - fx(i,j,k,UEDEN))
-          
-          rrnewly = rrly - cdtdx*(fx(i+1,j,k,URHO) - fx(i,j,k,URHO))
-          runewly = ruly - cdtdx*(fx(i+1,j,k,UMX) - fx(i,j,k,UMX))
-          rvnewly = rvly - cdtdx*(fx(i+1,j,k,UMY) - fx(i,j,k,UMY))
-          rwnewly = rwly - cdtdx*(fx(i+1,j,k,UMZ) - fx(i,j,k,UMZ))
-          renewly = rely - cdtdx*(fx(i+1,j,k,UEDEN) - fx(i,j,k,UEDEN))
+    do k = lo(3)-1, hi(3)+1
 
-          ! Reset to original value if adding transverse terms made density negative
-          if (transverse_reset_density == 1) then
-             if (rrnewry .lt. ZERO) then
+       !----------------------------------------------------------------
+       ! qypo state
+       !----------------------------------------------------------------
+
+       do    j = lo(2), hi(2)+1 
+          do i = lo(1), hi(1)             
+             
+             pgp  =  pgdnvx(i+1,j,k)
+             pgm  =  pgdnvx(i  ,j,k)
+             ugp  =  ugdnvx(i+1,j,k)
+             ugm  =  ugdnvx(i  ,j,k)
+             gegp = gegdnvx(i+1,j,k)
+             gegm = gegdnvx(i  ,j,k)
+
+             ! we need to augment our conserved system with either a p
+             ! equation or gammae (if we have ppm_predict_gammae = 1) to
+             ! be able to deal with the general EOS
+
+             dup = pgp*ugp - pgm*ugm
+             pav = HALF*(pgp+pgm)
+             uav = HALF*(ugp+ugm)
+             geav = HALF*(gegp+gegm)
+             du = ugp-ugm
+             dge = gegp-gegm
+          
+             ! Convert to conservation form
+             rrry = qyp(i,j,k,QRHO)
+             rury = rrry*qyp(i,j,k,QU)
+             rvry = rrry*qyp(i,j,k,QV)
+             rwry = rrry*qyp(i,j,k,QW)
+             ekenry = HALF*rrry*(qyp(i,j,k,QU)**2 + qyp(i,j,k,QV)**2 + qyp(i,j,k,QW)**2)
+             rery = qyp(i,j,k,QREINT) + ekenry
+          
+             ! Add transverse predictor
+             rrnewry = rrry - cdtdx*(fx(i+1,j,k,URHO ) - fx(i,j,k,URHO))
+             runewry = rury - cdtdx*(fx(i+1,j,k,UMX  ) - fx(i,j,k,UMX))          
+             rvnewry = rvry - cdtdx*(fx(i+1,j,k,UMY  ) - fx(i,j,k,UMY))
+             rwnewry = rwry - cdtdx*(fx(i+1,j,k,UMZ  ) - fx(i,j,k,UMZ))
+             renewry = rery - cdtdx*(fx(i+1,j,k,UEDEN) - fx(i,j,k,UEDEN))
+          
+             ! Reset to original value if adding transverse terms made density negative
+             if (transverse_reset_density == 1 .and. rrnewry .lt. ZERO) then
                 rrnewry = rrry
                 runewry = rury
                 rvnewry = rvry
                 rwnewry = rwry
                 renewry = rery
              endif
-             if (rrnewly .lt. ZERO) then
-                rrnewly = rrly 
-                runewly = ruly 
-                rvnewly = rvly 
-                rwnewly = rwly 
-                renewly = rely 
-             endif
-          endif
 
-          ! we need to augment our conserved system with either a p
-          ! equation or gammae (if we have ppm_predict_gammae = 1) to
-          ! be able to deal with the general EOS
-
-          dup = pgp*ugp - pgm*ugm
-          pav = HALF*(pgp+pgm)
-          uav = HALF*(ugp+ugm)
-          geav = HALF*(gegp+gegm)
-          du = ugp-ugm
-          dge = gegp-gegm
-
-          !----------------------------------------------------------------
-          ! qypo state
-          !----------------------------------------------------------------
-                    
-          ! Convert back to primitive form
-          if (j.ge.lo(2)) then
+             ! Convert back to primitive form
              qypo(i,j,k,QRHO) = rrnewry
              qypo(i,j,k,QU) = runewry/qypo(i,j,k,QRHO)
              qypo(i,j,k,QV) = rvnewry/qypo(i,j,k,QRHO)
@@ -241,14 +216,59 @@ contains
                 qypo(i,j,k,QPRES) = max(qypo(i,j,k,QPRES),small_pres)
              endif
 
-          endif
+          end do
+       end do
 
-          !-------------------------------------------------------------------   
-          ! qymo state
-          !-------------------------------------------------------------------
+       !-------------------------------------------------------------------   
+       ! qymo state
+       !-------------------------------------------------------------------
+       
+       do    j = lo(2), hi(2)+1 
+          do i = lo(1), hi(1)             
+             
+             pgp  =  pgdnvx(i+1,j,k)
+             pgm  =  pgdnvx(i  ,j,k)
+             ugp  =  ugdnvx(i+1,j,k)
+             ugm  =  ugdnvx(i  ,j,k)
+             gegp = gegdnvx(i+1,j,k)
+             gegm = gegdnvx(i  ,j,k)
 
-          ! Convert back to primitive form
-          if (j.le.hi(2)) then
+             ! we need to augment our conserved system with either a p
+             ! equation or gammae (if we have ppm_predict_gammae = 1) to
+             ! be able to deal with the general EOS
+
+             dup = pgp*ugp - pgm*ugm
+             pav = HALF*(pgp+pgm)
+             uav = HALF*(ugp+ugm)
+             geav = HALF*(gegp+gegm)
+             du = ugp-ugm
+             dge = gegp-gegm
+
+             ! Convert to conservation form
+             rrly = qym(i,j+1,k,QRHO)
+             ruly = rrly*qym(i,j+1,k,QU)
+             rvly = rrly*qym(i,j+1,k,QV)
+             rwly = rrly*qym(i,j+1,k,QW)
+             ekenly = HALF*rrly*(qym(i,j+1,k,QU)**2 + qym(i,j+1,k,QV)**2 + qym(i,j+1,k,QW)**2)
+             rely = qym(i,j+1,k,QREINT) + ekenly
+          
+             ! Add transverse predictor
+             rrnewly = rrly - cdtdx*(fx(i+1,j,k,URHO ) - fx(i,j,k,URHO))
+             runewly = ruly - cdtdx*(fx(i+1,j,k,UMX  ) - fx(i,j,k,UMX))
+             rvnewly = rvly - cdtdx*(fx(i+1,j,k,UMY  ) - fx(i,j,k,UMY))
+             rwnewly = rwly - cdtdx*(fx(i+1,j,k,UMZ  ) - fx(i,j,k,UMZ))
+             renewly = rely - cdtdx*(fx(i+1,j,k,UEDEN) - fx(i,j,k,UEDEN))
+
+             ! Reset to original value if adding transverse terms made density negative
+             if (transverse_reset_density == 1 .and. rrnewly .lt. ZERO) then
+                rrnewly = rrly 
+                runewly = ruly 
+                rvnewly = rvly 
+                rwnewly = rwly 
+                renewly = rely 
+             end if
+
+             ! Convert back to primitive form
              qymo(i,j+1,k,QRHO) = rrnewly
              qymo(i,j+1,k,QU) = runewly/qymo(i,j+1,k,QRHO)
              qymo(i,j+1,k,QV) = rvnewly/qymo(i,j+1,k,QRHO)
@@ -279,7 +299,6 @@ contains
                    endif
                 endif
              endif
-
 
              if (ppm_predict_gammae == 0) then
 
@@ -313,9 +332,7 @@ contains
 
              end if
           
-          endif
-
-       enddo
+          enddo
        enddo
     enddo
 
@@ -330,19 +347,19 @@ contains
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
 
-       do    k = lo(3)  , hi(3)+1
-          do j = lo(2)-1, hi(2)+1 
-          do i = lo(1)  , hi(1)             
-             rrnew = qzp(i,j,k,QRHO) - cdtdx*(fx(i+1,j,k,URHO) - fx(i,j,k,URHO))
-             compu = qzp(i,j,k,QRHO)*qzp(i,j,k,nq) - cdtdx*(fx(i+1,j,k,n) - fx(i,j,k,n))
-             qzpo(i,j,k,nq) = compu/rrnew             
-          enddo
+       do       k = lo(3)  , hi(3)+1
+          do    j = lo(2)-1, hi(2)+1 
+             do i = lo(1)  , hi(1)             
+                rrnew = qzp(i,j,k,QRHO) - cdtdx*(fx(i+1,j,k,URHO) - fx(i,j,k,URHO))
+                compu = qzp(i,j,k,QRHO)*qzp(i,j,k,nq) - cdtdx*(fx(i+1,j,k,n) - fx(i,j,k,n))
+                qzpo(i,j,k,nq) = compu/rrnew             
+             enddo
           enddo
        end do
-
-       do    k = lo(3)-1, hi(3)
-          do j = lo(2)-1, hi(2)+1
-          do i = lo(1)  , hi(1)
+       
+       do       k = lo(3)-1, hi(3)
+          do    j = lo(2)-1, hi(2)+1
+             do i = lo(1)  , hi(1)
              rrnew = qzm(i,j,k+1,QRHO) - cdtdx*(fx(i+1,j,k,URHO) - fx(i,j,k,URHO))
              compu = qzm(i,j,k+1,QRHO)*qzm(i,j,k+1,nq) - cdtdx*(fx(i+1,j,k,n) - fx(i,j,k,n))
              qzmo(i,j,k+1,nq) = compu/rrnew
@@ -355,241 +372,241 @@ contains
     ! add the transverse flux difference in the x-direction to z-states
     ! for the fluid variables
     !-------------------------------------------------------------------
+
+    !-------------------------------------------------------------------
+    ! qzpo state
+    !-------------------------------------------------------------------
     
-    do    k = lo(3)  , hi(3)+1
-       do j = lo(2)-1, hi(2)+1 
-       do i = lo(1)  , hi(1)             
+    do       k = lo(3)  , hi(3)+1
+       do    j = lo(2)-1, hi(2)+1 
+          do i = lo(1)  , hi(1)             
 
-          !-------------------------------------------------------------------
-          ! qzpo state
-          !-------------------------------------------------------------------
+             pgp = pgdnvx(i+1,j,k)
+             pgm = pgdnvx(i,j,k)
+             ugp = ugdnvx(i+1,j,k)
+             ugm = ugdnvx(i,j,k)
+             gegp = gegdnvx(i+1,j,k)
+             gegm = gegdnvx(i,j,k)
+             
+             ! we need to augment our conserved system with either a p
+             ! equation or gammae (if we have ppm_predict_gammae = 1) to
+             ! be able to deal with the general EOS
+             
+             dup = pgp*ugp - pgm*ugm
+             pav = HALF*(pgp+pgm)
+             uav = HALF*(ugp+ugm)
+             geav = HALF*(gegp+gegm)
+             du = ugp-ugm
+             dge = gegp-gegm
+             
+             ! Convert to conservation form
+             rrrz = qzp(i,j,k,QRHO)
+             rurz = rrrz*qzp(i,j,k,QU)
+             rvrz = rrrz*qzp(i,j,k,QV)
+             rwrz = rrrz*qzp(i,j,k,QW)
+             ekenrz = HALF*rrrz*(qzp(i,j,k,QU)**2 + qzp(i,j,k,QV)**2 + qzp(i,j,k,QW)**2)
+             rerz = qzp(i,j,k,QREINT) + ekenrz
+             
+             ! Add transverse predictor
+             rrnewrz = rrrz - cdtdx*(fx(i+1,j,k,URHO) - fx(i,j,k,URHO))
+             runewrz = rurz - cdtdx*(fx(i+1,j,k,UMX) - fx(i,j,k,UMX))
+             rvnewrz = rvrz - cdtdx*(fx(i+1,j,k,UMY) - fx(i,j,k,UMY))
+             rwnewrz = rwrz - cdtdx*(fx(i+1,j,k,UMZ) - fx(i,j,k,UMZ))
+             renewrz = rerz - cdtdx*(fx(i+1,j,k,UEDEN) - fx(i,j,k,UEDEN))
 
-          pgp = pgdnvx(i+1,j,k)
-          pgm = pgdnvx(i,j,k)
-          ugp = ugdnvx(i+1,j,k)
-          ugm = ugdnvx(i,j,k)
-          gegp = gegdnvx(i+1,j,k)
-          gegm = gegdnvx(i,j,k)
-          
-          ! Convert to conservation form
-          rrrz = qzp(i,j,k,QRHO)
-          rurz = rrrz*qzp(i,j,k,QU)
-          rvrz = rrrz*qzp(i,j,k,QV)
-          rwrz = rrrz*qzp(i,j,k,QW)
-          ekenrz = HALF*rrrz*(qzp(i,j,k,QU)**2 + qzp(i,j,k,QV)**2 + qzp(i,j,k,QW)**2)
-          rerz = qzp(i,j,k,QREINT) + ekenrz
-          
-          ! Add transverse predictor
-          rrnewrz = rrrz - cdtdx*(fx(i+1,j,k,URHO) - fx(i,j,k,URHO))
-          runewrz = rurz - cdtdx*(fx(i+1,j,k,UMX) - fx(i,j,k,UMX))
-          rvnewrz = rvrz - cdtdx*(fx(i+1,j,k,UMY) - fx(i,j,k,UMY))
-          rwnewrz = rwrz - cdtdx*(fx(i+1,j,k,UMZ) - fx(i,j,k,UMZ))
-          renewrz = rerz - cdtdx*(fx(i+1,j,k,UEDEN) - fx(i,j,k,UEDEN))
-
-          ! Reset to original value if adding transverse terms made density negative
-          if (transverse_reset_density == 1 .and. rrnewrz .lt. ZERO) then
-             rrnewrz = rrrz 
-             runewrz = rurz 
-             rvnewrz = rvrz 
-             rwnewrz = rwrz 
-             renewrz = rerz 
-          endif
-
-          ! we need to augment our conserved system with either a p
-          ! equation or gammae (if we have ppm_predict_gammae = 1) to
-          ! be able to deal with the general EOS
-
-          dup = pgp*ugp - pgm*ugm
-          pav = HALF*(pgp+pgm)
-          uav = HALF*(ugp+ugm)
-          geav = HALF*(gegp+gegm)
-          du = ugp-ugm
-          dge = gegp-gegm
-          
+             ! Reset to original value if adding transverse terms made density negative
+             if (transverse_reset_density == 1 .and. rrnewrz .lt. ZERO) then
+                rrnewrz = rrrz 
+                runewrz = rurz 
+                rvnewrz = rvrz 
+                rwnewrz = rwrz 
+                renewrz = rerz 
+             endif
                  
-          ! Convert back to primitive form
-          qzpo(i,j,k,QRHO) = rrnewrz
-          qzpo(i,j,k,QU) = runewrz/qzpo(i,j,k,QRHO)
-          qzpo(i,j,k,QV) = rvnewrz/qzpo(i,j,k,QRHO)
-          qzpo(i,j,k,QW) = rwnewrz/qzpo(i,j,k,QRHO)
+             ! Convert back to primitive form
+             qzpo(i,j,k,QRHO) = rrnewrz
+             qzpo(i,j,k,QU) = runewrz/qzpo(i,j,k,QRHO)
+             qzpo(i,j,k,QV) = rvnewrz/qzpo(i,j,k,QRHO)
+             qzpo(i,j,k,QW) = rwnewrz/qzpo(i,j,k,QRHO)
+             
+             ! note: we run the risk of (rho e) being negative here
+             rhoekenrz = HALF*(runewrz**2 + rvnewrz**2 + rwnewrz**2)/qzpo(i,j,k,QRHO)
+             qzpo(i,j,k,QREINT) = renewrz - rhoekenrz
+             
+             if (transverse_reset_rhoe == 1) then
+                ! If it is negative, reset the internal energy by using the discretized
+                ! expression for updating (rho e).
 
-          ! note: we run the risk of (rho e) being negative here
-          rhoekenrz = HALF*(runewrz**2 + rvnewrz**2 + rwnewrz**2)/qzpo(i,j,k,QRHO)
-          qzpo(i,j,k,QREINT) = renewrz - rhoekenrz
-
-          if (transverse_reset_rhoe == 1) then
-             ! If it is negative, reset the internal energy by using the discretized
-             ! expression for updating (rho e).
-
-             if (qzpo(i,j,k,QREINT) .le. ZERO) then
-                qzpo(i,j,k,QREINT) = qzp(i,j,k,QREINT) - &
-                     cdtdx*(fx(i+1,j,k,UEINT) - fx(i,j,k,UEINT) + pav*du)
-                
-                ! if we are still negative, then we need to reset
-                if (qzpo(i,j,k,QREINT) < ZERO) then
-                   eos_state % rho = qzpo(i,j,k,QRHO)
-                   eos_state % T = small_temp
-                   eos_state % xn(:) = qzpo(i,j,k,QFS:QFS-1+nspec)
+                if (qzpo(i,j,k,QREINT) .le. ZERO) then
+                   qzpo(i,j,k,QREINT) = qzp(i,j,k,QREINT) - &
+                        cdtdx*(fx(i+1,j,k,UEINT) - fx(i,j,k,UEINT) + pav*du)
                    
-                   call eos(eos_input_rt, eos_state)
-                
-                   qzpo(i,j,k,QREINT) = qzpo(i,j,k,QRHO)*eos_state % e
-                   qzpo(i,j,k,QPRES) = eos_state % p
+                   ! if we are still negative, then we need to reset
+                   if (qzpo(i,j,k,QREINT) < ZERO) then
+                      eos_state % rho = qzpo(i,j,k,QRHO)
+                      eos_state % T = small_temp
+                      eos_state % xn(:) = qzpo(i,j,k,QFS:QFS-1+nspec)
+                      
+                      call eos(eos_input_rt, eos_state)
+                      
+                      qzpo(i,j,k,QREINT) = qzpo(i,j,k,QRHO)*eos_state % e
+                      qzpo(i,j,k,QPRES) = eos_state % p
+                   endif
                 endif
              endif
-          endif
-
-          if (ppm_predict_gammae == 0) then
-
-             ! Optionally, use the EOS to calculate the pressure.
-
-             if (transverse_use_eos .eq. 1) then
-                eos_state % rho = qzpo(i,j,k,QRHO)
-                eos_state % e   = qzpo(i,j,k,QREINT) / qzpo(i,j,k,QRHO)
-                eos_state % T   = small_temp
-                eos_state % xn  = qzpo(i,j,k,QFS:QFS+nspec-1)
-
-                call eos(eos_input_re, eos_state)
-
-                pnewrz = eos_state % p
-                qzpo(i,j,k,QREINT) = eos_state % e * eos_state % rho
+             
+             if (ppm_predict_gammae == 0) then
+                
+                ! Optionally, use the EOS to calculate the pressure.
+                
+                if (transverse_use_eos .eq. 1) then
+                   eos_state % rho = qzpo(i,j,k,QRHO)
+                   eos_state % e   = qzpo(i,j,k,QREINT) / qzpo(i,j,k,QRHO)
+                   eos_state % T   = small_temp
+                   eos_state % xn  = qzpo(i,j,k,QFS:QFS+nspec-1)
+                   
+                   call eos(eos_input_re, eos_state)
+                   
+                   pnewrz = eos_state % p
+                   qzpo(i,j,k,QREINT) = eos_state % e * eos_state % rho
+                else
+                   ! add the transverse term to the p evolution eq here
+                   pnewrz = qzp(i,j,k,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k)-ONE))
+                endif
+                
+                qzpo(i,j,k,QPRES) = max(pnewrz,small_pres)
+                
              else
-                ! add the transverse term to the p evolution eq here
-                pnewrz = qzp(i,j,k,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k)-ONE))
+                
+                ! Update gammae with its transverse terms
+                qzpo(i,j,k,QGAME) = qzp(i,j,k,QGAME) + &
+                     cdtdx*( (geav-ONE)*(geav-gamc(i,j,k))*du - uav*dge )
+                
+                ! and compute the p edge state from this and (rho e)
+                qzpo(i,j,k,QPRES) = qzpo(i,j,k,QREINT)*(qzpo(i,j,k,QGAME)-ONE)
+                qzpo(i,j,k,QPRES) = max(qzpo(i,j,k,QPRES), small_pres)
+                
              endif
 
-             qzpo(i,j,k,QPRES) = max(pnewrz,small_pres)
-             
-          else
-
-             ! Update gammae with its transverse terms
-             qzpo(i,j,k,QGAME) = qzp(i,j,k,QGAME) + &
-                  cdtdx*( (geav-ONE)*(geav-gamc(i,j,k))*du - uav*dge )
-
-             ! and compute the p edge state from this and (rho e)
-             qzpo(i,j,k,QPRES) = qzpo(i,j,k,QREINT)*(qzpo(i,j,k,QGAME)-ONE)
-             qzpo(i,j,k,QPRES) = max(qzpo(i,j,k,QPRES), small_pres)
-             
-          endif
-
-       end do
+          end do
        end do
     end do
 
-    do    k = lo(3)-1, hi(3)
-       do j = lo(2)-1, hi(2)+1 
-       do i = lo(1)  , hi(1)             
-
-          !-------------------------------------------------------------------
-          ! qzmo state
-          !-------------------------------------------------------------------
+    !-------------------------------------------------------------------
+    ! qzmo state
+    !-------------------------------------------------------------------
+    
+    do       k = lo(3)-1, hi(3)
+       do    j = lo(2)-1, hi(2)+1 
+          do i = lo(1)  , hi(1)             
           
-          pgp = pgdnvx(i+1,j,k)
-          pgm = pgdnvx(i,j,k)
-          ugp = ugdnvx(i+1,j,k)
-          ugm = ugdnvx(i,j,k)
-          gegp = gegdnvx(i+1,j,k)
-          gegm = gegdnvx(i,j,k)
+             pgp = pgdnvx(i+1,j,k)
+             pgm = pgdnvx(i,j,k)
+             ugp = ugdnvx(i+1,j,k)
+             ugm = ugdnvx(i,j,k)
+             gegp = gegdnvx(i+1,j,k)
+             gegm = gegdnvx(i,j,k)
+
+             ! we need to augment our conserved system with either a p
+             ! equation or gammae (if we have ppm_predict_gammae = 1) to
+             ! be able to deal with the general EOS
+             
+             dup = pgp*ugp - pgm*ugm
+             pav = HALF*(pgp+pgm)
+             uav = HALF*(ugp+ugm)
+             geav = HALF*(gegp+gegm)
+             du = ugp-ugm         
+             dge = gegp-gegm
           
-          rrlz = qzm(i,j,k+1,QRHO)
-          rulz = rrlz*qzm(i,j,k+1,QU)
-          rvlz = rrlz*qzm(i,j,k+1,QV)
-          rwlz = rrlz*qzm(i,j,k+1,QW)
-          ekenlz = HALF*rrlz*(qzm(i,j,k+1,QU)**2 + qzm(i,j,k+1,QV)**2 + qzm(i,j,k+1,QW)**2)
-          relz = qzm(i,j,k+1,QREINT) + ekenlz
-          
-          ! Add transverse predictor
-          rrnewlz = rrlz - cdtdx*(fx(i+1,j,k,URHO) - fx(i,j,k,URHO))
-          runewlz = rulz - cdtdx*(fx(i+1,j,k,UMX) - fx(i,j,k,UMX))
-          rvnewlz = rvlz - cdtdx*(fx(i+1,j,k,UMY) - fx(i,j,k,UMY))
-          rwnewlz = rwlz - cdtdx*(fx(i+1,j,k,UMZ) - fx(i,j,k,UMZ))
-          renewlz = relz - cdtdx*(fx(i+1,j,k,UEDEN) - fx(i,j,k,UEDEN))
+             ! Convert to conservation form
+             rrlz = qzm(i,j,k+1,QRHO)
+             rulz = rrlz*qzm(i,j,k+1,QU)
+             rvlz = rrlz*qzm(i,j,k+1,QV)
+             rwlz = rrlz*qzm(i,j,k+1,QW)
+             ekenlz = HALF*rrlz*(qzm(i,j,k+1,QU)**2 + qzm(i,j,k+1,QV)**2 + qzm(i,j,k+1,QW)**2)
+             relz = qzm(i,j,k+1,QREINT) + ekenlz
+             
+             ! Add transverse predictor
+             rrnewlz = rrlz - cdtdx*(fx(i+1,j,k,URHO) - fx(i,j,k,URHO))
+             runewlz = rulz - cdtdx*(fx(i+1,j,k,UMX) - fx(i,j,k,UMX))
+             rvnewlz = rvlz - cdtdx*(fx(i+1,j,k,UMY) - fx(i,j,k,UMY))
+             rwnewlz = rwlz - cdtdx*(fx(i+1,j,k,UMZ) - fx(i,j,k,UMZ))
+             renewlz = relz - cdtdx*(fx(i+1,j,k,UEDEN) - fx(i,j,k,UEDEN))
+             
+             ! Reset to original value if adding transverse terms made density negative
+             if (transverse_reset_density == 1 .and. rrnewlz .lt. ZERO) then
+                rrnewlz = rrlz
+                runewlz = rulz
+                rvnewlz = rvlz
+                rwnewlz = rwlz
+                renewlz = relz
+             endif
 
-          ! Reset to original value if adding transverse terms made density negative
-          if (transverse_reset_density == 1 .and. rrnewlz .lt. ZERO) then
-             rrnewlz = rrlz
-             runewlz = rulz
-             rvnewlz = rvlz
-             rwnewlz = rwlz
-             renewlz = relz
-          endif
+             ! Convert back to primitive form
+             qzmo(i,j,k+1,QRHO) = rrnewlz
+             qzmo(i,j,k+1,QU) = runewlz/qzmo(i,j,k+1,QRHO)
+             qzmo(i,j,k+1,QV) = rvnewlz/qzmo(i,j,k+1,QRHO)
+             qzmo(i,j,k+1,QW) = rwnewlz/qzmo(i,j,k+1,QRHO)
+             
+             ! note: we run the risk of (rho e) being negative here
+             rhoekenlz = HALF*(runewlz**2 + rvnewlz**2 + rwnewlz**2)/qzmo(i,j,k+1,QRHO)
+             qzmo(i,j,k+1,QREINT) = renewlz - rhoekenlz
+             
+             if (transverse_reset_rhoe == 1) then
+                ! If it is negative, reset the internal energy by using the discretized
+                ! expression for updating (rho e).
 
-          ! we need to augment our conserved system with either a p
-          ! equation or gammae (if we have ppm_predict_gammae = 1) to
-          ! be able to deal with the general EOS
-
-          dup = pgp*ugp - pgm*ugm
-          pav = HALF*(pgp+pgm)
-          uav = HALF*(ugp+ugm)
-          geav = HALF*(gegp+gegm)
-          du = ugp-ugm         
-          dge = gegp-gegm
-
-          ! Convert back to primitive form
-          qzmo(i,j,k+1,QRHO) = rrnewlz
-          qzmo(i,j,k+1,QU) = runewlz/qzmo(i,j,k+1,QRHO)
-          qzmo(i,j,k+1,QV) = rvnewlz/qzmo(i,j,k+1,QRHO)
-          qzmo(i,j,k+1,QW) = rwnewlz/qzmo(i,j,k+1,QRHO)
-
-          ! note: we run the risk of (rho e) being negative here
-          rhoekenlz = HALF*(runewlz**2 + rvnewlz**2 + rwnewlz**2)/qzmo(i,j,k+1,QRHO)
-          qzmo(i,j,k+1,QREINT) = renewlz - rhoekenlz
-
-          if (transverse_reset_rhoe == 1) then
-             ! If it is negative, reset the internal energy by using the discretized
-             ! expression for updating (rho e).
-
-             if (qzmo(i,j,k+1,QREINT) .le. ZERO) then
-                qzmo(i,j,k+1,QREINT) = qzm(i,j,k+1,QREINT) - &
-                     cdtdx*(fx(i+1,j,k,UEINT) - fx(i,j,k,UEINT) + pav*du)
+                if (qzmo(i,j,k+1,QREINT) .le. ZERO) then
+                   qzmo(i,j,k+1,QREINT) = qzm(i,j,k+1,QREINT) - &
+                        cdtdx*(fx(i+1,j,k,UEINT) - fx(i,j,k,UEINT) + pav*du)
                 
-                ! if we are still negative, then we need to reset
-                if (qzmo(i,j,k+1,QREINT) < ZERO) then
-                   eos_state % rho = qzmo(i,j,k+1,QRHO)
-                   eos_state % T = small_temp
-                   eos_state % xn(:) = qzmo(i,j,k+1,QFS:QFS-1+nspec)
-                
-                   call eos(eos_input_rt, eos_state)
-                   
-                   qzmo(i,j,k+1,QREINT) = qzmo(i,j,k+1,QRHO)*eos_state % e
-                   qzmo(i,j,k+1,QPRES) = eos_state % p
+                   ! if we are still negative, then we need to reset
+                   if (qzmo(i,j,k+1,QREINT) < ZERO) then
+                      eos_state % rho = qzmo(i,j,k+1,QRHO)
+                      eos_state % T = small_temp
+                      eos_state % xn(:) = qzmo(i,j,k+1,QFS:QFS-1+nspec)
+                      
+                      call eos(eos_input_rt, eos_state)
+                      
+                      qzmo(i,j,k+1,QREINT) = qzmo(i,j,k+1,QRHO)*eos_state % e
+                      qzmo(i,j,k+1,QPRES) = eos_state % p
+                   endif
                 endif
              endif
-          endif
 
-          if (ppm_predict_gammae == 0) then
-
-             ! Optionally, use the EOS to calculate the pressure.
-
-             if (transverse_use_eos .eq. 1) then
-                eos_state % rho = qzmo(i,j,k+1,QRHO)
-                eos_state % e   = qzmo(i,j,k+1,QREINT) / qzmo(i,j,k+1,QRHO)
-                eos_state % T   = small_temp
-                eos_state % xn  = qzmo(i,j,k+1,QFS:QFS+nspec-1)
+             if (ppm_predict_gammae == 0) then
                 
-                call eos(eos_input_re, eos_state)
-
-                pnewlz = eos_state % p
-                qzmo(i,j,k+1,QREINT) = eos_state % e * eos_state % rho
+                ! Optionally, use the EOS to calculate the pressure.
+                
+                if (transverse_use_eos .eq. 1) then
+                   eos_state % rho = qzmo(i,j,k+1,QRHO)
+                   eos_state % e   = qzmo(i,j,k+1,QREINT) / qzmo(i,j,k+1,QRHO)
+                   eos_state % T   = small_temp
+                   eos_state % xn  = qzmo(i,j,k+1,QFS:QFS+nspec-1)
+                   
+                   call eos(eos_input_re, eos_state)
+                   
+                   pnewlz = eos_state % p
+                   qzmo(i,j,k+1,QREINT) = eos_state % e * eos_state % rho
+                else
+                   pnewlz = qzm(i,j,k+1,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k)-ONE))
+                endif
+                
+                qzmo(i,j,k+1,QPRES) = max(pnewlz,small_pres)
+                
              else
-                pnewlz = qzm(i,j,k+1,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k)-ONE))
+                
+                ! Update gammae with its transverse terms
+                qzmo(i,j,k+1,QGAME) = qzm(i,j,k+1,QGAME) + &
+                     cdtdx*( (geav-ONE)*(geav-gamc(i,j,k))*du - uav*dge )
+                
+                ! and compute the p edge state from this and (rho e)
+                qzmo(i,j,k+1,QPRES) = qzmo(i,j,k+1,QREINT)*(qzmo(i,j,k+1,QGAME)-ONE)
+                qzmo(i,j,k+1,QPRES) = max(qzmo(i,j,k+1,QPRES), small_pres)
+                
              endif
-             
-             qzmo(i,j,k+1,QPRES) = max(pnewlz,small_pres)
-          
-          else
 
-             ! Update gammae with its transverse terms
-             qzmo(i,j,k+1,QGAME) = qzm(i,j,k+1,QGAME) + &
-                  cdtdx*( (geav-ONE)*(geav-gamc(i,j,k))*du - uav*dge )
-
-             ! and compute the p edge state from this and (rho e)
-             qzmo(i,j,k+1,QPRES) = qzmo(i,j,k+1,QREINT)*(qzmo(i,j,k+1,QGAME)-ONE)
-             qzmo(i,j,k+1,QPRES) = max(qzmo(i,j,k+1,QPRES), small_pres)
-
-          endif
-
-       end do
+          end do
        end do
     end do
 
