@@ -402,8 +402,8 @@ contains
     !         qzm, qzp                     : zface, +-1 at x & y
     !         fx, ugdnvx, pgdnvx, gegdnvx  : xface, +-1 at y & z
     !         gamc                         : +-4
-    ! Outputs: qmyx, qpyx                  : yface, +-1 at z
-    !          qmzx, qpzx                  : zface, +-1 at y
+    ! Outputs: qmyx, qpyx                  : yface, +-0 at x, +-1 at z
+    !          qmzx, qpzx                  : zface, +-0 at x, +-1 at y
     call transx(qym,qmyx,qyp,qpyx, &
                 qzm,qmzx,qzp,qpzx, fglo, fghi, &
                 fx, glo, ghi, &
@@ -426,8 +426,8 @@ contains
     !         qzm, qzp                     : zface, +-1 at x & y
     !         fy, ugdnvy, pgdnvy, gegdnvy  : yface, +-1 at x & z
     !         gamc                         : +-4
-    ! Outputs: qmxy, qpxy                  : xface, +-1 at z
-    !          qmzy, qpzy                  : zface, +-1 at x
+    ! Outputs: qmxy, qpxy                  : xface, +-0 at y, +-1 at z
+    !          qmzy, qpzy                  : zface, +-0 at y, +-1 at x
     call transy(qxm,qmxy,qxp,qpxy, &
                 qzm,qmzy,qzp,qpzy, fglo, fghi, &
                 fy, glo, ghi, &
@@ -445,6 +445,22 @@ contains
                 gamc,csml,c, qlo, qhi, &
                 shk, glo, ghi, &
                 3, (/lo(1)-1,lo(2)-1,lo(3)/), hi+1, domlo, domhi)
+
+    ! Inputs: qxm, qxp                     : xface, +-1 at y & z
+    !         qym, qyp                     : yface, +-1 at x & z
+    !         fz, ugdnvz, pgdnvz, gegdnvz  : zface, +-1 at x & y
+    !         gamc                         : +-4
+    ! Outputs: qmxz, qpxz                  : xface, +-0 at z, +-1 at y
+    !          qmyz, qpyz                  : yface, +-0 at z, +-1 at x
+    call transz(qxm,qmxz,qxp,qpxz, &
+                qym,qmyz,qyp,qpyz, fglo, fghi, &
+                fz, glo, ghi, &
+                ugdnvz,pgdnvz,gegdnvz, fglo, fghi, &
+                gamc, qlo, qhi, &
+                cdtdz, lo, hi)
+
+
+
 
 
        
