@@ -483,14 +483,14 @@ contains
     !         gamc, grav, rot                 : +-4
     !         srcQ                            : +-1
     ! Outputs: qxl, qxr                       : xface, +-0 at y & z
-!    call transyz(qxm,qxl,qxp,qxr, fglo, fghi, &
-!                 fyz, fzy, glo, ghi, &
-!                 ugdnvyz,pgdnvyz,gegdnvyz,ugdnvzy,pgdnvzy,gegdnvzy, fglo, fghi, &
-!                 gamc, qlo, qhi, &
-!                 srcQ, slo, shi, &
-!                 grav, gvlo, gvhi, &
-!                 rot, rlo, rhi, &
-!                 hdt,hdtdy,hdtdz,lo,hi)
+    call transyz(qxm,qxl,qxp,qxr, fglo, fghi, &
+                 fyz, fzy, glo, ghi, &
+                 ugdnvyz,pgdnvyz,gegdnvyz,ugdnvzy,pgdnvzy,gegdnvzy, fglo, fghi, &
+                 gamc, qlo, qhi, &
+                 srcQ, slo, shi, &
+                 grav, gvlo, gvhi, &
+                 rot, rlo, rhi, &
+                 hdt,hdtdy,hdtdz,lo,hi)
 
     nullify(fyz, ugdnvyz, pgdnvyz, gegdnvyz)
     nullify(fzy, ugdnvzy, pgdnvzy, gegdnvzy)
@@ -565,14 +565,14 @@ contains
     qyr => qr
  
     ! Inputs: qym, qyp                        : yface, +-1 at x & z
-    !         fzx, ugdnvzx, pgdnvzx, gegdnvzx : zface, +-0 at x, +-1 at y
     !         fxz, ugdnvxz, pgdnvxz, gegdnvxz : xface, +-1 at y, +-0 at z
+    !         fzx, ugdnvzx, pgdnvzx, gegdnvzx : zface, +-0 at x, +-1 at y
     !         gamc, grav, rot                 : +-4
     !         srcQ                            : +-1
     ! Outputs: qyl, qyr                       : yface, +-0 at x & z
 !    call transxz(qym,qyl,qyp,qyr, fglo, fghi, &
-!                 fzx, fxz, glo, ghi, &
-!                 ugdnvzx,pgdnvzx,gegdnvzx,ugdnvxz,pgdnvxz,gegdnvxz, fglo, fghi, &
+!                 fxz, fzx, glo, ghi, &
+!                 ugdnvxz,pgdnvxz,gegdnvxz,ugdnvzx,pgdnvzx,gegdnvzx, fglo, fghi, &
 !                 gamc, qlo, qhi, &
 !                 srcQ, slo, shi, &
 !                 grav, gvlo, gvhi, &
