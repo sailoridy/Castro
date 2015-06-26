@@ -387,7 +387,6 @@ contains
        
     end if
     
-    ! Compute \tilde{F}^x
     ! Inputs: qxm, qxp                     : xface, +-1 at y & z
     !         gamc, csml, c                : +-4
     !         shk                          : +-1
@@ -399,13 +398,42 @@ contains
                 shk, glo, ghi, &
                 1, (/lo(1),lo(2)-1,lo(3)-1/), hi+1, domlo, domhi)
 
-    !    ! Compute \tilde{F}^y at kc (k3d)
-    !    call cmpflx(qym,qyp,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
-    !                fy,ilo1-1,ilo2,1,ihi1+1,ihi2+1,2, &
-    !                ugdnvy,pgdnvy,gegdnvy,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
-    !                gamc,csml,c,qlo(1),qlo(2),qlo(3),qhi(1),qhi(2),qhi(3), &
-    !                shk,ilo1-1,ilo2-1,ilo3-1,ihi1+1,ihi2+1,ihi3+1, &
-    !                2,ilo1-1,ihi1+1,ilo2,ihi2+1,kc,kc,k3d,domlo,domhi)
+    ! Inputs: qym, qyp                     : yface, +-1 at x & z
+    !         qzm, qzp                     : zface, +-1 at x & y
+    !         fx, ugdnvx, pgdnvx, gegdnvx  : xface, +-1 at y & z
+    !         gamc                         : +-4
+    ! Outputs: qmyx, qpyx                  : yface, +-1 at z
+    !          qmzx, qpzx                  : zface, +-1 at y
+    !          
+    call transx(qym,qmyx,qyp,qpyx, &
+                qzm,qmzx,qzp,qpzx, fglo, fghi, &
+                fx, glo, ghi, &
+                ugdnvx,pgdnvx,gegdnvx, fglo, fghi, &
+                gamc, qlo, qhi, &
+                cdtdx, lo, hi)
+
+    ! Inputs: qym, qyp                     : yface, +-1 at x & z
+    !         gamc, csml, c                : +-4
+    !         shk                          : +-1
+    ! Outputs: fy, ugdnvy, pgdnvy, gegdnvy : yface, +-1 at x & z
+    call cmpflx(qym,qyp, fglo, fghi, &
+                fy, glo, ghi, &
+                ugdnvy,pgdnvy,gegdnvy, fglo, fghi, &
+                gamc,csml,c, qlo, qhi, &
+                shk, glo, ghi, &
+                2, (/lo(1)-1,lo(2),lo(3)-1/), hi+1, domlo, domhi)
+
+    ! Inputs: qzm, qzp                     : zface, +-1 at x & y
+    !         gamc, csml, c                : +-4
+    !         shk                          : +-1
+    ! Outputs: fz, ugdnvz, pgdnvz, gegdnvz : zface, +-1 at x & y
+    call cmpflx(qzm,qzp, fglo, fghi, &
+                fz, glo, ghi, &
+                ugdnvz,pgdnvz,gegdnvz, fglo, fghi, &
+                gamc,csml,c, qlo, qhi, &
+                shk, glo, ghi, &
+                3, (/lo(1)-1,lo(2)-1,lo(3)/), hi+1, domlo, domhi)
+
        
     !    ! Compute U'^y_x at kc (k3d)
     !    call transy1(qxm,qmxy,qxp,qpxy,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
@@ -439,28 +467,6 @@ contains
 
     !    if (k3d.ge.ilo3) then
           
-    !       ! Compute U_z at kc (k3d)
-    !       if (ppm_type .gt. 0) then
-    !          call tracez_ppm(q,c,flatn,qlo(1),qlo(2),qlo(3),qhi(1),qhi(2),qhi(3), &
-    !                          Ip,Im,Ip_g,Im_g,Ip_r,Im_r,Ip_gc,Im_gc, &
-    !                          qzm,qzp,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
-    !                          gamc,qlo(1),qlo(2),qlo(3),qhi(1),qhi(2),qhi(3), &
-    !                          ilo1,ilo2,ihi1,ihi2,dt,km,kc,k3d)
-    !       else
-    !          call tracez(q,c,qlo(1),qlo(2),qlo(3),qhi(1),qhi(2),qhi(3), &
-    !                      dqz,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
-    !                      qzm,qzp,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
-    !                      ilo1,ilo2,ihi1,ihi2,dz,dt,km,kc,k3d)
-    !       end if
-
-    !       ! Compute \tilde{F}^z at kc (k3d)
-    !       call cmpflx(qzm,qzp,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
-    !                   fz,ilo1-1,ilo2-1,1,ihi1+1,ihi2+1,2, &
-    !                   ugdnvz,pgdnvz,gegdnvz,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
-    !                   gamc,csml,c,qlo(1),qlo(2),qlo(3),qhi(1),qhi(2),qhi(3), &
-    !                   shk,ilo1-1,ilo2-1,ilo3-1,ihi1+1,ihi2+1,ihi3+1, &
-    !                   3,ilo1-1,ihi1+1,ilo2-1,ihi2+1,kc,kc,k3d,domlo,domhi)
-
     !       ! Compute U'^y_z at kc (k3d)
     !       call transy2(qzm,qmzy,qzp,qpzy,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
     !                    fy,ilo1-1,ilo2,1,ihi1+1,ihi2+1,2, &
