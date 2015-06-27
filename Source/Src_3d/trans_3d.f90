@@ -1420,7 +1420,7 @@ contains
 
              endif
              
-          end if
+          end do
 
           !-------------------------------------------------------------------
           ! qxmo state
@@ -1869,9 +1869,6 @@ contains
     double precision pgxp, pgxm, ugxp, ugxm, gegxp, gegxm, duxp, pxav, dux, pxnew, gexnew
     double precision pgyp, pgym, ugyp, ugym, gegyp, gegym, duyp, pyav, duy, pynew, geynew
     double precision uxav, gexav, dgex, uyav, geyav, dgey
-    double precision pgxpm, pgxmm, ugxpm, ugxmm, gegxpm, gegxmm, duxpm, pxavm, duxm, pxnewm, gexnewm
-    double precision pgypm, pgymm, ugypm, ugymm, gegypm, gegymm, duypm, pyavm, duym, pynewm, geynewm
-    double precision uxavm, gexavm, dgexm, uyavm, geyavm, dgeym
     double precision compr, compl, compnr, compnl
     
     type (eos_t) :: eos_state
@@ -1891,9 +1888,9 @@ contains
                 rrr = qp(i,j,k,QRHO)
                 compr = rrr*qp(i,j,k,nq)
                 rrnewr = rrr - hdtdx*(fxy(i+1,j,k,URHO) - fxy(i,j,k,URHO)) &
-                     - hdtdy*(fyx(i,j+1,k,URHO) - fyx(i,j,k,URHO))
+                             - hdtdy*(fyx(i,j+1,k,URHO) - fyx(i,j,k,URHO))
                 compnr = compr - hdtdx*(fxy(i+1,j,k,n) - fxy(i,j,k,n)) &
-                     - hdtdy*(fyx(i,j+1,k,n) - fyx(i,j,k,n))
+                               - hdtdy*(fyx(i,j+1,k,n) - fyx(i,j,k,n))
                 qpo(i,j,k,nq) = compnr/rrnewr + hdt*srcQ(i,j,k,nq)
              end do
           end do
@@ -1940,21 +1937,7 @@ contains
              ugym = ugdnvy(i,j,k)
              gegyp = gegdnvy(i,j+1,k)
              gegym = gegdnvy(i,j,k)
-             
-             pgxpm = pgdnvx(i+1,j,k)
-             pgxmm = pgdnvx(i,j,k)
-             ugxpm = ugdnvx(i+1,j,k)
-             ugxmm = ugdnvx(i,j,k)
-             gegxpm = gegdnvx(i+1,j,k)
-             gegxmm = gegdnvx(i,j,k)
-             
-             pgypm = pgdnvy(i,j+1,k)
-             pgymm = pgdnvy(i,j,k)
-             ugypm = ugdnvy(i,j+1,k)
-             ugymm = ugdnvy(i,j,k)
-             gegypm = gegdnvy(i,j+1,k)
-             gegymm = gegdnvy(i,j,k)
-             
+                          
              duxp = pgxp*ugxp - pgxm*ugxm
              pxav = HALF*(pgxp+pgxm)
              uxav = HALF*(ugxp+ugxm)
@@ -1964,15 +1947,6 @@ contains
              pxnew = hdtdx*(duxp + pxav*dux*(gamc(i,j,k)-ONE))
              gexnew = hdtdx*( (gexav-ONE)*(gexav-gamc(i,j,k))*dux - uxav*dgex )
              
-             duxpm = pgxpm*ugxpm - pgxmm*ugxmm
-             pxavm = HALF*(pgxpm+pgxmm)
-             uxavm = HALF*(ugxpm+ugxmm)
-             gexavm = HALF*(gegxpm+gegxmm)
-             duxm = ugxpm-ugxmm
-             dgexm = gegxpm-gegxmm
-             pxnewm = hdtdx*(duxpm + pxavm*duxm*(gamc(i,j,k)-ONE))
-             gexnewm = hdtdx*( (gexavm-ONE)*(gexavm-gamc(i,j,k))*duxm - uxavm*dgexm )
-          
              duyp = pgyp*ugyp - pgym*ugym
              pyav = HALF*(pgyp+pgym)
              uyav = HALF*(ugyp+ugym)
@@ -1981,16 +1955,7 @@ contains
              dgey = gegyp-gegym
              pynew = hdtdy*(duyp + pyav*duy*(gamc(i,j,k)-ONE))
              geynew = hdtdy*( (geyav-ONE)*(geyav-gamc(i,j,k))*duy - uyav*dgey )
-             
-             duypm = pgypm*ugypm - pgymm*ugymm
-             pyavm = HALF*(pgypm+pgymm)
-             uyavm = HALF*(ugypm+ugymm)
-             geyavm = HALF*(gegypm+gegymm)
-             duym = ugypm-ugymm
-             dgeym = gegypm-gegymm
-             pynewm = hdtdy*(duypm + pyavm*duym*(gamc(i,j,k)-ONE))
-             geynewm = hdtdy*( (geyavm-ONE)*(geyavm-gamc(i,j,k))*duym - uyavm*dgeym )
-          
+                       
              ! Convert to conservation form
              rrr = qp(i,j,k,QRHO)
              rur = rrr*qp(i,j,k,QU)
@@ -2112,21 +2077,7 @@ contains
              ugym = ugdnvy(i,j,k)
              gegyp = gegdnvy(i,j+1,k)
              gegym = gegdnvy(i,j,k)
-             
-             pgxpm = pgdnvx(i+1,j,k)
-             pgxmm = pgdnvx(i,j,k)
-             ugxpm = ugdnvx(i+1,j,k)
-             ugxmm = ugdnvx(i,j,k)
-             gegxpm = gegdnvx(i+1,j,k)
-             gegxmm = gegdnvx(i,j,k)
-             
-             pgypm = pgdnvy(i,j+1,k)
-             pgymm = pgdnvy(i,j,k)
-             ugypm = ugdnvy(i,j+1,k)
-             ugymm = ugdnvy(i,j,k)
-             gegypm = gegdnvy(i,j+1,k)
-             gegymm = gegdnvy(i,j,k)
-             
+                          
              duxp = pgxp*ugxp - pgxm*ugxm
              pxav = HALF*(pgxp+pgxm)
              uxav = HALF*(ugxp+ugxm)
@@ -2135,16 +2086,7 @@ contains
              dgex = gegxp-gegxm
              pxnew = hdtdx*(duxp + pxav*dux*(gamc(i,j,k)-ONE))
              gexnew = hdtdx*( (gexav-ONE)*(gexav-gamc(i,j,k))*dux - uxav*dgex )
-             
-             duxpm = pgxpm*ugxpm - pgxmm*ugxmm
-             pxavm = HALF*(pgxpm+pgxmm)
-             uxavm = HALF*(ugxpm+ugxmm)
-             gexavm = HALF*(gegxpm+gegxmm)
-             duxm = ugxpm-ugxmm
-             dgexm = gegxpm-gegxmm
-             pxnewm = hdtdx*(duxpm + pxavm*duxm*(gamc(i,j,k)-ONE))
-             gexnewm = hdtdx*( (gexavm-ONE)*(gexavm-gamc(i,j,k))*duxm - uxavm*dgexm )
-             
+                          
              duyp = pgyp*ugyp - pgym*ugym
              pyav = HALF*(pgyp+pgym)
              uyav = HALF*(ugyp+ugym)
@@ -2154,15 +2096,6 @@ contains
              pynew = hdtdy*(duyp + pyav*duy*(gamc(i,j,k)-ONE))
              geynew = hdtdy*( (geyav-ONE)*(geyav-gamc(i,j,k))*duy - uyav*dgey )
              
-             duypm = pgypm*ugypm - pgymm*ugymm
-             pyavm = HALF*(pgypm+pgymm)
-             uyavm = HALF*(ugypm+ugymm)
-             geyavm = HALF*(gegypm+gegymm)
-             duym = ugypm-ugymm
-             dgeym = gegypm-gegymm
-             pynewm = hdtdy*(duypm + pyavm*duym*(gamc(i,j,k)-ONE))
-             geynewm = hdtdy*( (geyavm-ONE)*(geyavm-gamc(i,j,k))*duym - uyavm*dgeym )
-
              ! Convert to conservation form
              rrl = qm(i,j,k+1,QRHO)
              rul = rrl*qm(i,j,k+1,QU)
@@ -2207,8 +2140,8 @@ contains
                 
                 if (qmo(i,j,k+1,QREINT) .le. ZERO) then
                    qmo(i,j,k+1,QREINT) = qm(i,j,k+1,QREINT) &
-                        - hdtdx*(fxy(i+1,j,k,UEINT) - fxy(i,j,k,UEINT) + pxavm*duxm) &
-                        - hdtdy*(fyx(i,j+1,k,UEINT) - fyx(i,j,k,UEINT) + pyavm*duym) &
+                        - hdtdx*(fxy(i+1,j,k,UEINT) - fxy(i,j,k,UEINT) + pxav*dux) &
+                        - hdtdy*(fyx(i,j+1,k,UEINT) - fyx(i,j,k,UEINT) + pyav*duy) &
                         + hdt*srcQ(i,j,k,QREINT)
                    
                    ! if we are still negative, then we need to reset
@@ -2242,7 +2175,7 @@ contains
                    qmo(i,j,k+1,QREINT) = eos_state % e * eos_state % rho
                 else
                    ! add the transverse term to the p evolution eq here
-                   pnewl = qm(i,j,k+1,QPRES) - pxnewm - pynewm
+                   pnewl = qm(i,j,k+1,QPRES) - pxnew - pynew
                    qmo(i,j,k+1,QPRES) = pnewl + hdt*srcQ(i,j,k,QPRES)
                 endif
                 
@@ -2251,7 +2184,7 @@ contains
              else
                 
                 ! Update gammae with its transverse terms
-                qmo(i,j,k+1,QGAME) = qm(i,j,k+1,QGAME) + gexnewm + geynewm
+                qmo(i,j,k+1,QGAME) = qm(i,j,k+1,QGAME) + gexnew + geynew
                 
                 ! and compute the p edge state from this and (rho e)
                 qmo(i,j,k+1,QPRES) = qmo(i,j,k+1,QREINT)*(qmo(i,j,k+1,QGAME)-ONE)
@@ -2383,156 +2316,123 @@ contains
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
 
-       do    k = lo(3), hi(3)
+       do k = lo(3), hi(3)
 
-          do j = lo(2), hi(2)+1 
-          do i = lo(1), hi(1)
-
-             rrr = qp(i,j,k,QRHO)
-             compr = rrr*qp(i,j,k,nq)
-             rrnewr = rrr - hdtdx*(fxz(i+1,j,k  ,URHO) - fxz(i,j,k,URHO)) &
-                          - hdtdz*(fzx(i  ,j,k+1,URHO) - fzx(i,j,k,URHO))
-             compnr = compr - hdtdx*(fxz(i+1,j,k  ,n) - fxz(i,j,k,n)) &
-                            - hdtdz*(fzx(i  ,j,k+1,n) - fzx(i,j,k,n))
-             qpo(i,j  ,k,nq) = compnr/rrnewr + hdt*srcQ(i,j,k,nq)
-
-          enddo
+          do    j = lo(2), hi(2)+1 
+             do i = lo(1), hi(1)
+                rrr = qp(i,j,k,QRHO)
+                compr = rrr*qp(i,j,k,nq)
+                rrnewr = rrr - hdtdx*(fxz(i+1,j,k  ,URHO) - fxz(i,j,k,URHO)) &
+                             - hdtdz*(fzx(i  ,j,k+1,URHO) - fzx(i,j,k,URHO))
+                compnr = compr - hdtdx*(fxz(i+1,j,k  ,n) - fxz(i,j,k,n)) &
+                               - hdtdz*(fzx(i  ,j,k+1,n) - fzx(i,j,k,n))
+                qpo(i,j  ,k,nq) = compnr/rrnewr + hdt*srcQ(i,j,k,nq)
+             enddo
           enddo
 
-          do j = lo(2)-1, hi(2) 
-          do i = lo(1)  , hi(1)
-
-             rrl = qm(i,j+1,k,QRHO)             
-             compl = rrl*qm(i,j+1,k,nq)
-             rrnewl = rrl - hdtdx*(fxz(i+1,j,k  ,URHO) - fxz(i,j,k,URHO)) &
-                          - hdtdz*(fzx(i  ,j,k+1,URHO) - fzx(i,j,k,URHO))
-             compnl = compl - hdtdx*(fxz(i+1,j,k  ,n) - fxz(i,j,k,n)) &
-                            - hdtdz*(fzx(i  ,j,k+1,n) - fzx(i,j,k,n))
-             qmo(i,j+1,k,nq) = compnl/rrnewl + hdt*srcQ(i,j,k,nq)
-
-          enddo
+          do    j = lo(2)-1, hi(2) 
+             do i = lo(1)  , hi(1)
+                rrl = qm(i,j+1,k,QRHO)             
+                compl = rrl*qm(i,j+1,k,nq)
+                rrnewl = rrl - hdtdx*(fxz(i+1,j,k  ,URHO) - fxz(i,j,k,URHO)) &
+                             - hdtdz*(fzx(i  ,j,k+1,URHO) - fzx(i,j,k,URHO))
+                compnl = compl - hdtdx*(fxz(i+1,j,k  ,n) - fxz(i,j,k,n)) &
+                               - hdtdz*(fzx(i  ,j,k+1,n) - fzx(i,j,k,n))
+                qmo(i,j+1,k,nq) = compnl/rrnewl + hdt*srcQ(i,j,k,nq)
+             enddo
           enddo
        enddo
     enddo
 
+    !-------------------------------------------------------------------
+    ! add the transverse xz and zx differences to the y-states for the
+    ! fluid variables
+    !-------------------------------------------------------------------            
+
     do    k = lo(3)  , hi(3)
-       do j = lo(2)-1, hi(2)+1 
-       do i = lo(1)  , hi(1)
 
-          !-------------------------------------------------------------------
-          ! add the transverse xz and zx differences to the y-states for the
-          ! fluid variables
-          !-------------------------------------------------------------------            
-          pgxp = pgdnvx(i+1,j,k)
-          pgxm = pgdnvx(i,j,k)
-          ugxp = ugdnvx(i+1,j,k)
-          ugxm = ugdnvx(i,j,k)
-          gegxp = gegdnvx(i+1,j,k)
-          gegxm = gegdnvx(i,j,k)
-          
-          pgzp = pgdnvz(i,j,k+1)
-          pgzm = pgdnvz(i,j,k)
-          ugzp = ugdnvz(i,j,k+1)
-          ugzm = ugdnvz(i,j,k)
-          gegzp = gegdnvz(i,j,k+1)
-          gegzm = gegdnvz(i,j,k)
+       !-------------------------------------------------------------------
+       ! qypo state
+       !-------------------------------------------------------------------
+       
+       do j = lo(2), hi(2)+1 
+          do i = lo(1)  , hi(1)
 
-          ! Convert to conservation form
-          rrr = qp(i,j,k,QRHO)
-          rur = rrr*qp(i,j,k,QU)
-          rvr = rrr*qp(i,j,k,QV)
-          rwr = rrr*qp(i,j,k,QW)
-          ekenr = HALF*rrr*(qp(i,j,k,QU)**2 + qp(i,j,k,QV)**2 + qp(i,j,k,QW)**2)
-          rer = qp(i,j,k,QREINT) + ekenr
-          
-          rrl = qm(i,j+1,k,QRHO)
-          rul = rrl*qm(i,j+1,k,QU)
-          rvl = rrl*qm(i,j+1,k,QV)
-          rwl = rrl*qm(i,j+1,k,QW)
-          ekenl = HALF*rrl*(qm(i,j+1,k,QU)**2 + qm(i,j+1,k,QV)**2 + qm(i,j+1,k,QW)**2)
-          rel = qm(i,j+1,k,QREINT) + ekenl
-          
-          ! Add transverse predictor
-          rrnewr = rrr - hdtdx*(fxz(i+1,j,k,URHO) - fxz(i,j,k,URHO)) &
-                       - hdtdz*(fzx(i,j,k+1,URHO) - fzx(i,j,k,URHO))
-          runewr = rur - hdtdx*(fxz(i+1,j,k,UMX) - fxz(i,j,k,UMX)) &
-                       - hdtdz*(fzx(i,j,k+1,UMX) - fzx(i,j,k,UMX))
-          rvnewr = rvr - hdtdx*(fxz(i+1,j,k,UMY) - fxz(i,j,k,UMY)) &
-                       - hdtdz*(fzx(i,j,k+1,UMY) - fzx(i,j,k,UMY))
-          rwnewr = rwr - hdtdx*(fxz(i+1,j,k,UMZ) - fxz(i,j,k,UMZ)) &
-                       - hdtdz*(fzx(i,j,k+1,UMZ) - fzx(i,j,k,UMZ))
-          renewr = rer - hdtdx*(fxz(i+1,j,k,UEDEN) - fxz(i,j,k,UEDEN)) &
-                       - hdtdz*(fzx(i,j,k+1,UEDEN) - fzx(i,j,k,UEDEN))
+             pgxp = pgdnvx(i+1,j,k)
+             pgxm = pgdnvx(i,j,k)
+             ugxp = ugdnvx(i+1,j,k)
+             ugxm = ugdnvx(i,j,k)
+             gegxp = gegdnvx(i+1,j,k)
+             gegxm = gegdnvx(i,j,k)
+             
+             pgzp = pgdnvz(i,j,k+1)
+             pgzm = pgdnvz(i,j,k)
+             ugzp = ugdnvz(i,j,k+1)
+             ugzm = ugdnvz(i,j,k)
+             gegzp = gegdnvz(i,j,k+1)
+             gegzm = gegdnvz(i,j,k)
+             
+             duxp = pgxp*ugxp - pgxm*ugxm
+             pxav = HALF*(pgxp+pgxm)
+             uxav = HALF*(ugxp+ugxm)
+             gexav = HALF*(gegxp+gegxm)
+             dux = ugxp-ugxm
+             dgex = gegxp-gegxm
+             pxnew = hdtdx*(duxp + pxav*dux*(gamc(i,j,k)-ONE))
+             gexnew = hdtdx*( (gexav-ONE)*(gexav-gamc(i,j,k))*dux - uxav*dgex )
+             
+             duzp = pgzp*ugzp - pgzm*ugzm
+             pzav = HALF*(pgzp+pgzm)
+             uzav = HALF*(ugzp+ugzm)
+             gezav = HALF*(gegzp+gegzm)
+             duz = ugzp-ugzm
+             dgez = gegzp-gegzm
+             pznew = hdtdz*(duzp + pzav*duz*(gamc(i,j,k)-ONE))
+             geznew = hdtdz*( (gezav-ONE)*(gezav-gamc(i,j,k))*duz - uzav*dgez )
+             
+             ! Convert to conservation form
+             rrr = qp(i,j,k,QRHO)
+             rur = rrr*qp(i,j,k,QU)
+             rvr = rrr*qp(i,j,k,QV)
+             rwr = rrr*qp(i,j,k,QW)
+             ekenr = HALF*rrr*(qp(i,j,k,QU)**2 + qp(i,j,k,QV)**2 + qp(i,j,k,QW)**2)
+             rer = qp(i,j,k,QREINT) + ekenr
+             
+             ! Add transverse predictor
+             rrnewr = rrr - hdtdx*(fxz(i+1,j,k,URHO) - fxz(i,j,k,URHO)) &
+                          - hdtdz*(fzx(i,j,k+1,URHO) - fzx(i,j,k,URHO))
+             runewr = rur - hdtdx*(fxz(i+1,j,k,UMX) - fxz(i,j,k,UMX)) &
+                          - hdtdz*(fzx(i,j,k+1,UMX) - fzx(i,j,k,UMX))
+             rvnewr = rvr - hdtdx*(fxz(i+1,j,k,UMY) - fxz(i,j,k,UMY)) &
+                          - hdtdz*(fzx(i,j,k+1,UMY) - fzx(i,j,k,UMY))
+             rwnewr = rwr - hdtdx*(fxz(i+1,j,k,UMZ) - fxz(i,j,k,UMZ)) &
+                          - hdtdz*(fzx(i,j,k+1,UMZ) - fzx(i,j,k,UMZ))
+             renewr = rer - hdtdx*(fxz(i+1,j,k,UEDEN) - fxz(i,j,k,UEDEN)) &
+                          - hdtdz*(fzx(i,j,k+1,UEDEN) - fzx(i,j,k,UEDEN))
 
-          rrnewl = rrl - hdtdx*(fxz(i+1,j,k,URHO) - fxz(i,j,k,URHO)) &
-                       - hdtdz*(fzx(i,j,k+1,URHO) - fzx(i,j,k,URHO))
-          runewl = rul - hdtdx*(fxz(i+1,j,k,UMX) - fxz(i,j,k,UMX)) &
-                       - hdtdz*(fzx(i,j,k+1,UMX) - fzx(i,j,k,UMX))
-          rvnewl = rvl - hdtdx*(fxz(i+1,j,k,UMY) - fxz(i,j,k,UMY)) &
-                       - hdtdz*(fzx(i,j,k+1,UMY) - fzx(i,j,k,UMY))
-          rwnewl = rwl - hdtdx*(fxz(i+1,j,k,UMZ) - fxz(i,j,k,UMZ)) &
-                       - hdtdz*(fzx(i,j,k+1,UMZ) - fzx(i,j,k,UMZ))
-          renewl = rel - hdtdx*(fxz(i+1,j,k,UEDEN) - fxz(i,j,k,UEDEN)) &
-                       - hdtdz*(fzx(i,j,k+1,UEDEN) - fzx(i,j,k,UEDEN))
-
-          ! Reset to original value if adding transverse terms made density negative
-          if (transverse_reset_density == 1) then
-             if (rrnewr .lt. ZERO) then
+             ! Reset to original value if adding transverse terms made density negative
+             if (transverse_reset_density == 1 .and. rrnewr .lt. ZERO) then
                 rrnewr = rrr 
                 runewr = rur
                 rvnewr = rvr 
                 rwnewr = rwr 
                 renewr = rer 
              endif
-             if (rrnewl .lt. ZERO) then
-                rrnewl = rrl 
-                runewl = rul 
-                rvnewl = rvl 
-                rwnewl = rwl 
-                renewl = rel 
-             endif
-          endif
 
-          rhoekenr = HALF*(runewr**2 + rvnewr**2 + rwnewr**2)/rrnewr
-          rhoekenl = HALF*(runewl**2 + rvnewl**2 + rwnewl**2)/rrnewl
-
-          duxp = pgxp*ugxp - pgxm*ugxm
-          pxav = HALF*(pgxp+pgxm)
-          uxav = HALF*(ugxp+ugxm)
-          gexav = HALF*(gegxp+gegxm)
-          dux = ugxp-ugxm
-          dgex = gegxp-gegxm
-          pxnew = hdtdx*(duxp + pxav*dux*(gamc(i,j,k)-ONE))
-          gexnew = hdtdx*( (gexav-ONE)*(gexav-gamc(i,j,k))*dux - uxav*dgex )
-
-          duzp = pgzp*ugzp - pgzm*ugzm
-          pzav = HALF*(pgzp+pgzm)
-          uzav = HALF*(ugzp+ugzm)
-          gezav = HALF*(gegzp+gegzm)
-          duz = ugzp-ugzm
-          dgez = gegzp-gegzm
-          pznew = hdtdz*(duzp + pzav*duz*(gamc(i,j,k)-ONE))
-          geznew = hdtdz*( (gezav-ONE)*(gezav-gamc(i,j,k))*duz - uzav*dgez )
-
-
-          !-------------------------------------------------------------------
-          ! qypo state
-          !-------------------------------------------------------------------
-
-          ! Convert back to primitive form
-          if (j.ge.lo(2)) then
+             ! Convert back to primitive form
              qpo(i,j,k,QRHO  ) = rrnewr        + hdt*srcQ(i,j,k,QRHO)
              qpo(i,j,k,QU    ) = runewr/rrnewr + hdt*srcQ(i,j,k,QU)
              qpo(i,j,k,QV    ) = rvnewr/rrnewr + hdt*srcQ(i,j,k,QV)
              qpo(i,j,k,QW    ) = rwnewr/rrnewr + hdt*srcQ(i,j,k,QW)
 
              ! note: we run the risk of (rho e) being negative here
+             rhoekenr = HALF*(runewr**2 + rvnewr**2 + rwnewr**2)/rrnewr
              qpo(i,j,k,QREINT) = renewr - rhoekenr + hdt*srcQ(i,j,k,QREINT)
-
+             
              if (transverse_reset_rhoe == 1) then
                 ! If it is negative, reset the internal energy by using the discretized
                 ! expression for updating (rho e).
-
+                
                 if (qpo(i,j,k,QREINT) .le. ZERO) then
                    qpo(i,j,k,QREINT) = qp(i,j,k,QREINT) &
                         - hdtdx*(fxz(i+1,j,k,UEINT) - fxz(i,j,k,UEINT) + pxav*dux) &
@@ -2554,11 +2454,9 @@ contains
              endif
 
              if (ppm_predict_gammae == 0) then
-                
                 ! Optionally, use the EOS to calculate the pressure.
 
                 if (transverse_use_eos .eq. 1) then
-
                    eos_state % rho = qpo(i,j,k,QRHO)
                    eos_state % e   = qpo(i,j,k,QREINT) / qpo(i,j,k,QRHO)
                    eos_state % T   = small_temp
@@ -2588,20 +2486,84 @@ contains
 
              endif
 
-          end if
+          end do
+       end do
 
+       !-------------------------------------------------------------------
+       ! qymo state
+       !-------------------------------------------------------------------          
+       
+       do    j = lo(2)-1, hi(2)
+          do i = lo(1)  , hi(1)
 
-          !-------------------------------------------------------------------
-          ! qymo state
-          !-------------------------------------------------------------------          
+             pgxp = pgdnvx(i+1,j,k)
+             pgxm = pgdnvx(i,j,k)
+             ugxp = ugdnvx(i+1,j,k)
+             ugxm = ugdnvx(i,j,k)
+             gegxp = gegdnvx(i+1,j,k)
+             gegxm = gegdnvx(i,j,k)
+             
+             pgzp = pgdnvz(i,j,k+1)
+             pgzm = pgdnvz(i,j,k)
+             ugzp = ugdnvz(i,j,k+1)
+             ugzm = ugdnvz(i,j,k)
+             gegzp = gegdnvz(i,j,k+1)
+             gegzm = gegdnvz(i,j,k)
 
-          if (j.le.hi(2)) then
+             duxp = pgxp*ugxp - pgxm*ugxm
+             pxav = HALF*(pgxp+pgxm)
+             uxav = HALF*(ugxp+ugxm)
+             gexav = HALF*(gegxp+gegxm)
+             dux = ugxp-ugxm
+             dgex = gegxp-gegxm
+             pxnew = hdtdx*(duxp + pxav*dux*(gamc(i,j,k)-ONE))
+             gexnew = hdtdx*( (gexav-ONE)*(gexav-gamc(i,j,k))*dux - uxav*dgex )
+             
+             duzp = pgzp*ugzp - pgzm*ugzm
+             pzav = HALF*(pgzp+pgzm)
+             uzav = HALF*(ugzp+ugzm)
+             gezav = HALF*(gegzp+gegzm)
+             duz = ugzp-ugzm
+             dgez = gegzp-gegzm
+             pznew = hdtdz*(duzp + pzav*duz*(gamc(i,j,k)-ONE))
+             geznew = hdtdz*( (gezav-ONE)*(gezav-gamc(i,j,k))*duz - uzav*dgez )
+             
+             ! Add transverse predictor
+             rrl = qm(i,j+1,k,QRHO)
+             rul = rrl*qm(i,j+1,k,QU)
+             rvl = rrl*qm(i,j+1,k,QV)
+             rwl = rrl*qm(i,j+1,k,QW)
+             ekenl = HALF*rrl*(qm(i,j+1,k,QU)**2 + qm(i,j+1,k,QV)**2 + qm(i,j+1,k,QW)**2)
+             rel = qm(i,j+1,k,QREINT) + ekenl
+
+             rrnewl = rrl - hdtdx*(fxz(i+1,j,k,URHO) - fxz(i,j,k,URHO)) &
+                          - hdtdz*(fzx(i,j,k+1,URHO) - fzx(i,j,k,URHO))
+             runewl = rul - hdtdx*(fxz(i+1,j,k,UMX) - fxz(i,j,k,UMX)) &
+                          - hdtdz*(fzx(i,j,k+1,UMX) - fzx(i,j,k,UMX))
+             rvnewl = rvl - hdtdx*(fxz(i+1,j,k,UMY) - fxz(i,j,k,UMY)) &
+                          - hdtdz*(fzx(i,j,k+1,UMY) - fzx(i,j,k,UMY))
+             rwnewl = rwl - hdtdx*(fxz(i+1,j,k,UMZ) - fxz(i,j,k,UMZ)) &
+                          - hdtdz*(fzx(i,j,k+1,UMZ) - fzx(i,j,k,UMZ))
+             renewl = rel - hdtdx*(fxz(i+1,j,k,UEDEN) - fxz(i,j,k,UEDEN)) &
+                          - hdtdz*(fzx(i,j,k+1,UEDEN) - fzx(i,j,k,UEDEN))
+
+             ! Reset to original value if adding transverse terms made density negative
+             if (transverse_reset_density == 1 .and. rrnewl .lt. ZERO) then
+                rrnewl = rrl 
+                runewl = rul 
+                rvnewl = rvl 
+                rwnewl = rwl 
+                renewl = rel 
+             endif
+
+             ! Convert back to primitive form
              qmo(i,j+1,k,QRHO  ) = rrnewl        + hdt*srcQ(i,j,k,QRHO)
              qmo(i,j+1,k,QU    ) = runewl/rrnewl + hdt*srcQ(i,j,k,QU)
              qmo(i,j+1,k,QV    ) = rvnewl/rrnewl + hdt*srcQ(i,j,k,QV)
              qmo(i,j+1,k,QW    ) = rwnewl/rrnewl + hdt*srcQ(i,j,k,QW)
-
+             
              ! note: we run the risk of (rho e) being negative here
+             rhoekenl = HALF*(runewl**2 + rvnewl**2 + rwnewl**2)/rrnewl
              qmo(i,j+1,k,QREINT) = renewl - rhoekenl + hdt*srcQ(i,j,k,QREINT)
 
              if (transverse_reset_rhoe == 1) then
@@ -2627,8 +2589,7 @@ contains
                    endif
                 endif
              endif
-             
-             
+
              if (ppm_predict_gammae == 0) then
 
                 ! Optionally, use the EOS to calculate the pressure.
@@ -2645,6 +2606,7 @@ contains
                    qmo(i,j+1,k,QPRES ) = pnewl
                    qmo(i,j+1,k,QREINT) = eos_state % e * eos_state % rho
                 else
+                   ! add the transverse term to the p evolution eq here
                    pnewl = qm(i,j+1,k,QPRES) - pxnew - pznew
                    qmo(i,j+1,k,QPRES) = pnewl + hdt*srcQ(i,j,k,QPRES)
                 endif
@@ -2662,29 +2624,27 @@ contains
 
              endif
 
-          endif
-          
-       enddo
+          enddo
        enddo
     enddo
 
     ! if ppm_trace_grav == 1, then we already added the piecewise parabolic traced
     ! gravity to the normal edge states
     if ((do_grav .eq. 1) .and. (ppm_trace_grav == 0 .or. ppm_type == 0)) then
-       do    k = lo(3), hi(3)
-          do j = lo(2), hi(2)+1 
-          do i = lo(1), hi(1)
-             qpo(i,j,k,QU    ) = qpo(i,j,k,QU    ) + hdt*grav(i,j,k,1)
-             qpo(i,j,k,QV    ) = qpo(i,j,k,QV    ) + hdt*grav(i,j,k,2)
-             qpo(i,j,k,QW    ) = qpo(i,j,k,QW    ) + hdt*grav(i,j,k,3)
+       do       k = lo(3), hi(3)
+          do    j = lo(2), hi(2)+1 
+             do i = lo(1), hi(1)
+                qpo(i,j,k,QU    ) = qpo(i,j,k,QU    ) + hdt*grav(i,j,k,1)
+                qpo(i,j,k,QV    ) = qpo(i,j,k,QV    ) + hdt*grav(i,j,k,2)
+                qpo(i,j,k,QW    ) = qpo(i,j,k,QW    ) + hdt*grav(i,j,k,3)
+             end do
           end do
-          end do
-          do j = lo(2)-1, hi(2)
-          do i = lo(1)  , hi(1)
-             qmo(i,j+1,k,QU    ) = qmo(i,j+1,k,QU    ) + hdt*grav(i,j,k,1)
-             qmo(i,j+1,k,QV    ) = qmo(i,j+1,k,QV    ) + hdt*grav(i,j,k,2)
-             qmo(i,j+1,k,QW    ) = qmo(i,j+1,k,QW    ) + hdt*grav(i,j,k,3)
-          enddo
+          do    j = lo(2)-1, hi(2)
+             do i = lo(1)  , hi(1)
+                qmo(i,j+1,k,QU    ) = qmo(i,j+1,k,QU    ) + hdt*grav(i,j,k,1)
+                qmo(i,j+1,k,QV    ) = qmo(i,j+1,k,QV    ) + hdt*grav(i,j,k,2)
+                qmo(i,j+1,k,QW    ) = qmo(i,j+1,k,QW    ) + hdt*grav(i,j,k,3)
+             enddo
           enddo
        enddo
     endif
@@ -2692,20 +2652,20 @@ contains
     ! if ppm_trace_rot == 1, then we already added the piecewise parabolic traced
     ! rotation to the normal edge states
     if ((do_rotation .eq. 1) .and. (ppm_trace_rot == 0 .or. ppm_type == 0)) then
-       do    k = lo(3), hi(3)
-          do j = lo(2), hi(2)+1 
-          do i = lo(1), hi(1)
-             qpo(i,j,k,QU    ) = qpo(i,j,k,QU    ) + hdt*rot(i,j,k,1)
-             qpo(i,j,k,QV    ) = qpo(i,j,k,QV    ) + hdt*rot(i,j,k,2)
-             qpo(i,j,k,QW    ) = qpo(i,j,k,QW    ) + hdt*rot(i,j,k,3)
+       do       k = lo(3), hi(3)
+          do    j = lo(2), hi(2)+1 
+             do i = lo(1), hi(1)
+                qpo(i,j,k,QU    ) = qpo(i,j,k,QU    ) + hdt*rot(i,j,k,1)
+                qpo(i,j,k,QV    ) = qpo(i,j,k,QV    ) + hdt*rot(i,j,k,2)
+                qpo(i,j,k,QW    ) = qpo(i,j,k,QW    ) + hdt*rot(i,j,k,3)
+             end do
           end do
-          end do
-          do j = lo(2)-1, hi(2)
-          do i = lo(1)  , hi(1)             
-             qmo(i,j+1,k,QU    ) = qmo(i,j+1,k,QU    ) + hdt*rot(i,j,k,1)
-             qmo(i,j+1,k,QV    ) = qmo(i,j+1,k,QV    ) + hdt*rot(i,j,k,2)
-             qmo(i,j+1,k,QW    ) = qmo(i,j+1,k,QW    ) + hdt*rot(i,j,k,3)
-          enddo
+          do    j = lo(2)-1, hi(2)
+             do i = lo(1)  , hi(1)             
+                qmo(i,j+1,k,QU    ) = qmo(i,j+1,k,QU    ) + hdt*rot(i,j,k,1)
+                qmo(i,j+1,k,QV    ) = qmo(i,j+1,k,QV    ) + hdt*rot(i,j,k,2)
+                qmo(i,j+1,k,QW    ) = qmo(i,j+1,k,QW    ) + hdt*rot(i,j,k,3)
+             enddo
           enddo
        enddo
     endif
