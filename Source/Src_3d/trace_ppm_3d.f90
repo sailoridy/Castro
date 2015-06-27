@@ -75,6 +75,12 @@ contains
     integer, parameter :: igy = 2
     integer, parameter :: igz = 3
 
+    print *, lo, hi, Ipmlo, Ipmhi
+    print *, lbound(Ip_gc), ubound(Ip_gc)
+    call flush(6)
+    stop
+
+
     if (ppm_type .eq. 0) then
        print *,'Oops -- shouldnt be in trace_ppm with ppm_type = 0'
        call bl_error("Error:: trace_ppm_3d.f90 :: trace_ppm")

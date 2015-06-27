@@ -220,10 +220,8 @@ contains
                flatn, qlo, qhi, &
                Ip_gc(:,:,:,:,:,1),Im_gc(:,:,:,:,:,1), glo, ghi, &
                lo,hi,dx,dy,dz,dt)
-       endif
-       
-       ! temperature-based PPM
-       if (ppm_temp_fix == 1) then
+       else
+          ! temperature-based PPM
           do k = glo(3), ghi(3)
           do j = glo(2), ghi(2)
           do i = glo(1), ghi(1)
@@ -267,7 +265,7 @@ contains
        !          qym, qyp                     : yface, +-1 at x & z
        !          qzm, qzp                     : zface, +-1 at x & y
        call trace_ppm(q,c,gamc,flatn, qlo,qhi, &
-                      Ip,Im,Ip_g,Im_g,Ip_r,Im_r,Ip_gc,Im_gc, glo, qhi, &
+                      Ip,Im,Ip_g,Im_g,Ip_r,Im_r,Ip_gc,Im_gc, glo, ghi, &
                       qxm,qxp,qym,qyp,qzm,qzp, fglo, fghi, &
                       lo,hi,dt)
        
