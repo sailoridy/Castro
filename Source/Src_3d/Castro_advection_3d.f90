@@ -218,7 +218,7 @@ contains
           call ppm(gamc(:,:,:), qlo, qhi, &
                q(:,:,:,QU:),c, qlo, qhi, &
                flatn, qlo, qhi, &
-               Ip_gc(:,:,:,:,:,1),Im_gc(:,:,:,:,:,1), glo, qhi, &
+               Ip_gc(:,:,:,:,:,1),Im_gc(:,:,:,:,:,1), glo, ghi, &
                lo,hi,dx,dy,dz,dt)
        endif
        

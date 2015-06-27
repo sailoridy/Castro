@@ -98,7 +98,7 @@ contains
          call bl_error("Should have ppm_type = 1 in ppm_type1")
 
     do n = 1, 3
-       if (slo(n) .gt. lo(n)-3 .or. shi(n) .lt. ihi(n)+3) then
+       if (slo(n) .gt. lo(n)-3 .or. shi(n) .lt. hi(n)+3) then
           print *, 'Direction: ', n
           print *, 'Bounds of array: ', slo(n), shi(n)
           print *, 'Bounds of  loop: ',  lo(n),  hi(n)
@@ -411,14 +411,13 @@ contains
        end do
     end do
              
-
-    do       k = lo(3)-1, hi(3)+2
+    do       k = lo(3)-1, hi(3)+1
        do    j = lo(2)-1, hi(2)+1
           do i = lo(1)-1, hi(1)+1
           
              ! copy sedgez into sp and sm
              sp = sedgez(i,j,k+1)
-             sp = sedgez(i,j,k)
+             sm = sedgez(i,j,k)
 
              if (ppm_flatten_before_integrals == 1) then
                 ! flatten the parabola BEFORE doing the other                     
