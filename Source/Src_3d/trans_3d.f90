@@ -223,8 +223,8 @@ contains
        ! qymo state
        !-------------------------------------------------------------------
        
-       do    j = lo(2), hi(2)+1 
-          do i = lo(1), hi(1)             
+       do    j = lo(2)-1, hi(2) 
+          do i = lo(1)  , hi(1)             
              
              pgp  =  pgdnvx(i+1,j,k)
              pgm  =  pgdnvx(i  ,j,k)
@@ -978,8 +978,8 @@ contains
     ! qzpo states
     !-------------------------------------------------------------------          
 
-    do    k = lo(3)  , hi(3)+1
-       do j = lo(2)  , hi(2)
+    do       k = lo(3)  , hi(3)+1
+       do    j = lo(2)  , hi(2)
           do i = lo(1)-1, hi(1)+1             
           
              pgp = pgdnvy(i,j+1,k)
@@ -1573,13 +1573,13 @@ contains
     ! for the fluid variables
     !-------------------------------------------------------------------    
 
-    do    k = lo(3)  , hi(3)
+    do k = lo(3), hi(3)
        
        !-------------------------------------------------------------------
        ! qypo state
        !-------------------------------------------------------------------
 
-       do j = lo(2), hi(2)+1 
+       do    j = lo(2), hi(2)+1 
           do i = lo(1)-1, hi(1)+1             
 
              pgp  =  pgdnvz(i,j,k+1)
@@ -1696,7 +1696,7 @@ contains
        ! qymo state
        !-------------------------------------------------------------------
        
-       do j = lo(2)-1, hi(2)
+       do    j = lo(2)-1, hi(2)
           do i = lo(1)-1, hi(1)+1             
 
              pgp  =  pgdnvz(i,j,k+1)
@@ -1882,8 +1882,8 @@ contains
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
 
-       do    k = lo(3), hi(3)+1
-          do j = lo(2), hi(2) 
+       do       k = lo(3), hi(3)+1
+          do    j = lo(2), hi(2) 
              do i = lo(1), hi(1)
                 rrr = qp(i,j,k,QRHO)
                 compr = rrr*qp(i,j,k,nq)
@@ -1896,8 +1896,8 @@ contains
           end do
        end do
        
-       do    k = lo(3)-1, hi(3)
-          do j = lo(2)  , hi(2) 
+       do       k = lo(3)-1, hi(3)
+          do    j = lo(2)  , hi(2) 
              do i = lo(1)  , hi(1)
                 rrl = qm(i,j,k+1,QRHO)
                 compl = rrl*qm(i,j,k+1,nq)
@@ -1920,8 +1920,8 @@ contains
     ! qzpo state
     !-------------------------------------------------------------------          
 
-    do    k = lo(3), hi(3)+1
-       do j = lo(2), hi(2) 
+    do       k = lo(3), hi(3)+1
+       do    j = lo(2), hi(2) 
           do i = lo(1), hi(1)
 
              pgxp = pgdnvx(i+1,j,k)
@@ -2349,14 +2349,14 @@ contains
     ! fluid variables
     !-------------------------------------------------------------------            
 
-    do    k = lo(3)  , hi(3)
+    do k = lo(3), hi(3)
 
        !-------------------------------------------------------------------
        ! qypo state
        !-------------------------------------------------------------------
        
-       do j = lo(2), hi(2)+1 
-          do i = lo(1)  , hi(1)
+       do    j = lo(2), hi(2)+1 
+          do i = lo(1), hi(1)
 
              pgxp = pgdnvx(i+1,j,k)
              pgxm = pgdnvx(i,j,k)
@@ -2436,7 +2436,7 @@ contains
                 if (qpo(i,j,k,QREINT) .le. ZERO) then
                    qpo(i,j,k,QREINT) = qp(i,j,k,QREINT) &
                         - hdtdx*(fxz(i+1,j,k,UEINT) - fxz(i,j,k,UEINT) + pxav*dux) &
-                        - hdtdz*(fzx(i  ,j,k+1,UEINT) - fzx(i,j,k,UEINT) + pzav*duz) &
+                        - hdtdz*(fzx(i,j,k+1,UEINT) - fzx(i,j,k,UEINT) + pzav*duz) &
                         + hdt*srcQ(i,j,k,QREINT)
                    
                    ! if we are still negative, then we need to reset
@@ -2528,7 +2528,7 @@ contains
              pznew = hdtdz*(duzp + pzav*duz*(gamc(i,j,k)-ONE))
              geznew = hdtdz*( (gezav-ONE)*(gezav-gamc(i,j,k))*duz - uzav*dgez )
              
-             ! Add transverse predictor
+             ! Convert to conservation form
              rrl = qm(i,j+1,k,QRHO)
              rul = rrl*qm(i,j+1,k,QU)
              rvl = rrl*qm(i,j+1,k,QV)
@@ -2536,6 +2536,7 @@ contains
              ekenl = HALF*rrl*(qm(i,j+1,k,QU)**2 + qm(i,j+1,k,QV)**2 + qm(i,j+1,k,QW)**2)
              rel = qm(i,j+1,k,QREINT) + ekenl
 
+             ! Add transverse predictor
              rrnewl = rrl - hdtdx*(fxz(i+1,j,k,URHO) - fxz(i,j,k,URHO)) &
                           - hdtdz*(fzx(i,j,k+1,URHO) - fzx(i,j,k,URHO))
              runewl = rul - hdtdx*(fxz(i+1,j,k,UMX) - fxz(i,j,k,UMX)) &
@@ -2742,146 +2743,115 @@ contains
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
 
-       do    k = lo(3), hi(3)
-       do    j = lo(2), hi(2) 
-          do i = lo(1), hi(1)+1
-             rrr = qp(i,j,k,QRHO)
-             compr = rrr*qp(i,j,k,nq)
-             rrnewr = rrr - hdtdy*(fyz(i,j+1,k  ,URHO) - fyz(i,j,k,URHO)) &
-                          - hdtdz*(fzy(i,j  ,k+1,URHO) - fzy(i,j,k,URHO))
-             compnr = compr - hdtdy*(fyz(i,j+1,k,n) - fyz(i,j,k,n)) &
-                            - hdtdz*(fzy(i,j  ,k+1,n) - fzy(i,j,k,n))
-             qpo(i  ,j,k,nq) = compnr/rrnewr + hdt*srcQ(i,j,k,nq)
+       do       k = lo(3), hi(3)
+          do    j = lo(2), hi(2) 
+             do i = lo(1), hi(1)+1
+                rrr = qp(i,j,k,QRHO)
+                compr = rrr*qp(i,j,k,nq)
+                rrnewr = rrr - hdtdy*(fyz(i,j+1,k,URHO) - fyz(i,j,k,URHO)) &
+                             - hdtdz*(fzy(i,j,k+1,URHO) - fzy(i,j,k,URHO))
+                compnr = compr - hdtdy*(fyz(i,j+1,k,n) - fyz(i,j,k,n)) &
+                               - hdtdz*(fzy(i,j,k+1,n) - fzy(i,j,k,n))
+                qpo(i,j,k,nq) = compnr/rrnewr + hdt*srcQ(i,j,k,nq)
+             enddo
+             do i = lo(1)-1, hi(1)
+                rrl = qm(i+1,j,k,QRHO)
+                compl = rrl*qm(i+1,j,k,nq)
+                rrnewl = rrl - hdtdy*(fyz(i,j+1,k,URHO) - fyz(i,j,k,URHO)) &
+                             - hdtdz*(fzy(i,j,k+1,URHO) - fzy(i,j,k,URHO))
+                compnl = compl - hdtdy*(fyz(i,j+1,k,n) - fyz(i,j,k,n)) &
+                               - hdtdz*(fzy(i,j,k+1,n) - fzy(i,j,k,n))
+                qmo(i+1,j,k,nq) = compnl/rrnewl + hdt*srcQ(i,j,k,nq)             
+             enddo
           enddo
-          do i = lo(1)-1, hi(1)
-             rrl = qm(i+1,j,k,QRHO)
-             compl = rrl*qm(i+1,j,k,nq)
-             rrnewl = rrl - hdtdy*(fyz(i,j+1,k  ,URHO) - fyz(i,j,k,URHO)) &
-                          - hdtdz*(fzy(i,j  ,k+1,URHO) - fzy(i,j,k,URHO))
-             compnl = compl - hdtdy*(fyz(i,j+1,k,n) - fyz(i,j,k,n)) &
-                            - hdtdz*(fzy(i,j  ,k+1,n) - fzy(i,j,k,n))
-             qmo(i+1,j,k,nq) = compnl/rrnewl + hdt*srcQ(i,j,k,nq)             
-          enddo
-       enddo
        enddo
     enddo
 
-    do    k = lo(3)  , hi(3)
-       do j = lo(2)  , hi(2) 
-       do i = lo(1)-1, hi(1)+1
+    !-------------------------------------------------------------------
+    ! add the transverse yz and zy differences to the x-states for the 
+    ! fluid variables
+    !-------------------------------------------------------------------          
+
+    do    k = lo(3), hi(3)
+       do j = lo(2), hi(2) 
 
           !-------------------------------------------------------------------
-          ! add the transverse yz and zy differences to the x-states for the 
-          ! fluid variables
-          !-------------------------------------------------------------------          
+          ! qxpo state
+          !-------------------------------------------------------------------
 
-          pgyp = pgdnvy(i,j+1,k)
-          pgym = pgdnvy(i,j,k)
-          ugyp = ugdnvy(i,j+1,k)
-          ugym = ugdnvy(i,j,k)
-          gegyp = gegdnvy(i,j+1,k)
-          gegym = gegdnvy(i,j,k)
-          
-          pgzp = pgdnvz(i,j,k+1)
-          pgzm = pgdnvz(i,j,k)
-          ugzp = ugdnvz(i,j,k+1)
-          ugzm = ugdnvz(i,j,k)
-          gegzp = gegdnvz(i,j,k+1)
-          gegzm = gegdnvz(i,j,k)
-          
-          ! Convert to conservation form
-          rrr = qp(i,j,k,QRHO)
-          rur = rrr*qp(i,j,k,QU)
-          rvr = rrr*qp(i,j,k,QV)
-          rwr = rrr*qp(i,j,k,QW)
-          ekenr = HALF*rrr*(qp(i,j,k,QU)**2 + qp(i,j,k,QV)**2 + &
-               qp(i,j,k,QW)**2)
-          rer = qp(i,j,k,QREINT) + ekenr
-          
-          rrl = qm(i+1,j,k,QRHO)
-          rul = rrl*qm(i+1,j,k,QU)
-          rvl = rrl*qm(i+1,j,k,QV)
-          rwl = rrl*qm(i+1,j,k,QW)
-          ekenl = HALF*rrl*(qm(i+1,j,k,QU)**2 + qm(i+1,j,k,QV)**2 + &
-               qm(i+1,j,k,QW)**2)
-          rel = qm(i+1,j,k,QREINT) + ekenl
-          
-          ! Add transverse predictor
-          rrnewr = rrr - hdtdy*(fyz(i,j+1,k,URHO) - fyz(i,j,k,URHO)) &
-                       - hdtdz*(fzy(i,j,k+1,URHO) - fzy(i,j,k,URHO))
-          runewr = rur - hdtdy*(fyz(i,j+1,k,UMX) - fyz(i,j,k,UMX)) &
-                       - hdtdz*(fzy(i,j,k+1,UMX) - fzy(i,j,k,UMX))
-          rvnewr = rvr - hdtdy*(fyz(i,j+1,k,UMY) - fyz(i,j,k,UMY)) &
-                       - hdtdz*(fzy(i,j,k+1,UMY) - fzy(i,j,k,UMY))
-          rwnewr = rwr - hdtdy*(fyz(i,j+1,k,UMZ) - fyz(i,j,k,UMZ)) &
-                       - hdtdz*(fzy(i,j,k+1,UMZ) - fzy(i,j,k,UMZ))
-          renewr = rer - hdtdy*(fyz(i,j+1,k,UEDEN) - fyz(i,j,k,UEDEN)) &
-                       - hdtdz*(fzy(i,j,k+1,UEDEN) - fzy(i,j,k,UEDEN))
+          do i = lo(1), hi(1)+1
 
-          rrnewl = rrl - hdtdy*(fyz(i,j+1,k,URHO) - fyz(i,j,k,URHO)) &
-                       - hdtdz*(fzy(i,j,k+1,URHO) - fzy(i,j,k,URHO))
-          runewl = rul - hdtdy*(fyz(i,j+1,k,UMX) - fyz(i,j,k,UMX)) &
-                       - hdtdz*(fzy(i,j,k+1,UMX) - fzy(i,j,k,UMX))
-          rvnewl = rvl - hdtdy*(fyz(i,j+1,k,UMY) - fyz(i,j,k,UMY)) &
-                       - hdtdz*(fzy(i,j,k+1,UMY) - fzy(i,j,k,UMY))
-          rwnewl = rwl - hdtdy*(fyz(i,j+1,k,UMZ) - fyz(i,j,k,UMZ)) &
-                       - hdtdz*(fzy(i,j,k+1,UMZ) - fzy(i,j,k,UMZ))
-          renewl = rel - hdtdy*(fyz(i,j+1,k,UEDEN) - fyz(i,j,k,UEDEN)) &
-                       - hdtdz*(fzy(i,j,k+1,UEDEN) - fzy(i,j,k,UEDEN))
+             pgyp = pgdnvy(i,j+1,k)
+             pgym = pgdnvy(i,j,k)
+             ugyp = ugdnvy(i,j+1,k)
+             ugym = ugdnvy(i,j,k)
+             gegyp = gegdnvy(i,j+1,k)
+             gegym = gegdnvy(i,j,k)
+             
+             pgzp = pgdnvz(i,j,k+1)
+             pgzm = pgdnvz(i,j,k)
+             ugzp = ugdnvz(i,j,k+1)
+             ugzm = ugdnvz(i,j,k)
+             gegzp = gegdnvz(i,j,k+1)
+             gegzm = gegdnvz(i,j,k)
+             
+             duyp = pgyp*ugyp - pgym*ugym
+             pyav = HALF*(pgyp+pgym)
+             uyav = HALF*(ugyp+ugym)
+             geyav = HALF*(gegyp+gegym)
+             duy = ugyp-ugym
+             dgey = gegyp-gegym
+             pynew = hdtdy*(duyp + pyav*duy*(gamc(i,j,k)-ONE))
+             geynew = hdtdy*( (geyav-ONE)*(geyav-gamc(i,j,k))*duy - uyav*dgey )
+             
+             duzp = pgzp*ugzp - pgzm*ugzm
+             pzav = HALF*(pgzp+pgzm)
+             uzav = HALF*(ugzp+ugzm)
+             gezav = HALF*(gegzp+gegzm)
+             duz = ugzp-ugzm
+             dgez = gegzp-gegzm
+             pznew = hdtdz*(duzp + pzav*duz*(gamc(i,j,k)-ONE))
+             geznew = hdtdz*( (gezav-ONE)*(gezav-gamc(i,j,k))*duz - uzav*dgez )
+             
+             ! Convert to conservation form
+             rrr = qp(i,j,k,QRHO)
+             rur = rrr*qp(i,j,k,QU)
+             rvr = rrr*qp(i,j,k,QV)
+             rwr = rrr*qp(i,j,k,QW)
+             ekenr = HALF*rrr*(qp(i,j,k,QU)**2 + qp(i,j,k,QV)**2 + qp(i,j,k,QW)**2)
+             rer = qp(i,j,k,QREINT) + ekenr
+          
+             ! Add transverse predictor
+             rrnewr = rrr - hdtdy*(fyz(i,j+1,k,URHO) - fyz(i,j,k,URHO)) &
+                          - hdtdz*(fzy(i,j,k+1,URHO) - fzy(i,j,k,URHO))
+             runewr = rur - hdtdy*(fyz(i,j+1,k,UMX) - fyz(i,j,k,UMX)) &
+                          - hdtdz*(fzy(i,j,k+1,UMX) - fzy(i,j,k,UMX))
+             rvnewr = rvr - hdtdy*(fyz(i,j+1,k,UMY) - fyz(i,j,k,UMY)) &
+                          - hdtdz*(fzy(i,j,k+1,UMY) - fzy(i,j,k,UMY))
+             rwnewr = rwr - hdtdy*(fyz(i,j+1,k,UMZ) - fyz(i,j,k,UMZ)) &
+                          - hdtdz*(fzy(i,j,k+1,UMZ) - fzy(i,j,k,UMZ))
+             renewr = rer - hdtdy*(fyz(i,j+1,k,UEDEN) - fyz(i,j,k,UEDEN)) &
+                          - hdtdz*(fzy(i,j,k+1,UEDEN) - fzy(i,j,k,UEDEN))
 
-          ! Reset to original value if adding transverse terms made density negative
-          if (transverse_reset_density == 1) then
-             if (rrnewr .lt. ZERO) then
+             ! Reset to original value if adding transverse terms made density negative
+             if (transverse_reset_density == 1 .and. rrnewr .lt. ZERO) then
                 rrnewr = rrr 
                 runewr = rur 
                 rvnewr = rvr 
                 rwnewr = rwr 
                 renewr = rer 
              endif
-             if (rrnewl .lt. ZERO) then
-                rrnewl = rrl 
-                runewl = rul 
-                rvnewl = rvl 
-                rwnewl = rwl 
-                renewl = rel 
-             endif
-          endif
 
-          rhoekenr = HALF*(runewr**2 + rvnewr**2 + rwnewr**2)/rrnewr
-          rhoekenl = HALF*(runewl**2 + rvnewl**2 + rwnewl**2)/rrnewl
-
-          duyp = pgyp*ugyp - pgym*ugym
-          pyav = HALF*(pgyp+pgym)
-          uyav = HALF*(ugyp+ugym)
-          geyav = HALF*(gegyp+gegym)
-          duy = ugyp-ugym
-          dgey = gegyp-gegym
-          pynew = hdtdy*(duyp + pyav*duy*(gamc(i,j,k)-ONE))
-          geynew = hdtdy*( (geyav-ONE)*(geyav-gamc(i,j,k))*duy - uyav*dgey )
-          
-          duzp = pgzp*ugzp - pgzm*ugzm
-          pzav = HALF*(pgzp+pgzm)
-          uzav = HALF*(ugzp+ugzm)
-          gezav = HALF*(gegzp+gegzm)
-          duz = ugzp-ugzm
-          dgez = gegzp-gegzm
-          pznew = hdtdz*(duzp + pzav*duz*(gamc(i,j,k)-ONE))
-          geznew = hdtdz*( (gezav-ONE)*(gezav-gamc(i,j,k))*duz - uzav*dgez )
-
-          !-------------------------------------------------------------------
-          ! qxpo state
-          !-------------------------------------------------------------------
-          
-          ! Convert back to primitive form
-          if (i.ge.lo(1)) then
+             ! Convert back to primitive form
              qpo(i,j,k,QRHO  ) = rrnewr        + hdt*srcQ(i,j,k,QRHO)
              qpo(i,j,k,QU    ) = runewr/rrnewr + hdt*srcQ(i,j,k,QU)
              qpo(i,j,k,QV    ) = rvnewr/rrnewr + hdt*srcQ(i,j,k,QV)
              qpo(i,j,k,QW    ) = rwnewr/rrnewr + hdt*srcQ(i,j,k,QW)
 
              ! note: we run the risk of (rho e) being negative here
+             rhoekenr = HALF*(runewr**2 + rvnewr**2 + rwnewr**2)/rrnewr
              qpo(i,j,k,QREINT) = renewr - rhoekenr + hdt*srcQ(i,j,k,QREINT)
-
+             
              if (transverse_reset_rhoe == 1) then
                 ! If it is negative, reset the internal energy by using the discretized
                 ! expression for updating (rho e).
@@ -2889,7 +2859,7 @@ contains
                 if (qpo(i,j,k,QREINT) .le. ZERO) then
                    qpo(i,j,k,QREINT) = qp(i,j,k,QREINT) &
                         - hdtdy*(fyz(i,j+1,k,UEINT) - fyz(i,j,k,UEINT) + pyav*duy) &
-                        - hdtdz*(fzy(i,j  ,k+1,UEINT) - fzy(i,j,k,UEINT) + pzav*duz) &
+                        - hdtdz*(fzy(i,j,k+1,UEINT) - fzy(i,j,k,UEINT) + pzav*duz) &
                         + hdt*srcQ(i,j,k,QREINT)
                    
                    ! if we are still negative, then we need to reset
@@ -2907,7 +2877,6 @@ contains
              endif
 
              if (ppm_predict_gammae == 0) then
-
                 ! Optionally, use the EOS to calculate the pressure.
 
                 if (transverse_use_eos .eq. 1) then
@@ -2940,19 +2909,83 @@ contains
 
              end if
 
-          endif
+          end do
 
           !-------------------------------------------------------------------
           ! qxmo state
           !-------------------------------------------------------------------
+          
+          do i = lo(1)-1, hi(1)
 
-          if (i.le.hi(1)) then
+             pgyp = pgdnvy(i,j+1,k)
+             pgym = pgdnvy(i,j,k)
+             ugyp = ugdnvy(i,j+1,k)
+             ugym = ugdnvy(i,j,k)
+             gegyp = gegdnvy(i,j+1,k)
+             gegym = gegdnvy(i,j,k)
+             
+             pgzp = pgdnvz(i,j,k+1)
+             pgzm = pgdnvz(i,j,k)
+             ugzp = ugdnvz(i,j,k+1)
+             ugzm = ugdnvz(i,j,k)
+             gegzp = gegdnvz(i,j,k+1)
+             gegzm = gegdnvz(i,j,k)
+             
+             duyp = pgyp*ugyp - pgym*ugym
+             pyav = HALF*(pgyp+pgym)
+             uyav = HALF*(ugyp+ugym)
+             geyav = HALF*(gegyp+gegym)
+             duy = ugyp-ugym
+             dgey = gegyp-gegym
+             pynew = hdtdy*(duyp + pyav*duy*(gamc(i,j,k)-ONE))
+             geynew = hdtdy*( (geyav-ONE)*(geyav-gamc(i,j,k))*duy - uyav*dgey )
+             
+             duzp = pgzp*ugzp - pgzm*ugzm
+             pzav = HALF*(pgzp+pgzm)
+             uzav = HALF*(ugzp+ugzm)
+             gezav = HALF*(gegzp+gegzm)
+             duz = ugzp-ugzm
+             dgez = gegzp-gegzm
+             pznew = hdtdz*(duzp + pzav*duz*(gamc(i,j,k)-ONE))
+             geznew = hdtdz*( (gezav-ONE)*(gezav-gamc(i,j,k))*duz - uzav*dgez )
+             
+             ! Convert to conservation form          
+             rrl = qm(i+1,j,k,QRHO)
+             rul = rrl*qm(i+1,j,k,QU)
+             rvl = rrl*qm(i+1,j,k,QV)
+             rwl = rrl*qm(i+1,j,k,QW)
+             ekenl = HALF*rrl*(qm(i+1,j,k,QU)**2 + qm(i+1,j,k,QV)**2 + qm(i+1,j,k,QW)**2)
+             rel = qm(i+1,j,k,QREINT) + ekenl
+             
+             ! Add transverse predictor
+             rrnewl = rrl - hdtdy*(fyz(i,j+1,k,URHO) - fyz(i,j,k,URHO)) &
+                          - hdtdz*(fzy(i,j,k+1,URHO) - fzy(i,j,k,URHO))
+             runewl = rul - hdtdy*(fyz(i,j+1,k,UMX) - fyz(i,j,k,UMX)) &
+                          - hdtdz*(fzy(i,j,k+1,UMX) - fzy(i,j,k,UMX))
+             rvnewl = rvl - hdtdy*(fyz(i,j+1,k,UMY) - fyz(i,j,k,UMY)) &
+                          - hdtdz*(fzy(i,j,k+1,UMY) - fzy(i,j,k,UMY))
+             rwnewl = rwl - hdtdy*(fyz(i,j+1,k,UMZ) - fyz(i,j,k,UMZ)) &
+                          - hdtdz*(fzy(i,j,k+1,UMZ) - fzy(i,j,k,UMZ))
+             renewl = rel - hdtdy*(fyz(i,j+1,k,UEDEN) - fyz(i,j,k,UEDEN)) &
+                          - hdtdz*(fzy(i,j,k+1,UEDEN) - fzy(i,j,k,UEDEN))
+
+             ! Reset to original value if adding transverse terms made density negative
+             if (transverse_reset_density == 1 .and. rrnewl .lt. ZERO) then
+                rrnewl = rrl 
+                runewl = rul 
+                rvnewl = rvl 
+                rwnewl = rwl 
+                renewl = rel 
+             endif
+
+             ! Convert back to primitive form
              qmo(i+1,j,k,QRHO   ) = rrnewl        + hdt*srcQ(i,j,k,QRHO)
              qmo(i+1,j,k,QU     ) = runewl/rrnewl + hdt*srcQ(i,j,k,QU)
              qmo(i+1,j,k,QV     ) = rvnewl/rrnewl + hdt*srcQ(i,j,k,QV)
              qmo(i+1,j,k,QW     ) = rwnewl/rrnewl + hdt*srcQ(i,j,k,QW)
-
+             
              ! note: we run the risk of (rho e) being negative here
+             rhoekenl = HALF*(runewl**2 + rvnewl**2 + rwnewl**2)/rrnewl
              qmo(i+1,j,k,QREINT ) = renewl - rhoekenl + hdt*srcQ(i,j,k,QREINT)
 
              if (transverse_reset_rhoe == 1) then
@@ -2962,7 +2995,7 @@ contains
                 if (qmo(i+1,j,k,QREINT) .le. ZERO) then
                    qmo(i+1,j,k,QREINT ) = qm(i+1,j,k,QREINT) &
                         - hdtdy*(fyz(i,j+1,k,UEINT) - fyz(i,j,k,UEINT) + pyav*duy) &
-                        - hdtdz*(fzy(i,j  ,k+1,UEINT) - fzy(i,j,k,UEINT) + pzav*duz) &
+                        - hdtdz*(fzy(i,j,k+1,UEINT) - fzy(i,j,k,UEINT) + pzav*duz) &
                         + hdt*srcQ(i,j,k,QREINT)
 
                    ! if we are still negative, then we need to reset
@@ -3013,47 +3046,45 @@ contains
 
              end if
 
-          endif
-
-       enddo
+          enddo
        enddo
     enddo
     
     ! if ppm_trace_grav == 1, then we already added the piecewise parabolic traced
     ! gravity to the normal edge states
     if ((do_grav .eq. 1) .and. (ppm_trace_grav == 0 .or. ppm_type == 0)) then
-       do    k = lo(3), hi(3)
-       do    j = lo(2), hi(2) 
-          do i = lo(1), hi(1)+1
-             qpo(i,j,k,QU    ) = qpo(i,j,k,QU    ) + hdt*grav(i,j,k,1)
-             qpo(i,j,k,QV    ) = qpo(i,j,k,QV    ) + hdt*grav(i,j,k,2)
-             qpo(i,j,k,QW    ) = qpo(i,j,k,QW    ) + hdt*grav(i,j,k,3)
-          end do
-          do i = lo(1)-1, hi(1)
-             qmo(i+1,j,k,QU     ) = qmo(i+1,j,k,QU     ) + hdt*grav(i,j,k,1)
-             qmo(i+1,j,k,QV     ) = qmo(i+1,j,k,QV     ) + hdt*grav(i,j,k,2)
-             qmo(i+1,j,k,QW     ) = qmo(i+1,j,k,QW     ) + hdt*grav(i,j,k,3)
+       do       k = lo(3), hi(3)
+          do    j = lo(2), hi(2) 
+             do i = lo(1), hi(1)+1
+                qpo(i,j,k,QU    ) = qpo(i,j,k,QU    ) + hdt*grav(i,j,k,1)
+                qpo(i,j,k,QV    ) = qpo(i,j,k,QV    ) + hdt*grav(i,j,k,2)
+                qpo(i,j,k,QW    ) = qpo(i,j,k,QW    ) + hdt*grav(i,j,k,3)
+             end do
+             do i = lo(1)-1, hi(1)
+                qmo(i+1,j,k,QU     ) = qmo(i+1,j,k,QU     ) + hdt*grav(i,j,k,1)
+                qmo(i+1,j,k,QV     ) = qmo(i+1,j,k,QV     ) + hdt*grav(i,j,k,2)
+                qmo(i+1,j,k,QW     ) = qmo(i+1,j,k,QW     ) + hdt*grav(i,j,k,3)
+             enddo
           enddo
-       enddo
        enddo
     endif
 
     ! if ppm_trace_rot == 1, then we already added the piecewise parabolic traced
     ! rotation to the normal edge states
     if ((do_rotation .eq. 1) .and. (ppm_trace_rot == 0 .or. ppm_type == 0)) then
-       do    k = lo(3), hi(3)
-       do    j = lo(2), hi(2) 
-          do i = lo(1), hi(1)+1
-             qpo(i,j,k,QU    ) = qpo(i,j,k,QU    ) + hdt*rot(i,j,k,1)
-             qpo(i,j,k,QV    ) = qpo(i,j,k,QV    ) + hdt*rot(i,j,k,2)
-             qpo(i,j,k,QW    ) = qpo(i,j,k,QW    ) + hdt*rot(i,j,k,3)
-          end do
-          do i = lo(1)-1, hi(1)
-             qmo(i+1,j,k,QU     ) = qmo(i+1,j,k,QU     ) + hdt*rot(i,j,k,1)
-             qmo(i+1,j,k,QV     ) = qmo(i+1,j,k,QV     ) + hdt*rot(i,j,k,2)
-             qmo(i+1,j,k,QW     ) = qmo(i+1,j,k,QW     ) + hdt*rot(i,j,k,3)
+       do       k = lo(3), hi(3)
+          do    j = lo(2), hi(2) 
+             do i = lo(1), hi(1)+1
+                qpo(i,j,k,QU    ) = qpo(i,j,k,QU    ) + hdt*rot(i,j,k,1)
+                qpo(i,j,k,QV    ) = qpo(i,j,k,QV    ) + hdt*rot(i,j,k,2)
+                qpo(i,j,k,QW    ) = qpo(i,j,k,QW    ) + hdt*rot(i,j,k,3)
+             end do
+             do i = lo(1)-1, hi(1)
+                qmo(i+1,j,k,QU     ) = qmo(i+1,j,k,QU     ) + hdt*rot(i,j,k,1)
+                qmo(i+1,j,k,QV     ) = qmo(i+1,j,k,QV     ) + hdt*rot(i,j,k,2)
+                qmo(i+1,j,k,QW     ) = qmo(i+1,j,k,QW     ) + hdt*rot(i,j,k,3)
+             enddo
           enddo
-       enddo
        enddo
     endif
     
