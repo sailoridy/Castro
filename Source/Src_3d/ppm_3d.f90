@@ -85,14 +85,8 @@ contains
 
     double precision dsl, dsr, dsc
     double precision sigma, s6
-
     double precision :: sp, sm, dtdx, dtdy, dtdz
-    
-    double precision :: dsvlx(lo(1)-2:hi(1)+2)
-    double precision :: sedgex(lo(1)-1:hi(1)+2)
-    
-    double precision, allocatable :: dsvly(:,:), sedgey(:,:)
-    double precision, allocatable :: dsvlz(:,:,:), sedgez(:,:,:)
+    double precision :: dsvlm, dsvl0, dsvlp
     
     if (ppm_type .ne. 1) &
          call bl_error("Should have ppm_type = 1 in ppm_type1")
@@ -110,47 +104,48 @@ contains
     dtdy = dt/dy
     dtdz = dt/dz    
     
-    allocate(dsvly (lo(1)-1:hi(1)+1,lo(2)-2:hi(2)+2))
-    allocate(sedgey(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+2))
-
-    allocate(dsvlz (lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-2:hi(3)+2))
-    allocate(sedgez(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+2))
-
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ! x-direction
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-    do    k = lo(3)-1, hi(3)+1
-       do j = lo(2)-1, hi(2)+1
-
-          ! compute s at x-edges
-
-          ! compute van Leer slopes in x-direction
-
-          do i = lo(1)-2, hi(1)+2
+    do       k = lo(3)-1, hi(3)+1
+       do    j = lo(2)-1, hi(2)+1
+          do i = lo(1)-1, hi(1)+1
+             
+             dsc = HALF * (s(i  ,j,k) - s(i-2,j,k))
+             dsl = TWO  * (s(i-1,j,k) - s(i-2,j,k))
+             dsr = TWO  * (s(i  ,j,k) - s(i-1,j,k))
+             if (dsl*dsr .gt. ZERO) then
+                dsvlm = sign(ONE,dsc)*min(abs(dsc),abs(dsl),abs(dsr))
+             else
+                dsvlm = ZERO
+             end if
+             
              dsc = HALF * (s(i+1,j,k) - s(i-1,j,k))
              dsl = TWO  * (s(i  ,j,k) - s(i-1,j,k))
              dsr = TWO  * (s(i+1,j,k) - s(i  ,j,k))
              if (dsl*dsr .gt. ZERO) then
-                dsvlx(i) = sign(ONE,dsc)*min(abs(dsc),abs(dsl),abs(dsr))
+                dsvl0 = sign(ONE,dsc)*min(abs(dsc),abs(dsl),abs(dsr))
              else
-                dsvlx(i) = ZERO
+                dsvl0 = ZERO
              end if
-          end do
+             
+             dsc = HALF * (s(i+2,j,k) - s(i  ,j,k))
+             dsl = TWO  * (s(i+1,j,k) - s(i  ,j,k))
+             dsr = TWO  * (s(i+2,j,k) - s(i+1,j,k))
+             if (dsl*dsr .gt. ZERO) then
+                dsvlp = sign(ONE,dsc)*min(abs(dsc),abs(dsl),abs(dsr))
+             else
+                dsvlp = ZERO
+             end if
+             
+             sm = HALF*(s(i-1,j,k)+s(i,j,k)) - SIXTH*(dsvl0-dsvlm)
+             sm = max(sm,min(s(i-1,j,k),s(i,j,k)))
+             sm = min(sm,max(s(i-1,j,k),s(i,j,k)))
 
-          ! interpolate s to x-edges
-          do i = lo(1)-1, hi(1)+2
-             sedgex(i) = HALF*(s(i,j,k)+s(i-1,j,k)) - SIXTH*(dsvlx(i)-dsvlx(i-1))
-             ! make sure sedge lies in between adjacent cell-centered values
-             sedgex(i) = max(sedgex(i),min(s(i,j,k),s(i-1,j,k)))
-             sedgex(i) = min(sedgex(i),max(s(i,j,k),s(i-1,j,k)))
-          end do
-
-          do i = lo(1)-1, hi(1)+1
-
-             ! copy sedge into sp and sm
-             sp = sedgex(i+1)
-             sm = sedgex(i)
+             sp = HALF*(s(i,j,k)+s(i+1,j,k)) - SIXTH*(dsvlp-dsvl0)
+             sp = max(sp,min(s(i,j,k),s(i+1,j,k)))
+             sp = min(sp,max(s(i,j,k),s(i+1,j,k)))
 
              if (ppm_flatten_before_integrals == 1) then
                 ! flatten the parabola BEFORE doing the other                     
@@ -251,40 +246,44 @@ contains
     ! y-direction
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-    do k = lo(3)-1, hi(3)+1
-    
-       ! compute s at y-edges
-
-       ! compute van Leer slopes in y-direction
-       do    j = lo(2)-2, hi(2)+2
+    do       k = lo(3)-1, hi(3)+1
+       do    j = lo(2)-1, hi(2)+1
           do i = lo(1)-1, hi(1)+1
+
+             dsc = HALF * (s(i,j  ,k) - s(i,j-2,k))
+             dsl = TWO  * (s(i,j-1,k) - s(i,j-2,k))
+             dsr = TWO  * (s(i,j  ,k) - s(i,j-1,k))
+             if (dsl*dsr .gt. ZERO) then
+                dsvlm = sign(ONE,dsc)*min(abs(dsc),abs(dsl),abs(dsr))
+             else
+                dsvlm = ZERO
+             end if
+             
              dsc = HALF * (s(i,j+1,k) - s(i,j-1,k))
              dsl = TWO  * (s(i,j  ,k) - s(i,j-1,k))
              dsr = TWO  * (s(i,j+1,k) - s(i,j  ,k))
              if (dsl*dsr .gt. ZERO) then
-                dsvly(i,j) = sign(ONE,dsc)*min(abs(dsc),abs(dsl),abs(dsr))
+                dsvl0 = sign(ONE,dsc)*min(abs(dsc),abs(dsl),abs(dsr))
              else
-                dsvly(i,j) = ZERO
+                dsvl0 = ZERO
              end if
-          end do
-       end do
+             
+             dsc = HALF * (s(i,j+2,k) - s(i,j  ,k))
+             dsl = TWO  * (s(i,j+1,k) - s(i,j  ,k))
+             dsr = TWO  * (s(i,j+2,k) - s(i,j+1,k))
+             if (dsl*dsr .gt. ZERO) then
+                dsvlp = sign(ONE,dsc)*min(abs(dsc),abs(dsl),abs(dsr))
+             else
+                dsvlp = ZERO
+             end if
+             
+             sm = HALF*(s(i,j-1,k)+s(i,j,k)) - SIXTH*(dsvl0-dsvlm)
+             sm = max(sm,min(s(i,j-1,k),s(i,j,k)))
+             sm = min(sm,max(s(i,j-1,k),s(i,j,k)))
 
-       ! interpolate s to y-edges
-       do    j = lo(2)-1, hi(2)+2
-          do i = lo(1)-1, hi(1)+1
-             sedgey(i,j) = HALF*(s(i,j,k)+s(i,j-1,k)) - SIXTH*(dsvly(i,j)-dsvly(i,j-1))
-             ! make sure sedgey lies in between adjacent cell-centered values
-             sedgey(i,j) = max(sedgey(i,j),min(s(i,j,k),s(i,j-1,k)))
-             sedgey(i,j) = min(sedgey(i,j),max(s(i,j,k),s(i,j-1,k)))
-          end do
-       end do
-
-       do    j = lo(2)-1, hi(2)+1
-          do i = lo(1)-1, hi(1)+1
-
-             ! copy sedgey into sp and sm
-             sp = sedgey(i,j+1)
-             sm = sedgey(i,j  )
+             sp = HALF*(s(i,j,k)+s(i,j+1,k)) - SIXTH*(dsvlp-dsvl0)
+             sp = max(sp,min(s(i,j,k),s(i,j+1,k)))
+             sp = min(sp,max(s(i,j,k),s(i,j+1,k)))
 
              if (ppm_flatten_before_integrals == 1) then
                 ! flatten the parabola BEFORE doing the other                     
@@ -377,47 +376,45 @@ contains
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ! z-direction
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-    ! compute s at z-edges
-
-    ! compute van Leer slopes in z-direction
-
-    do       k = lo(3)-2, hi(3)+2
-       do    j = lo(2)-1, hi(2)+1
-          do i = lo(1)-1, hi(1)+1
-
-             dsc = HALF * (s(i,j,k+1) - s(i,j,k-1))
-             dsl = TWO  * (s(i,j,k  ) - s(i,j,k-1))
-             dsr = TWO  * (s(i,j,k+1) - s(i,j,k  ))
-             if (dsl*dsr .gt. ZERO) then
-                dsvlz(i,j,k) = sign(ONE,dsc)*min(abs(dsc),abs(dsl),abs(dsr))
-             else
-                dsvlz(i,j,k) = ZERO
-             end if
-
-          end do
-       end do
-    end do
-
-    ! interpolate s to z-edges
-    do       k = lo(3)-1, hi(3)+2
-       do    j = lo(2)-1, hi(2)+1
-          do i = lo(1)-1, hi(1)+1
-             sedgez(i,j,k) = HALF*(s(i,j,k)+s(i,j,k-1)) - SIXTH*(dsvlz(i,j,k)-dsvlz(i,j,k-1))
-             ! make sure sedgez lies in between adjacent cell-centered values
-             sedgez(i,j,k) = max(sedgez(i,j,k),min(s(i,j,k),s(i,j,k-1)))
-             sedgez(i,j,k) = min(sedgez(i,j,k),max(s(i,j,k),s(i,j,k-1)))
-          end do
-       end do
-    end do
              
     do       k = lo(3)-1, hi(3)+1
        do    j = lo(2)-1, hi(2)+1
           do i = lo(1)-1, hi(1)+1
           
-             ! copy sedgez into sp and sm
-             sp = sedgez(i,j,k+1)
-             sm = sedgez(i,j,k)
+             dsc = HALF * (s(i,j,k  ) - s(i,j,k-2))
+             dsl = TWO  * (s(i,j,k-1) - s(i,j,k-2))
+             dsr = TWO  * (s(i,j,k  ) - s(i,j,k-1))
+             if (dsl*dsr .gt. ZERO) then
+                dsvlm = sign(ONE,dsc)*min(abs(dsc),abs(dsl),abs(dsr))
+             else
+                dsvlm = ZERO
+             end if
+             
+             dsc = HALF * (s(i,j,k+1) - s(i,j,k-1))
+             dsl = TWO  * (s(i,j,k  ) - s(i,j,k-1))
+             dsr = TWO  * (s(i,j,k+1) - s(i,j,k  ))
+             if (dsl*dsr .gt. ZERO) then
+                dsvl0 = sign(ONE,dsc)*min(abs(dsc),abs(dsl),abs(dsr))
+             else
+                dsvl0 = ZERO
+             end if
+             
+             dsc = HALF * (s(i,j,k+2) - s(i,j,k  ))
+             dsl = TWO  * (s(i,j,k+1) - s(i,j,k  ))
+             dsr = TWO  * (s(i,j,k+2) - s(i,j,k+1))
+             if (dsl*dsr .gt. ZERO) then
+                dsvlp = sign(ONE,dsc)*min(abs(dsc),abs(dsl),abs(dsr))
+             else
+                dsvlp = ZERO
+             end if
+             
+             sm = HALF*(s(i,j,k-1)+s(i,j,k)) - SIXTH*(dsvl0-dsvlm)
+             sm = max(sm,min(s(i,j,k-1),s(i,j,k)))
+             sm = min(sm,max(s(i,j,k-1),s(i,j,k)))
+
+             sp = HALF*(s(i,j,k)+s(i,j,k+1)) - SIXTH*(dsvlp-dsvl0)
+             sp = max(sp,min(s(i,j,k),s(i,j,k+1)))
+             sp = min(sp,max(s(i,j,k),s(i,j,k+1)))
 
              if (ppm_flatten_before_integrals == 1) then
                 ! flatten the parabola BEFORE doing the other                     
@@ -506,8 +503,6 @@ contains
           end do
        end do
     end do
-
-    deallocate(dsvly,sedgey,dsvlz,sedgez)
 
   end subroutine ppm_type1
 
