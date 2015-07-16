@@ -261,3 +261,44 @@
       enddo
 
       end subroutine ca_integrate_gr_grav
+
+
+! ::
+! :: ----------------------------------------------------------
+! ::
+
+      subroutine ca_const_grav_phi (lo,hi,phi,phi_lo,phi_hi,dx,const_grav)
+
+      use bl_constants_module
+      use prob_params_module, only: problo, k3d, j2d
+        
+      implicit none
+
+      integer :: lo(3), hi(3)
+      integer :: phi_lo(3), phi_hi(3)
+      double precision :: phi(phi_lo(1):phi_hi(1),phi_lo(2):phi_hi(2),phi_lo(3):phi_hi(3))
+      double precision :: dx(3)
+      double precision :: const_grav(3)
+      
+      integer          :: i, j, k
+      double precision :: loc(3)
+
+      integer :: ng = 1 ! We only need one ghost cell for phi
+
+      ! The zero-point for the potential doesn't matter for
+      ! constant gravity, so we'll just arbitrarily set it
+      ! to zero out at the low end of the domain on the relevant axis.
+
+      do k = lo(3)-ng*k3d, hi(3)+ng*k3d
+         loc(3) = problo(3) + (k + HALF) * dx(3)
+         do j = lo(2)-ng*j2d, hi(2)+ng*j2d
+            loc(2) = problo(2) + (j + HALF) * dx(2)
+            do i = lo(1)-ng, hi(1)+ng
+               loc(1) = problo(1) + (i + HALF) * dx(1)
+
+               phi(i,j,k) = - sum(loc * const_grav)
+            enddo
+         enddo
+      enddo
+      
+      end subroutine ca_const_grav_phi

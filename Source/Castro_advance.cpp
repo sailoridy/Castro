@@ -272,6 +272,10 @@ Castro::advance_hydro (Real time,
            gravity->solve_for_old_phi(level,*gravity->get_phi_prev(level),
                                       gravity->get_grad_phi_prev(level),fill_interior);
         }
+    } else if (do_grav && gravity->get_gravity_type() == "ConstantGrav") {
+        int fill_interior = 0;
+        gravity->solve_for_old_phi(level,*gravity->get_phi_prev(level),
+				   gravity->get_grad_phi_prev(level),fill_interior);
     }
 #endif
     
@@ -1047,6 +1051,11 @@ Castro::advance_hydro (Real time,
             }
 	    
             if (do_reflux)  gravity->add_to_fluxes(level,iteration,ncycle);
+	    
+	  } else if (gravity->get_gravity_type() == "ConstantGrav") {
+            int fill_interior = 0;
+            gravity->solve_for_new_phi(level,*gravity->get_phi_curr(level),
+                                       gravity->get_grad_phi_curr(level),fill_interior);
 	  }
 
 	// Now do corrector part of source term update

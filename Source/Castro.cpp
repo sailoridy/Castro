@@ -1358,7 +1358,7 @@ Castro::post_timestep (int iteration)
 
 #ifdef GRAVITY
         MultiFab drho_and_drhoU;
-        if (do_grav && gravity->get_gravity_type() == "PoissonGrav")  {
+        if (do_grav)  {
            // Define the update to rho and rhoU due to refluxing.
            drho_and_drhoU.define(grids,BL_SPACEDIM+1,0,Fab_allocate);
            MultiFab::Copy(drho_and_drhoU,S_new_crse,Density,0,BL_SPACEDIM+1,0);
@@ -1523,31 +1523,27 @@ Castro::post_restart ()
 
             gravity->set_mass_offset(cur_time);
 
-            if ( gravity->get_gravity_type() == "PoissonGrav")
-            {
-                if (gravity->NoComposite() != 1)
-                {
-                   gravity->multilevel_solve_for_phi(0,parent->finestLevel());
-                   if (gravity->test_results_of_solves() == 1)
-                       gravity->test_composite_phi(level);
-                }
+	    if (gravity->NoComposite() != 1)
+	    {
+	      gravity->multilevel_solve_for_phi(0,parent->finestLevel());
+	      if (gravity->test_results_of_solves() == 1)
+		gravity->test_composite_phi(level);
+	    }
 #ifdef PARTICLES
-                if (do_dm_particles)
-                {
-                    // Do solve if we haven't already done it above
-                    if (gravity->NoComposite() == 1)
-                       gravity->multilevel_solve_for_phi(0,parent->finestLevel());
+	    if (do_dm_particles && gravity->get_gravity_type() == "PoissonGrav")
+	    {
+		// Do solve if we haven't already done it above
+		if (gravity->NoComposite() == 1)
+		   gravity->multilevel_solve_for_phi(0,parent->finestLevel());
 
-                    for (int k = 0; k <= parent->finestLevel(); k++)
-                    {
-                        const BoxArray& ba = getLevel(k).boxArray();
-                        MultiFab grav_vec_new(ba,BL_SPACEDIM,0,Fab_allocate);
-                        gravity->get_new_grav_vector(k,grav_vec_new,cur_time);
-                    }
-                }
+		for (int k = 0; k <= parent->finestLevel(); k++)
+		{
+		    const BoxArray& ba = getLevel(k).boxArray();
+		    MultiFab grav_vec_new(ba,BL_SPACEDIM,0,Fab_allocate);
+		    gravity->get_new_grav_vector(k,grav_vec_new,cur_time);
+		}
+	    }
 #endif
-
-            }
 
             if (grown_factor > 1)
                 post_grown_restart();
@@ -1610,7 +1606,7 @@ Castro::post_regrid (int lbase,
        const Real cur_time = state[State_Type].curTime();
        if ( (level == lbase) && cur_time > 0.)  
        {
-          if ( gravity->get_gravity_type() == "PoissonGrav" && (gravity->NoComposite() != 1) )  
+          if ( gravity->NoComposite() != 1 )  
               gravity->multilevel_solve_for_phi(level,new_finest);
        }
     }
@@ -1640,11 +1636,12 @@ Castro::post_init (Real stop_time)
           // Calculate offset before first multilevel solve.
           gravity->set_mass_offset(cur_time);
 
-          if (gravity->NoComposite() != 1)  {
-             gravity->multilevel_solve_for_phi(level,finest_level);
-             if (gravity->test_results_of_solves() == 1)
-                gravity->test_composite_phi(level);
-          }
+       }
+
+       if (gravity->NoComposite() != 1)  {
+	 gravity->multilevel_solve_for_phi(level,finest_level);
+	 if (gravity->test_results_of_solves() == 1)
+	   gravity->test_composite_phi(level);
        }
  
        // Make this call just to fill the initial state data.

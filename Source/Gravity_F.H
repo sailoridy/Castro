@@ -167,6 +167,11 @@ BL_FORT_PROC_DECL(CA_PUT_DIRECT_SUM_BC,ca_put_direct_sum_bc)
     Real* bcXZLo, Real* bcXZHi,
     Real* bcYZLo, Real* bcYZHi);
 
+BL_FORT_PROC_DECL(CA_CONST_GRAV_PHI,ca_const_grav_phi)
+   (const int* lo, const int* hi,
+    const BL_FORT_FAB_ARG_3D(phi),
+    const Real* dx, const Real* grav);
+
 #ifdef POINTMASS
 BL_FORT_PROC_DECL(PM_ADD_TO_GRAV,pm_add_to_grav)
     (const Real* point_mass, BL_FORT_FAB_ARG(grav_vector),
