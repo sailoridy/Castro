@@ -371,11 +371,13 @@ BL_FORT_PROC_DECL(CA_CORRGSRC,ca_corrgsrc)
      const BL_FORT_FAB_ARG(grad_phi_cc),
      const BL_FORT_FAB_ARG(S_old),
      BL_FORT_FAB_ARG(S_new),
-#if (BL_SPACEDIM == 3)
      const BL_FORT_FAB_ARG(phi_old),
      const BL_FORT_FAB_ARG(phi_new),
      BL_FORT_FAB_ARG(xflux),
+#if (BL_SPACEDIM >= 2)
      BL_FORT_FAB_ARG(yflux),
+#endif
+#if (BL_SPACEDIM == 3)
      BL_FORT_FAB_ARG(zflux),
 #endif
      const Real dx[], const Real& dt, 

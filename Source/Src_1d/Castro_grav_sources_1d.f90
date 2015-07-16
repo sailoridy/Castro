@@ -7,6 +7,9 @@
            gnew,gnew_l1,gnew_h1, &
            uold,uold_l1,uold_h1, &
            unew,unew_l1,unew_h1, &
+           pold,pold_l1,pold_h1, &
+           pnew,pnew_l1,pnew_h1, &
+           flux1,flux1_l1,flux1_h1, &
            dx,dt, &
            vol,vol_l1,vol_h1, &
            xmom_added,E_added)
@@ -21,12 +24,17 @@
       integer gnew_l1,gnew_h1
       integer uold_l1,uold_h1
       integer unew_l1,unew_h1
+      integer pold_l1,pold_h1
+      integer flux1_l1,flux1_h1
       integer vol_l1,vol_h1
       double precision   gold(gold_l1:gold_h1)
       double precision   gnew(gnew_l1:gnew_h1)
       double precision   grav(gnew_l1:gnew_h1)
       double precision  uold(uold_l1:uold_h1,NVAR)
       double precision  unew(unew_l1:unew_h1,NVAR)
+      double precision  pold(pold_l1:pold_h1)
+      double precision  pnew(pnew_l1:pnew_h1)
+      double precision flux1(flux1_l1:flux1_h1,NVAR)
       double precision   vol(vol_l1:vol_h1)
       double precision dx(1), dt
       double precision E_added, xmom_added

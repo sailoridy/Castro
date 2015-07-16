@@ -201,7 +201,7 @@ Castro::advance_hydro (Real time,
 
        if (level == 0 || iteration > 1) {
 	   for (int lev = level; lev < finest_level; lev++) {
-               if (do_reflux && gravity->get_gravity_type() == "PoissonGrav")
+               if (do_reflux)
                    gravity->zeroPhiFluxReg(lev+1);
            }
 
@@ -1068,12 +1068,8 @@ Castro::advance_hydro (Real time,
 	    {
 		const Box& bx = mfi.tilebox();
 		
-#if (BL_SPACEDIM == 3)
-		FArrayBox& phi_prev_fab = (gravity->get_gravity_type() == "PoissonGrav") ?
-		    (*gravity->get_phi_prev(level))[mfi] : single_cell_fab;
-		FArrayBox& phi_curr_fab = (gravity->get_gravity_type() == "PoissonGrav") ?
-		    (*gravity->get_phi_curr(level))[mfi] : single_cell_fab;
-#endif
+		FArrayBox& phi_prev_fab = (*gravity->get_phi_prev(level))[mfi];
+		FArrayBox& phi_curr_fab = (*gravity->get_phi_curr(level))[mfi];
 
 		BL_FORT_PROC_CALL(CA_CORRGSRC,ca_corrgsrc)
 		    (bx.loVect(), bx.hiVect(),
@@ -1081,11 +1077,13 @@ Castro::advance_hydro (Real time,
 		     BL_TO_FORTRAN(grav_vec_new[mfi]),
 		     BL_TO_FORTRAN(S_old[mfi]),
 		     BL_TO_FORTRAN(S_new[mfi]),
-#if (BL_SPACEDIM == 3)
 		     BL_TO_FORTRAN(phi_prev_fab),
 		     BL_TO_FORTRAN(phi_curr_fab),
 		     BL_TO_FORTRAN(fluxes[0][mfi]),
+#if (BL_SPACEDIM >= 2)
 		     BL_TO_FORTRAN(fluxes[1][mfi]),
+#endif
+#if (BL_SPACEDIM == 3)		     
 		     BL_TO_FORTRAN(fluxes[2][mfi]),
 #endif
 		     dx,dt,

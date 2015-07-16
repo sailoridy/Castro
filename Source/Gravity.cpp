@@ -203,34 +203,32 @@ Gravity::install_level (int                   level,
 
     level_solver_resnorm[level] = 0.0;
 
-    if (gravity_type == "PoissonGrav") {
+    phi_prev.clear(level);
+    phi_prev.set(level,new MultiFab(grids[level],1,1));
+    phi_prev[level].setVal(0.0);
 
-       phi_prev.clear(level);
-       phi_prev.set(level,new MultiFab(grids[level],1,1));
-       phi_prev[level].setVal(0.0);
+    phi_curr.clear(level);
+    phi_curr.set(level,new MultiFab(grids[level],1,1));
+    phi_curr[level].setVal(0.0);
 
-       phi_curr.clear(level);
-       phi_curr.set(level,new MultiFab(grids[level],1,1));
-       phi_curr[level].setVal(0.0);
+    grad_phi_prev[level].clear();
+    grad_phi_prev[level].resize(BL_SPACEDIM,PArrayManage);
+    for (int n=0; n<BL_SPACEDIM; ++n)
+	grad_phi_prev[level].set(n,new MultiFab(BoxArray(grids[level]).surroundingNodes(n),1,1));
 
-       grad_phi_prev[level].clear();
-       grad_phi_prev[level].resize(BL_SPACEDIM,PArrayManage);
-       for (int n=0; n<BL_SPACEDIM; ++n)
-           grad_phi_prev[level].set(n,new MultiFab(BoxArray(grids[level]).surroundingNodes(n),1,1));
+    grad_phi_curr[level].clear();
+    grad_phi_curr[level].resize(BL_SPACEDIM,PArrayManage);
+    for (int n=0; n<BL_SPACEDIM; ++n)
+	grad_phi_curr[level].set(n,new MultiFab(BoxArray(grids[level]).surroundingNodes(n),1,1));
 
-       grad_phi_curr[level].clear();
-       grad_phi_curr[level].resize(BL_SPACEDIM,PArrayManage);
-       for (int n=0; n<BL_SPACEDIM; ++n)
-           grad_phi_curr[level].set(n,new MultiFab(BoxArray(grids[level]).surroundingNodes(n),1,1));
-
-       if (level > 0) {
-          phi_flux_reg.clear(level);
-          IntVect crse_ratio = parent->refRatio(level-1);
-          phi_flux_reg.set(level,new FluxRegister(grids[level],crse_ratio,level,1));
-       }
+    if (level > 0) {
+       phi_flux_reg.clear(level);
+       IntVect crse_ratio = parent->refRatio(level-1);
+       phi_flux_reg.set(level,new FluxRegister(grids[level],crse_ratio,level,1));
+    }
 
 #if (BL_SPACEDIM > 1)
-    } else if (gravity_type == "MonopoleGrav" || gravity_type == "PrescribedGrav") {
+    if (gravity_type == "MonopoleGrav" || gravity_type == "PrescribedGrav") {
 
         if (!Geometry::isAllPeriodic())
         {
@@ -340,24 +338,23 @@ Gravity::plus_grad_phi_curr(int level, PArray<MultiFab>& addend)
 void
 Gravity::swapTimeLevels (int level)
 {
-  if (gravity_type == "PoissonGrav") {
 
-     MultiFab* dummy = phi_curr.remove(level);
-     phi_prev.clear(level);
-     phi_prev.set(level,dummy);
+  MultiFab* dummy = phi_curr.remove(level);
+  phi_prev.clear(level);
+  phi_prev.set(level,dummy);
 
-     phi_curr.set(level,new MultiFab(grids[level],1,1));
-     phi_curr[level].setVal(1.e50);
+  phi_curr.set(level,new MultiFab(grids[level],1,1));
+  phi_curr[level].setVal(1.e50);
 
-     for (int n=0; n < BL_SPACEDIM; n++) {
-        MultiFab* dummy = grad_phi_curr[level].remove(n);
-        grad_phi_prev[level].clear(n);
-        grad_phi_prev[level].set(n,dummy);
-   
-        grad_phi_curr[level].set(n,new MultiFab(BoxArray(grids[level]).surroundingNodes(n),1,1));
-        grad_phi_curr[level][n].setVal(1.e50);
-     }
-  } 
+  for (int n=0; n < BL_SPACEDIM; n++) {
+     MultiFab* dummy = grad_phi_curr[level].remove(n);
+     grad_phi_prev[level].clear(n);
+     grad_phi_prev[level].set(n,dummy);
+
+     grad_phi_curr[level].set(n,new MultiFab(BoxArray(grids[level]).surroundingNodes(n),1,1));
+     grad_phi_curr[level][n].setVal(1.e50);
+  }
+
 }
 
 void
