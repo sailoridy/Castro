@@ -562,6 +562,23 @@
         center       = ZERO
         center(1:dm) = center_in(1:dm)
 
+        dim = dm
+
+        ! These variables are used to modify ghost cells in
+        ! loops over i, j, and k in dimension-agnostic routines.
+        ! This way we don't try to access ghost cells in
+        ! dimensions we are not using.
+        
+        k3d = 1
+        if (dim < 3) then
+           k3d = 0
+        endif
+
+        j2d = 1
+        if (dim < 2) then
+           j2d = 0
+        endif
+           
       end subroutine set_problem_params
 
 ! ::: 
