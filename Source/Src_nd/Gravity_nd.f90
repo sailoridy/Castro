@@ -267,16 +267,16 @@
 ! :: ----------------------------------------------------------
 ! ::
 
-      subroutine ca_const_grav_phi (lo,hi,phi,phi_lo,phi_hi,dx,const_grav)
+      subroutine ca_const_grav_phi (lo,hi,phi,p_lo,p_hi,dx,const_grav)
 
       use bl_constants_module
       use prob_params_module, only: problo, k3d, j2d
         
       implicit none
 
-      integer :: lo(3), hi(3)
-      integer :: phi_lo(3), phi_hi(3)
-      double precision :: phi(phi_lo(1):phi_hi(1),phi_lo(2):phi_hi(2),phi_lo(3):phi_hi(3))
+      integer          :: lo(3), hi(3)
+      integer          :: p_lo(3), p_hi(3)
+      double precision :: phi(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3))
       double precision :: dx(3)
       double precision :: const_grav(3)
       
@@ -302,3 +302,46 @@
       enddo
       
       end subroutine ca_const_grav_phi
+
+
+      
+! ::
+! :: ----------------------------------------------------------
+! ::
+
+      subroutine ca_ec_grad_phi (lo,hi,phi,p_lo,p_hi,&
+                                 gphi,g_lo,g_hi,dx,idir)
+
+      use bl_constants_module
+      use prob_params_module, only: problo, k3d, j2d, dim
+        
+      implicit none
+
+      integer          :: lo(3), hi(3)
+      integer          :: p_lo(3), p_hi(3)
+      integer          :: g_lo(3), g_hi(3)
+      double precision ::  phi(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3))
+      double precision :: gphi(g_lo(1):g_hi(1),g_lo(2):g_hi(2),g_lo(3):g_hi(3))
+      double precision :: dx(3)
+      integer          :: idir
+      
+      integer          :: i, j, k
+
+      do k = lo(3), hi(3)+1*k3d
+         do j = lo(2), hi(2)+1*j2d
+            do i = lo(1), hi(1)+1
+
+               if (idir .eq. 0) then
+                  gphi(i,j,k) = -(phi(i,j,k) - phi(i-1,j,k)) / dx(1)
+               else if (idir .eq. 1 .and. dim .ge. 2) then
+                  gphi(i,j,k) = -(phi(i,j,k) - phi(i,j-1,k)) / dx(2)
+               else if (idir .eq. 2 .and. dim .eq. 3) then
+                  gphi(i,j,k) = -(phi(i,j,k) - phi(i,j,k-1)) / dx(3)
+               endif
+               
+            enddo
+         enddo
+      enddo
+      
+      end subroutine ca_ec_grad_phi
+      

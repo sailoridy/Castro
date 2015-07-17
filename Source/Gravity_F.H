@@ -172,6 +172,12 @@ BL_FORT_PROC_DECL(CA_CONST_GRAV_PHI,ca_const_grav_phi)
     const BL_FORT_FAB_ARG_3D(phi),
     const Real* dx, const Real* grav);
 
+BL_FORT_PROC_DECL(CA_EC_GRAD_PHI,ca_ec_grad_phi)
+   (const int* lo, const int* hi,
+    const BL_FORT_FAB_ARG_3D(phi),
+    const BL_FORT_FAB_ARG_3D(gphi),
+    const Real* dx, const int* idir);
+
 #ifdef POINTMASS
 BL_FORT_PROC_DECL(PM_ADD_TO_GRAV,pm_add_to_grav)
     (const Real* point_mass, BL_FORT_FAB_ARG(grav_vector),

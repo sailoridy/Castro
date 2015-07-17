@@ -435,6 +435,8 @@ Gravity::solve_for_phi (int               level,
       const_grav_vector[BL_SPACEDIM-1] = const_grav;
 
       const Real* dx = geom.CellSize();
+
+      // Construct the potential.
       
 #ifdef _OPENMP
 #pragma omp parallel	      
@@ -443,11 +445,30 @@ Gravity::solve_for_phi (int               level,
        {
           const Box& bx = mfi.tilebox();
 
-          // Average edge-centered gradients of crse dPhi to cell centers
           BL_FORT_PROC_CALL(CA_CONST_GRAV_PHI,ca_const_grav_phi)
 	    (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 	     BL_TO_FORTRAN_3D(phi[mfi]),
-	     dx,const_grav_vector);
+	     ZFILL(dx),const_grav_vector);
+       }
+
+       // Take the gradient to get the gravitational acceleration.
+
+       for (int i = 0; i < BL_SPACEDIM; ++i) {
+	 
+#ifdef _OPENMP
+#pragma omp parallel	      
+#endif
+	 for (MFIter mfi(phi,true); mfi.isValid(); ++mfi)
+	 {
+	     const Box& bx = mfi.tilebox();
+	     
+	     BL_FORT_PROC_CALL(CA_EC_GRAD_PHI,ca_ec_grad_phi)
+	         (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+		  BL_TO_FORTRAN_3D(phi[mfi]),
+		  BL_TO_FORTRAN_3D(grad_phi[i][mfi]),
+		  ZFILL(dx),&i);
+	 }
+	 
        }
        
     } else if (gravity_type == "PoissonGrav") {
@@ -1060,17 +1081,35 @@ Gravity::actual_multilevel_solve (int level, int finest_level,
 	const_grav_vector[BL_SPACEDIM-1] = const_grav;
 
 #ifdef _OPENMP
-#pragma omp parallel	      
+#pragma omp parallel
 #endif
 	for (MFIter mfi(phi[level+lev],true); mfi.isValid(); ++mfi)
 	{
           const Box& bx = mfi.tilebox();
 
-          // Average edge-centered gradients of crse dPhi to cell centers
           BL_FORT_PROC_CALL(CA_CONST_GRAV_PHI,ca_const_grav_phi)
 	    (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 	     BL_TO_FORTRAN_3D(phi[level+lev][mfi]),
-	     dx,const_grav_vector);
+	     ZFILL(dx),const_grav_vector);
+	}
+
+
+	for (int i = 0; i < BL_SPACEDIM; ++i) {
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+	  for (MFIter mfi(grad_phi[level+lev][i],true); mfi.isValid(); ++mfi)
+	  {
+	    const Box& bx = mfi.tilebox();
+
+	    BL_FORT_PROC_CALL(CA_EC_GRAD_PHI,ca_ec_grad_phi)
+	        (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+		 BL_TO_FORTRAN_3D(phi[level+lev][mfi]),
+		 BL_TO_FORTRAN_3D(grad_phi[level+lev][i][mfi]),
+		 ZFILL(dx),&i);
+	  }
+	  
 	}
 
       }
@@ -1313,13 +1352,7 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
 
     int ng = grav_vector.nGrow();
 
-    if (gravity_type == "ConstantGrav") {
-
-       // Set to constant value in the BL_SPACEDIM direction
-       grav_vector.setVal(0.0       ,0            ,BL_SPACEDIM-1,ng);
-       grav_vector.setVal(const_grav,BL_SPACEDIM-1,            1,ng);
-
-    } else if (gravity_type == "MonopoleGrav" || gravity_type == "PrescribedGrav") {
+    if (gravity_type == "MonopoleGrav" || gravity_type == "PrescribedGrav") {
  
 #if (BL_SPACEDIM == 1)
        make_one_d_grav(level,time,grav_vector);
@@ -1338,7 +1371,7 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
        }  
 
 #endif 
-    } else if (gravity_type == "PoissonGrav") {
+    } else if (gravity_type == "PoissonGrav" || gravity_type == "ConstantGrav") {
 
        // Set to zero to fill ghost cells.
        grav_vector.setVal(0.);
@@ -1400,14 +1433,13 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
     MultiFab::Copy(G_old,grav_vector,0,0,BL_SPACEDIM,0);
 
 #if (BL_SPACEDIM > 1)
-    if (gravity_type != "ConstantGrav") {
  
-       // This is a hack-y way to fill the ghost cell values of grav_vector
-       //   before returning it
-       AmrLevel* amrlev = &parent->getLevel(level) ;
+    // This is a hack-y way to fill the ghost cell values of grav_vector
+    //   before returning it
+    AmrLevel* amrlev = &parent->getLevel(level) ;
 
-       AmrLevel::FillPatch(*amrlev,grav_vector,ng,time,Gravity_Type,0,BL_SPACEDIM); 
-    }
+    AmrLevel::FillPatch(*amrlev,grav_vector,ng,time,Gravity_Type,0,BL_SPACEDIM); 
+
 #endif
 
 #ifdef POINTMASS
@@ -1424,13 +1456,7 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
 
     int ng = grav_vector.nGrow();
 
-    if (gravity_type == "ConstantGrav") {
-
-       // Set to constant value in the BL_SPACEDIM direction
-       grav_vector.setVal(0.0       ,            0,BL_SPACEDIM-1,ng);
-       grav_vector.setVal(const_grav,BL_SPACEDIM-1,            1,ng);
-
-    } else if (gravity_type == "MonopoleGrav" || gravity_type == "PrescribedGrav") {
+    if (gravity_type == "MonopoleGrav" || gravity_type == "PrescribedGrav") {
 
 #if (BL_SPACEDIM == 1)
        make_one_d_grav(level,time,grav_vector);
@@ -1449,7 +1475,7 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
        }
 #endif
 
-    } else if (gravity_type == "PoissonGrav") {
+    } else if (gravity_type == "PoissonGrav" | gravity_type == "ConstantGrav") {
 
        // Set to zero to fill ghost cells
        grav_vector.setVal(0.);
@@ -1511,14 +1537,13 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
     MultiFab::Copy(G_new,grav_vector,0,0,BL_SPACEDIM,0);
 
 #if (BL_SPACEDIM > 1)
-    if (gravity_type != "ConstantGrav" && ng>0) {
- 
-       // This is a hack-y way to fill the ghost cell values of grav_vector
-       //   before returning it
-       AmrLevel* amrlev = &parent->getLevel(level) ;
 
-       AmrLevel::FillPatch(*amrlev,grav_vector,ng,time,Gravity_Type,0,BL_SPACEDIM); 
-    }
+    // This is a hack-y way to fill the ghost cell values of grav_vector
+    //   before returning it
+    AmrLevel* amrlev = &parent->getLevel(level) ;
+
+    AmrLevel::FillPatch(*amrlev,grav_vector,ng,time,Gravity_Type,0,BL_SPACEDIM); 
+
 #endif
 
 #ifdef POINTMASS
