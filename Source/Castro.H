@@ -581,6 +581,7 @@ protected:
     static int       do_special_tagging;
 
     static int       ppm_type;
+    static int       ppm_blend;
     static int       ppm_reference;
     static int       ppm_trace_grav;
     static int       ppm_trace_rot;

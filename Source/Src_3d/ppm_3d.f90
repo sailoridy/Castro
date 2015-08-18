@@ -114,8 +114,8 @@ contains
     dtdy = dt/dy
     dtdz = dt/dz
 
-    if (ppm_type .ne. 1) &
-         call bl_error("Should have ppm_type = 1 in ppm_type1")
+    !if (ppm_type .ne. 1) &
+    !     call bl_error("Should have ppm_type = 1 in ppm_type1")
 
     if (s_l1 .gt. ilo1-3 .or. s_l2 .gt. ilo2-3) then
          print *,'Low bounds of array: ',s_l1, s_l2
@@ -600,8 +600,8 @@ contains
     dtdy = dt/dy
     dtdz = dt/dz
 
-    if (ppm_type .ne. 2) &
-         call bl_error("Should have ppm_type = 2 in ppm_type2")
+    !if (ppm_type .ne. 2) &
+    !     call bl_error("Should have ppm_type = 2 in ppm_type2")
 
     if (s_l1 .gt. ilo1-3 .or. s_l2 .gt. ilo2-3) then
          print *,'Low bounds of array: ',s_l1, s_l2

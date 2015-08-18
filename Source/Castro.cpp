@@ -145,6 +145,7 @@ int          Castro::allow_negative_energy = 1;
 int          Castro::do_special_tagging = 0;
 
 int          Castro::ppm_type = 1;
+int          Castro::ppm_blend = 0;
 int          Castro::ppm_reference = 1;
 int          Castro::ppm_trace_grav = 0;
 int          Castro::ppm_trace_rot = 0;
@@ -397,6 +398,7 @@ Castro::read_params ()
     pp.query("do_special_tagging",do_special_tagging);
 
     pp.query("ppm_type", ppm_type);
+    pp.query("ppm_blend", ppm_blend);
     pp.query("ppm_reference", ppm_reference);
     pp.query("ppm_trace_grav", ppm_trace_grav);
     pp.query("ppm_trace_rot",ppm_trace_rot);
@@ -445,6 +447,15 @@ Castro::read_params ()
         BoxLib::Error();
       }
 
+
+    // ppm_blend will replace the ppm_type = 2 integrals with ppm_type = 1
+    // integrals if density or pressure are negative -- this requires 
+    // ppm_type = 2
+    if (ppm_blend == 1 && ppm_type != 2)
+      {
+        std::cerr << "ppm_blend = 1 requires ppm_type = 2 \n";
+        BoxLib::Error();
+      }
 
     // ppm_flatten_before_integrals is only done for ppm_type != 0
     if (ppm_type == 0 && ppm_flatten_before_integrals > 0)
