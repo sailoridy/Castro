@@ -347,12 +347,14 @@ contains
 
                    do n = 1, 3  ! dimension loop
                       if ( any(Ip(i,j,kc,n,:,QRHO) < ZERO) .or. &
-                           any(Ip(i,j,kc,n,:,QPRES) < ZERO) ) then
+                           any(Ip(i,j,kc,n,:,QPRES) < ZERO)  .or. &
+                           any(Ip(i,j,kc,n,:,QREINT) < ZERO) ) then
                          Ip(i,j,kc,n,:,:) = Ip1(i,j,kc,n,:,:)
                       endif
 
                       if ( any(Im(i,j,kc,n,:,QRHO) < ZERO) .or. &
-                           any(Im(i,j,kc,n,:,QPRES) < ZERO) ) then
+                           any(Im(i,j,kc,n,:,QPRES) < ZERO) .or. &
+                           any(Im(i,j,kc,n,:,QREINT) < ZERO) ) then
                          Im(i,j,kc,n,:,:) = Im1(i,j,kc,n,:,:)
                       endif
                    enddo
