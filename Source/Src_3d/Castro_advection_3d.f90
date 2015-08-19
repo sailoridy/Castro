@@ -777,6 +777,11 @@ contains
        call bl_deallocate ( Ip)
        call bl_deallocate ( Im)
 
+       if (ppm_blend == 1) then
+          call bl_deallocate ( Ip1)
+          call bl_deallocate ( Im1)
+       endif
+
        call bl_deallocate ( Ip_g)
        call bl_deallocate ( Im_g)
 
