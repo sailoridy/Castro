@@ -24,6 +24,8 @@ contains
                     shk,s_l1,s_l2,s_l3,s_h1,s_h2,s_h3, &
                     idir,ilo,ihi,jlo,jhi,kc,kflux,k3d,domlo,domhi)
 
+    !$acc routine vector
+
     use mempool_module, only : bl_allocate, bl_deallocate
     use eos_module
     use meth_params_module, only : QVAR, NVAR, QRHO, QFS, QFX, QPRES, QREINT, &
@@ -64,8 +66,10 @@ contains
     double precision    c(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3)
     double precision  shk(s_l1:s_h1,s_l2:s_h2,s_l3:s_h3)
     
-    double precision, pointer :: smallc(:,:),cavg(:,:)
-    double precision, pointer :: gamcm(:,:),gamcp(:,:)
+!    double precision, pointer :: smallc(:,:),cavg(:,:)
+!    double precision, pointer :: gamcm(:,:),gamcp(:,:)
+    double precision :: smallc(ilo:ihi,jlo:jhi), cavg(ilo:ihi,jlo:jhi)
+    double precision :: gamcm(ilo:ihi,jlo:jhi), gamcp(ilo:ihi,jlo:jhi)
 
     type (eos_t) :: eos_state
 
@@ -75,12 +79,18 @@ contains
 
     double precision :: rhoInv
     
-    call bl_allocate ( smallc, ilo,ihi,jlo,jhi)
-    call bl_allocate (   cavg, ilo,ihi,jlo,jhi)
-    call bl_allocate (  gamcm, ilo,ihi,jlo,jhi)
-    call bl_allocate (  gamcp, ilo,ihi,jlo,jhi)
+!    call bl_allocate ( smallc, ilo,ihi,jlo,jhi)
+!    call bl_allocate (   cavg, ilo,ihi,jlo,jhi)
+!    call bl_allocate (  gamcm, ilo,ihi,jlo,jhi)
+!    call bl_allocate (  gamcp, ilo,ihi,jlo,jhi)
+
+    !$acc data create(smallc, cavg, gamcm, gamcp) &
+    !$acc present(c, csml, gamc, shk)
+
+    !$acc parallel
 
     if(idir.eq.1) then
+       !$acc loop vector collapse(2) private(i,j)
        do j = jlo, jhi
           !dir$ ivdep
           do i = ilo, ihi
@@ -90,7 +100,9 @@ contains
              gamcp(i,j) = gamc(i,j,k3d)
           enddo
        enddo
+       !$acc end loop
     elseif(idir.eq.2) then
+       !$acc loop vector collapse(2) private(i,j)
        do j = jlo, jhi
           !dir$ ivdep
           do i = ilo, ihi
@@ -100,7 +112,9 @@ contains
              gamcp(i,j) = gamc(i,j,k3d)
           enddo
        enddo
+       !$acc end loop
     else
+       !$acc loop vector collapse(2) private(i,j)
        do j = jlo, jhi
           !dir$ ivdep
           do i = ilo, ihi
@@ -110,6 +124,7 @@ contains
              gamcp(i,j) = gamc(i,j,k3d)
           enddo
        enddo
+       !$acc end loop
     endif
 
     if (ppm_temp_fix == 2) then
@@ -120,6 +135,7 @@ contains
        ! new values for gamc and (rho e) on the edges that are
        ! thermodynamically consistent.
 
+       !$acc loop vector collapse(2) private(eos_state)
        do j = jlo, jhi
           do i = ilo, ihi
 
@@ -141,8 +157,10 @@ contains
 
           enddo
        enddo
+       !$acc end loop
 
        ! plus state
+       !$acc loop vector collapse(2) private(eos_state)
        do j = jlo, jhi
           do i = ilo, ihi
              rhoInv = ONE / qp(i,j,kc,QRHO)
@@ -160,8 +178,11 @@ contains
 
           enddo
        enddo
+       !$acc end loop
 
     endif
+
+    !$acc end parallel
 
     ! Solve Riemann problem
     if (use_colglaz == 1) then
@@ -183,6 +204,7 @@ contains
     if (hybrid_riemann == 1) then
        ! correct the fluxes using an HLL scheme if we are in a shock
        ! and doing the hybrid approach
+       !$acc parallel loop vector collapse(2) private(i, j, is_shock, cl, cr)
        do j = jlo, jhi
           do i = ilo, ihi
 
@@ -216,13 +238,16 @@ contains
 
           enddo
        enddo
+       !$acc end parallel loop
 
     endif
 
-    call bl_deallocate(smallc)
-    call bl_deallocate(  cavg)
-    call bl_deallocate( gamcm)
-    call bl_deallocate( gamcp)
+    !$acc end data
+
+!    call bl_deallocate(smallc)
+!    call bl_deallocate(  cavg)
+!    call bl_deallocate( gamcm)
+!    call bl_deallocate( gamcp)
 
   end subroutine cmpflx
 
@@ -343,6 +368,8 @@ contains
                        ugdnv,pgdnv,gegdnv,pg_l1,pg_l2,pg_l3,pg_h1,pg_h2,pg_h3, &
                        idir,ilo,ihi,jlo,jhi,kc,kflux,k3d,domlo,domhi)
 
+    !$acc routine vector
+
     ! this implements the approximate Riemann solver of Colella & Glaz (1985)
 
     use mempool_module, only : bl_allocate, bl_deallocate
@@ -418,11 +445,13 @@ contains
 
     double precision, parameter :: weakwv = 1.d-3
 
-    double precision, pointer :: pstar_hist(:)
+!    double precision, pointer :: pstar_hist(:)
+    double precision :: pstar_hist(1:cg_maxiter)
 
     type (eos_t) :: eos_state
 
-    double precision, pointer :: us1d(:)
+!    double precision, pointer :: us1d(:)
+    double precision :: us1d(ilo:ihi)
 
     integer :: iu, iv1, iv2, im1, im2, im3
     logical :: special_bnd_lo, special_bnd_hi, special_bnd_lo_x, special_bnd_hi_x
@@ -477,8 +506,8 @@ contains
     tol = cg_tol
     iter_max = cg_maxiter
 
-    call bl_allocate(pstar_hist, 1,iter_max)
-    call bl_allocate(us1d, ilo,ihi)
+!    call bl_allocate(pstar_hist, 1,iter_max)
+!    call bl_allocate(us1d, ilo,ihi)
 
     do j = jlo, jhi
 
@@ -873,12 +902,14 @@ contains
        enddo
     enddo
 
-    call bl_deallocate(pstar_hist)
-    call bl_deallocate(us1d)
+!    call bl_deallocate(pstar_hist)
+!    call bl_deallocate(us1d)
 
   end subroutine riemanncg
 
   subroutine wsqge(p,v,gam,gdot,gstar,pstar,wsq,csq,gmin,gmax)
+
+    !$acc routine seq
 
     use bl_constants_module
 
@@ -938,6 +969,8 @@ contains
                        ugdnv,pgdnv,gegdnv,pg_l1,pg_l2,pg_l3,pg_h1,pg_h2,pg_h3, &
                        idir,ilo,ihi,jlo,jhi,kc,kflux,k3d,domlo,domhi)
 
+    !$acc routine vector
+
     use mempool_module, only : bl_allocate, bl_deallocate
     use network, only : nspec, naux
     use prob_params_module, only : physbc_lo, physbc_hi, Symmetry, SlipWall, NoSlipWall
@@ -987,14 +1020,18 @@ contains
     double precision :: wsmall, csmall,qavg
     double precision :: rho_K_contrib
 
-    double precision, pointer :: us1d(:)
+!    double precision, pointer :: us1d(:)
+    double precision :: us1d(ilo:ihi)
 
     integer :: iu, iv1, iv2, im1, im2, im3
     logical :: special_bnd_lo, special_bnd_hi, special_bnd_lo_x, special_bnd_hi_x
     double precision :: bnd_fac_x, bnd_fac_y, bnd_fac_z
     double precision :: wwinv, roinv, co2inv
 
-    call bl_allocate(us1d,ilo,ihi)
+!    call bl_allocate(us1d,ilo,ihi)
+
+    !$acc data create(us1d) present(uflx,ql,qr,ugdnv,pgdnv,gegdnv)
+    !$acc parallel
 
     if (idir .eq. 1) then
        iu = QU
@@ -1042,6 +1079,15 @@ contains
        end if
     end if
 
+    !$acc loop vector private(i, j, bnd_fac_x, bnd_fac_y) &
+    !$acc private(rl, ul, v1l, v2l, pl, rel) &
+    !$acc private(rr, ur, v1r, v2r, pr, rer) &
+    !$acc private(csmall, wsmall, wl, wr, wwinv, pstar, ustar) &
+    !$acc private(ro, uo, reo, gamco) &
+    !$acc private(roinv, co, co2inv, entho, rstar, estar, cstar) &
+    !$acc private(sgnm, spout, spin, ushock, scr, frac) &
+    !$acc private(v1gdnv, v2gdnv, rgdnv, regdnv, rhoetot) &
+    !$acc private(n, nq, qavg, rho_K_contrib, ipassive)
     do j = jlo, jhi
 
        bnd_fac_y = ONE
@@ -1235,13 +1281,19 @@ contains
 
        enddo
     enddo
+    !$acc end loop
 
-    call bl_deallocate(us1d)
+    !$acc end parallel
+    !$acc end data
+
+!    call bl_deallocate(us1d)
 
   end subroutine riemannus
 
 
   subroutine HLL(ql, qr, cl, cr, idir, f)
+
+    !$acc routine seq
 
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, QPRES, QREINT, &
                                    URHO, UMX, UMY, UMZ, UEDEN, UEINT, &

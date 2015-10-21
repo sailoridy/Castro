@@ -14,6 +14,8 @@ contains
                      ugdnvx,pgdnvx,gegdnvx,pgdx_l1,pgdx_l2,pgdx_l3,pgdx_h1,pgdx_h2,pgdx_h3, &
                      gamc,gd_l1,gd_l2,gd_l3,gd_h1,gd_h2,gd_h3, &
                      cdtdx,ilo,ihi,jlo,jhi,kc,k3d)
+
+    !$acc routine vector
     
     ! Note that what we call ilo here is ilo = lo(1)
     ! Note that what we call ihi here is ihi = hi(1)
@@ -73,11 +75,16 @@ contains
 
     type (eos_t) :: eos_state
 
+    !$acc data present(fx, qym, qyp, qymo, qypo, upass_map, qpass_map)
+    !$acc parallel
+
     !-------------------------------------------------------------------------
     ! update all of the passively-advected quantities with the
     ! transerse term and convert back to the primitive quantity
     !-------------------------------------------------------------------------
 
+    !$acc loop vector private(i, j, n, nq, ipassive) &
+    !$acc private(rr, rrnew, compn, compu)
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
@@ -104,7 +111,19 @@ contains
           enddo
        enddo
     enddo
+    !$acc end loop
 
+    !$acc wait
+
+    !$acc loop vector private(i, j) &
+    !$acc private(pgp, pgm, ugp, ugm, gegp, gegm) &
+    !$acc private(dup, pav, uav, geav, du, dge) &
+    !$acc private(rrry, rury, rvry, rwry, ekenry, rery) &
+    !$acc private(rrnewry, runewry, rvnewry, rwnewry, renewry) &
+    !$acc private(rhoinv, rhoekenry) &
+    !$acc private(rrly, ruly, rvly, rwly, ekenly, rely) &
+    !$acc private(rrnewly, runewly, rvnewly, rwnewly, renewly) &
+    !$acc private(eos_state, reset)
     do j = jlo, jhi 
        !DIR$ vector always
        do i = ilo, ihi 
@@ -371,6 +390,10 @@ contains
           end if
        end if
     enddo
+    !$acc end loop
+
+    !$acc end parallel
+    !$acc end data
 
   end subroutine transx1
 
@@ -383,6 +406,8 @@ contains
                      ugdnvx,pgdnvx,gegdnvx,pgdx_l1,pgdx_l2,pgdx_l3,pgdx_h1,pgdx_h2,pgdx_h3, &
                      gamc,gd_l1,gd_l2,gd_l3,gd_h1,gd_h2,gd_h3, &
                      cdtdx,ilo,ihi,jlo,jhi,kc,km,k3d)
+
+    !$acc routine vector
     
     use network, only : nspec, naux
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
@@ -437,11 +462,16 @@ contains
 
     type (eos_t) :: eos_state
 
+    !$acc data present(fx, qzm, qzp, qzmo, qzpo, upass_map, qpass_map)
+    !$acc parallel
+
     !-------------------------------------------------------------------------
     ! update all of the passively-advected quantities with the
     ! transerse term and convert back to the primitive quantity
     !-------------------------------------------------------------------------
 
+    !$acc loop vector private(i, j, n, nq, ipassive) &
+    !$acc private(rr, rrnew, compn, compu)
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
@@ -466,7 +496,19 @@ contains
           enddo
        enddo
     enddo
+    !$acc end loop
 
+    !$acc wait
+
+    !$acc loop vector private(i, j) &
+    !$acc private(pgp, pgm, ugp, ugm, gegp, gegm) &
+    !$acc private(dup, pav, uav, geav, du, dge) &
+    !$acc private(rrrz, rurz, rvrz, rwrz, ekenrz, rerz) &
+    !$acc private(rrnewrz, runewrz, rvnewrz, rwnewrz, renewrz) &
+    !$acc private(rhoinv, rhoekenrz) &
+    !$acc private(rrlz, rulz, rvlz, rwlz, ekenlz, relz) &
+    !$acc private(rrnewlz, runewlz, rvnewlz, rwnewlz, renewlz) &
+    !$acc private(eos_state, reset)
     do j = jlo, jhi 
        !DIR$ vector always
        do i = ilo, ihi 
@@ -735,6 +777,10 @@ contains
           end if
        end if
     enddo
+    !$acc end loop
+
+    !$acc end parallel
+    !$acc end data
 
   end subroutine transx2
 
@@ -747,7 +793,9 @@ contains
                      ugdnvy,pgdnvy,gegdnvy,pgdy_l1,pgdy_l2,pgdy_l3,pgdy_h1,pgdy_h2,pgdy_h3, &
                      gamc,gd_l1,gd_l2,gd_l3,gd_h1,gd_h2,gd_h3, &
                      cdtdy,ilo,ihi,jlo,jhi,kc,k3d)
-    
+
+    !$acc routine vector    
+
     use network, only : nspec, naux
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
                                    QPRES, QREINT, QGAME, QESGS, QFS, &
@@ -801,11 +849,16 @@ contains
 
     type (eos_t) :: eos_state
 
+    !$acc data present(fy, qxm, qxp, qxmo, qxpo, upass_map, qpass_map)
+    !$acc parallel
+
     !-------------------------------------------------------------------------    
     ! update all of the passively-advected quantities with the
     ! transerse term and convert back to the primitive quantity
     !-------------------------------------------------------------------------
 
+    !$acc loop vector private(i, j, n, nq, ipassive) &
+    !$acc private(rr, rrnew, compn, compu)
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
@@ -831,7 +884,19 @@ contains
           enddo
        enddo
     enddo
+    !$acc end loop
 
+    !$acc wait
+
+    !$acc loop vector private(i, j) &
+    !$acc private(pgp, pgm, ugp, ugm, gegp, gegm) &
+    !$acc private(dup, pav, uav, geav, du, dge) &
+    !$acc private(rrrx, rurx, rvrx, rwrx, ekenrx, rerx) &
+    !$acc private(rrnewrx, runewrx, rvnewrx, rwnewrx, renewrx) &
+    !$acc private(rhoinv, rhoekenrx) &
+    !$acc private(rrlx, rulx, rvlx, rwlx, ekenlx, relx) &
+    !$acc private(rrnewlx, runewlx, rvnewlx, rwnewlx, renewlx) &
+    !$acc private(eos_state, reset)
     do j = jlo, jhi
        !DIR$ vector always
        do i = ilo, ihi
@@ -1094,6 +1159,10 @@ contains
        end if
 
     enddo
+    !$acc end loop
+
+    !$acc end parallel
+    !$acc end data
 
   end subroutine transy1
 
@@ -1106,6 +1175,8 @@ contains
                      ugdnvy,pgdnvy,gegdnvy,pgdy_l1,pgdy_l2,pgdy_l3,pgdy_h1,pgdy_h2,pgdy_h3, &
                      gamc,gd_l1,gd_l2,gd_l3,gd_h1,gd_h2,gd_h3, &
                      cdtdy,ilo,ihi,jlo,jhi,kc,km,k3d)
+
+    !$acc routine vector
     
     use network, only : nspec, naux
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
@@ -1160,11 +1231,16 @@ contains
 
     type (eos_t) :: eos_state
 
+    !$acc data present(fy, qzm, qzp, qzmo, qzpo, upass_map, qpass_map)
+    !$acc parallel
+
     !-------------------------------------------------------------------------
     ! update all of the passively-advected quantities with the
     ! transerse term and convert back to the primitive quantity
     !-------------------------------------------------------------------------
 
+    !$acc loop vector private(i, j, n, nq, ipassive) &
+    !$acc private(rr, rrnew, compn, compu)
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
@@ -1189,7 +1265,19 @@ contains
           enddo
        enddo
     enddo
+    !$acc end loop
 
+    !$acc wait
+
+    !$acc loop vector private(i, j) &
+    !$acc private(pgp, pgm, ugp, ugm, gegp, gegm) &
+    !$acc private(dup, pav, uav, geav, du, dge) &
+    !$acc private(rrrz, rurz, rvrz, rwrz, ekenrz, rerz) &
+    !$acc private(rrnewrz, runewrz, rvnewrz, rwnewrz, renewrz) &
+    !$acc private(rhoinv, rhoekenrz) &
+    !$acc private(rrlz, rulz, rvlz, rwlz, ekenlz, relz) &
+    !$acc private(rrnewlz, runewlz, rvnewlz, rwnewlz, renewlz) &
+    !$acc private(eos_state, reset)
     do j = jlo, jhi
        !DIR$ vector always
        do i = ilo, ihi
@@ -1462,6 +1550,10 @@ contains
        end if
 
     enddo
+    !$acc end loop
+
+    !$acc end parallel
+    !$acc end data
 
   end subroutine transy2
 
@@ -1475,6 +1567,8 @@ contains
                     ugdnvz,pgdnvz,gegdnvz,pgdz_l1,pgdz_l2,pgdz_l3,pgdz_h1,pgdz_h2,pgdz_h3, &
                     gamc,gd_l1,gd_l2,gd_l3,gd_h1,gd_h2,gd_h3, &
                     cdtdz,ilo,ihi,jlo,jhi,km,kc,k3d)
+
+    !$acc routine vector
 
     use network, only : nspec, naux
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
@@ -1532,11 +1626,16 @@ contains
 
     type (eos_t) :: eos_state
 
+    !$acc data present(fz, qxm, qxp, qxpo, qypo, qym, qyp, qymo, qypo, upass_map, qpass_map)
+    !$acc parallel
+
     !-------------------------------------------------------------------------    
     ! update all of the passively-advected quantities with the
     ! transerse term and convert back to the primitive quantity
     !-------------------------------------------------------------------------
 
+    !$acc loop vector private(i, j, n, nq, ipassive) &
+    !$acc private(rr, rrnew, compn, compu)
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
@@ -1577,7 +1676,24 @@ contains
           enddo
        enddo
     enddo
+    !$acc end loop
 
+    !$acc wait
+
+    !$acc loop vector private(i, j) &
+    !$acc private(pgp, pgm, ugp, ugm, gegp, gegm) &
+    !$acc private(dup, pav, uav, geav, du, dge) &
+    !$acc private(rrrx, rurx, rvrx, rwrx, ekenrx, rerx) &
+    !$acc private(rrnewrx, runewrx, rvnewrx, rwnewrx, renewrx) &
+    !$acc private(rhoekenlx, rhoekenrx) &
+    !$acc private(rrlx, rulx, rvlx, rwlx, ekenlx, relx) &
+    !$acc private(rrnewlx, runewlx, rvnewlx, rwnewlx, renewlx) &
+    !$acc private(rrry, rury, rvry, rwry, ekenry, rery) &
+    !$acc private(rrnewry, runewry, rvnewry, rwnewry, renewry) &
+    !$acc private(rhoekenly, rhoekenry) &
+    !$acc private(rrly, ruly, rvly, rwly, ekenly, rely) &
+    !$acc private(rrnewly, runewly, rvnewly, rwnewly, renewly) &
+    !$acc private(eos_state, reset)
     do j = jlo, jhi 
        !DIR$ vector always
        do i = ilo, ihi 
@@ -2071,6 +2187,10 @@ contains
        end if
 
     enddo
+    !$acc end loop
+
+    !$acc end parallel
+    !$acc end data
 
   end subroutine transz
 
@@ -2086,7 +2206,9 @@ contains
                      gamc,gd_l1,gd_l2,gd_l3,gd_h1,gd_h2,gd_h3, &
                      srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
                      hdt,cdtdx,cdtdy,ilo,ihi,jlo,jhi,kc,km,k3d)
-    
+
+    !$acc routine vector    
+
     use network, only : nspec, naux
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
                                    QPRES, QREINT, QGAME, QESGS, QFS, &
@@ -2143,12 +2265,17 @@ contains
     logical :: reset
 
     type (eos_t) :: eos_state
-    
+
+    !$acc data present(fxy, fyx, qmo, qpo, upass_map, qpass_map)
+    !$acc parallel
+
     !-------------------------------------------------------------------------    
     ! update all of the passively-advected quantities with the
     ! transerse term and convert back to the primitive quantity
     !-------------------------------------------------------------------------
 
+    !$acc loop vector private(i, j, n, nq, ipassive) &
+    !$acc private(rrr, rrl, compr, compl, rrnewr, rrnewl, compnr, compnl)
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
@@ -2178,7 +2305,25 @@ contains
           enddo
        enddo
     enddo
+    !$acc end loop
 
+    !$acc wait
+
+    !$acc loop vector private(i, j) &
+    !$acc private(pgxp, pgxm, ugxp, ugxm, gegxp, gegxm) &
+    !$acc private(pgxpm, pgxmm, ugxpm, ugxmm, gegxpm, gegxmm) &
+    !$acc private(pgyp, pgym, ugyp, ugym, gegyp, gegym) &
+    !$acc private(pgypm, pgymm, ugypm, ugymm, gegypm, gegymm) &
+    !$acc private(duxp, pxav, uxav, gexav, dux, dgex, pxnew, gexnew) &
+    !$acc private(duxpm, pxavm, uxavm, gexavm, duxm, dgexm, pxnewm, gexnewm) &
+    !$acc private(duyp, pyav, uyav, geyav, duy, dgey, pynew, geynew) &
+    !$acc private(duypm, pyavm, uyavm, geyavm, duym, dgeym, pynewm, geynewm) &
+    !$acc private(rrr, rur, rvr, rwr, ekenr, rer) &
+    !$acc private(rrnewr, runewr, rvnewr, rwnewr, renewr) &
+    !$acc private(rhoekenr, rhoekenl) &
+    !$acc private(rrl, rul, rvl, rwl, ekenl, rel) &
+    !$acc private(rrnewl, runewl, rvnewl, rwnewl, renewl) &
+    !$acc private(eos_state, reset)
     do j = jlo, jhi 
        !DIR$ vector always
        do i = ilo, ihi 
@@ -2502,6 +2647,10 @@ contains
        end if
 
     enddo
+    !$acc end loop
+
+    !$acc end parallel
+    !$acc end data
 
   end subroutine transxy
 
@@ -2517,7 +2666,9 @@ contains
                      gamc,gc_l1,gc_l2,gc_l3,gc_h1,gc_h2,gc_h3, &
                      srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3,&
                      hdt,cdtdx,cdtdz,ilo,ihi,jlo,jhi,km,kc,k3d)
-    
+
+    !$acc routine vector
+
     use network, only : nspec, naux
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
                                    QPRES, QREINT, QGAME, QESGS, QFS, &
@@ -2572,11 +2723,16 @@ contains
 
     type (eos_t) :: eos_state
 
+    !$acc data present(fxz, fzx, qmo, qpo, upass_map, qpass_map)
+    !$acc parallel
+
     !-------------------------------------------------------------------------    
     ! update all of the passively-advected quantities with the
     ! transerse term and convert back to the primitive quantity
     !-------------------------------------------------------------------------
 
+    !$acc loop vector private(i, j, n, nq, ipassive) &
+    !$acc private(rrr, rrl, compr, compl, rrnewr, rrnewl, compnr, compnl)
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
@@ -2612,7 +2768,21 @@ contains
           enddo
        enddo
     enddo
+    !$acc end loop
 
+    !$acc wait
+
+    !$acc loop vector private(i, j) &
+    !$acc private(pgxp, pgxm, ugxp, ugxm, gegxp, gegxm) &
+    !$acc private(pgzp, pgzm, ugzp, ugzm, gegzp, gegzm) &
+    !$acc private(duxp, pxav, uxav, gexav, dux, dgex, pxnew, gexnew) &
+    !$acc private(duzp, pzav, uzav, gezav, duz, dgez, pznew, geznew) &
+    !$acc private(rrr, rur, rvr, rwr, ekenr, rer) &
+    !$acc private(rrnewr, runewr, rvnewr, rwnewr, renewr) &
+    !$acc private(rhoekenr, rhoekenl) &
+    !$acc private(rrl, rul, rvl, rwl, ekenl, rel) &
+    !$acc private(rrnewl, runewl, rvnewl, rwnewl, renewl) &
+    !$acc private(eos_state, reset)
     do j = jlo, jhi 
        !DIR$ vector always
        do i = ilo, ihi 
@@ -2912,6 +3082,10 @@ contains
           end if
        end if
     enddo
+    !$acc end loop
+
+    !$acc end parallel
+    !$acc end data
 
   end subroutine transxz
 
@@ -2983,11 +3157,16 @@ contains
 
     type (eos_t) :: eos_state
 
-    !-------------------------------------------------------------------------
+    !$acc data present(fyz, fzy, qmo, qpo, upass_map, qpass_map)
+    !$acc parallel
+
+    !-------------------------------------------------------------------------    
     ! update all of the passively-advected quantities with the
     ! transerse term and convert back to the primitive quantity
     !-------------------------------------------------------------------------
 
+    !$acc loop vector private(i, j, n, nq, ipassive) &
+    !$acc private(rrr, rrl, compr, compl, rrnewr, rrnewl, compnr, compnl)
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
@@ -3022,7 +3201,21 @@ contains
           enddo
        enddo
     enddo
+    !$acc end loop
 
+    !$acc wait
+
+    !$acc loop vector private(i, j) &
+    !$acc private(pgyp, pgym, ugyp, ugym, gegyp, gegym) &
+    !$acc private(pgzp, pgzm, ugzp, ugzm, gegzp, gegzm) &
+    !$acc private(duyp, pyav, uyav, geyav, duy, dgey, pynew, geynew) &
+    !$acc private(duzp, pzav, uzav, gezav, duz, dgez, pznew, geznew) &
+    !$acc private(rrr, rur, rvr, rwr, ekenr, rer) &
+    !$acc private(rrnewr, runewr, rvnewr, rwnewr, renewr) &
+    !$acc private(rhoekenr, rhoekenl) &
+    !$acc private(rrl, rul, rvl, rwl, ekenl, rel) &
+    !$acc private(rrnewl, runewl, rvnewl, rwnewl, renewl) &
+    !$acc private(eos_state, reset)
     do j = jlo, jhi 
        !DIR$ vector always
        do i = ilo, ihi 
@@ -3325,6 +3518,10 @@ contains
        end if
 
     enddo
+    !$acc end loop
+
+    !$acc end parallel
+    !$acc end data
 
   end subroutine transyz
 

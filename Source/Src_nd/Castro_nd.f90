@@ -457,8 +457,8 @@
         endif
 
 
-        !$acc enter data copyin (upass_map, qpass_map)
-
+        !$acc update device(upass_map, qpass_map, npassive)
+        !$acc update device(QVAR, NVAR)
          
         !---------------------------------------------------------------------
         ! other initializations
@@ -496,6 +496,10 @@
         
         call eos_get_small_dens(small_dens)
         call eos_get_small_temp(small_temp)
+
+        !$acc update device(NTHERM, NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, UFA, UFS, UFX) &
+        !$acc device(QTHERM, QVAR, QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAMC, QGAME, QFA, QFS, QFX) &
+        !$acc device(UESGS, QESGS, nadv, small_dens, small_temp, small_pres, small_ener)
         
         allow_negative_energy        = allow_negative_energy_in
         ppm_type                     = ppm_type_in
@@ -538,6 +542,16 @@
         dual_energy_eta3             = dual_energy_eta3_in
         dual_energy_update_E_from_e  = dual_energy_update_E_from_e_in .ne. 0
 
+        !$acc update device(allow_negative_energy, do_acc, ppm_type, ppm_reference, ppm_trace_sources) &
+        !$acc device(ppm_temp_fix, ppm_tau_in_tracing, ppm_predict_gammae, ppm_reference_edge_limit) &
+        !$acc device(ppm_flatten_before_integrals, ppm_reference_eigenvectors, hybrid_riemann, use_colglaz) &
+        !$acc device(use_flattening, transverse_use_eos, transverse_reset_density, transverse_reset_rhoe) &
+        !$acc device(burning_timestep_factor, cg_maxiter, cg_tol, use_pslope, do_grav, grav_source_type) &
+        !$acc device(do_sponge, normalize_species, fix_mass_flux, numpts_1d) &
+        !$acc device(dual_energy_eta1, dual_energy_eta2, dual_energy_eta3, dual_energy_update_E_from_e) &
+        !$acc device(outflow_data_old, outflow_data_new, outflow_data_old_time, outflow_data_new_time, outflow_data_allocated) &
+        !$acc device(max_dist, do_rotation, rot_period, rot_period_dot, rot_source_type, rot_axis, const_grav)
+        
       end subroutine set_method_params
 
 ! ::: 
@@ -591,6 +605,9 @@
         if (dim .lt. 3) then
            dg(3) = 0
         endif
+
+        !$acc update device(physbc_lo, physbc_hi, Outflow, Symmetry, SlipWall, NoSlipWall) &
+        !$acc device(coord_type, center, problo, probhi, dim, dg)
 
       end subroutine set_problem_params
 

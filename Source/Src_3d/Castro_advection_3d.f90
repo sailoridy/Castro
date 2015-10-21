@@ -266,6 +266,7 @@ contains
     ! Initialize pdivu to zero
     pdivu(:,:,:) = ZERO
 
+    !$acc update device(pdivu)
 
     ! multidimensional shock detection -- this will be used to do the
     ! hybrid Riemann solver
@@ -277,7 +278,6 @@ contains
        shk(:,:,:) = ZERO
     endif
     
-
     ! We come into this routine with a 3-d box of data, but we operate
     ! on it locally by considering 2 planes that encompass all of the
     ! x, y indices of the original box, but each plane corresponds to
@@ -295,7 +295,24 @@ contains
     ! Initialize kc (current k-level) and km (previous k-level)
     kc = 1
     km = 2
+  
+    !$acc data &
+    !$acc copyin(dxinv, dyinv, dzinv, dtdx, dtdy, dtdz, hdt) &
+    !$acc copyin(hdtdx, hdtdy, hdtdz, cdtdx, cdtdy, cdtdz) &
+    !$acc copyin(shk) &
+    !$acc create(Ip, Im, Ip_src, Im_src, Im_gc, Ip_gc, dqx, dqy, dqz) &
+    !$acc create(pgdnvx, ugdnvx, gegdnvx, pgdnvxf, ugdnvxf, gegdnvxf, pgdnvtmpx, ugdnvtmpx, gegdnvtmpx) &
+    !$acc create(pgdnvy, ugdnvy, gegdnvy, pgdnvyf, ugdnvyf, gegdnvyf, pgdnvtmpy, ugdnvtmpy, gegdnvtmpy) &
+    !$acc create(pgdnvz, ugdnvz, gegdnvz, pgdnvzf, ugdnvzf, gegdnvzf) &
+    !$acc create(pgdnvtmpz1, ugdnvtmpz1, gegdnvtmpz1, pgdnvtmpz2, ugdnvtmpz2, gegdnvtmpz2) &
+    !$acc create(qxm, qxp, qmxy, qpxy, qmxz, qpxz, qym, qyp, qmyx, qpyz, qzm, qzp) &
+    !$acc create(qxl, qxr, qyl, qyr, qzl, qzr, qmzx, qpzx, qmzy, qpzy) &
+    !$acc create(fx, fy, fz, fxy, fxz, fyx, fyz, fzx, fzy)
 
+    !$acc parallel loop gang private(k3d, kc, km, kt, eos_state) &
+    !$acc present(dx, dy, dz, dt) &
+    !$acc present(ugdnvx_out, ugdnvy_out, ugdnvz_out) &
+    !$acc present(flux1, flux2, flux3)
     do k3d = ilo3-1, ihi3+1
 
        ! Swap pointers to levels
@@ -621,6 +638,9 @@ contains
           end if
        end if
     enddo
+    !$acc end parallel loop
+
+    !$acc end data
 
     ! Deallocate arrays
     call bl_deallocate ( pgdnvx)

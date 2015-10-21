@@ -14,6 +14,8 @@ contains
                          gamc,gc_l1,gc_l2,gc_l3,gc_h1,gc_h2,gc_h3, &
                          ilo1,ilo2,ihi1,ihi2,dt,kc,k3d)
 
+    !$acc routine vector
+
     use network, only : nspec, naux
     use meth_params_module, only : QVAR, QRHO, QU, QV, QW, &
          QREINT, QPRES, QGAME, &
@@ -85,8 +87,8 @@ contains
     integer, parameter :: isz = 3
 
     if (ppm_type .eq. 0) then
-       print *,'Oops -- shouldnt be in tracexy_ppm with ppm_type = 0'
-       call bl_error("Error:: trace_ppm_3d.f90 :: tracexy_ppm")
+!       print *,'Oops -- shouldnt be in tracexy_ppm with ppm_type = 0'
+!       call bl_error("Error:: trace_ppm_3d.f90 :: tracexy_ppm")
     end if
 
     halfdt = HALF * dt
@@ -123,8 +125,21 @@ contains
     ! x-direction
     !-------------------------------------------------------------------------
 
+    !$acc data present(qpass_map, qxm, qxp, qym, qyp, q, Im, Ip, Im_gc, Ip_gc, Im_src, Ip_src)
+    !$acc parallel
+
     ! Trace to left and right edges using upwind PPM
 
+    !$acc loop vector collapse(2) &
+    !$acc private(i, j, gfactor, rho, cc, csq, Clag, u, v, w) &
+    !$acc private(p, rhoe, enth, game, gam) &
+    !$acc private(rho_ref, u_ref, p_ref, rhoe_ref, tau_ref, gam_ref, game_ref) &
+    !$acc private(cc_ref, csq_ref, Clag_ref, enth_ref) &
+    !$acc private(dum, dpm, drho, dp, drhoe, dtau, dup, dpp) &
+    !$acc private(rho_ev, cc_ev, csq_ev, Clag_ev, enth_ev, p_ev, tau_ev) &
+    !$acc private(alpham, alphap, alpha0r, alpha0e, de, dge) &
+    !$acc private(amright, apright, azrright, azeright) &
+    !$acc private(xi, xi1)
     do j = ilo2-1, ihi2+1
        !DIR$ vector always
        do i = ilo1-1, ihi1+1
@@ -596,6 +611,7 @@ contains
     !--------------------------------------------------------------------------
 
     ! Do all of the passively advected quantities in one loop
+    !$acc loop vector private(ipassive, i, j, n, u, xi)
     do ipassive = 1, npassive
        n = qpass_map(ipassive)
        do j = ilo2-1, ihi2+1
@@ -662,14 +678,23 @@ contains
           enddo
        enddo
     enddo
-
+    !$acc end loop
 
     !--------------------------------------------------------------------------
     ! y-direction
     !--------------------------------------------------------------------------
 
     ! Trace to bottom and top edges using upwind PPM
-
+    !$acc loop vector collapse(2) &
+    !$acc private(i, j, gfactor, rho, cc, csq, Clag, u, v, w) &
+    !$acc private(p, rhoe, enth, game, gam) &
+    !$acc private(rho_ref, v_ref, p_ref, rhoe_ref, tau_ref, gam_ref, game_ref) &
+    !$acc private(cc_ref, csq_ref, Clag_ref, enth_ref) &
+    !$acc private(dvm, dpm, drho, dp, drhoe, dtau, dvp, dpp) &
+    !$acc private(rho_ev, cc_ev, csq_ev, Clag_ev, enth_ev, p_ev, tau_ev) &
+    !$acc private(alpham, alphap, alpha0r, alpha0e, de, dge) &
+    !$acc private(amright, apright, azrright, azeright) &
+    !$acc private(xi, xi1)
     do j = ilo2-1, ihi2+1
        !DIR$ vector always
        do i = ilo1-1, ihi1+1
@@ -1120,12 +1145,14 @@ contains
 
        end do
     end do
+    !$acc end loop
 
     !--------------------------------------------------------------------------
     ! Passively advected quantities
     !--------------------------------------------------------------------------
 
     ! Do all of the passively advected quantities in one loop
+    !$acc loop vector private(ipassive, i, j, n, v, xi)
     do ipassive = 1, npassive
        n = qpass_map(ipassive)
 
@@ -1174,6 +1201,10 @@ contains
           
        enddo
     enddo
+    !$acc end loop
+
+    !$acc end parallel
+    !$acc end data
 
   end subroutine tracexy_ppm
 
@@ -1254,8 +1285,8 @@ contains
     halfdt = HALF * dt
 
     if (ppm_type .eq. 0) then
-       print *,'Oops -- shouldnt be in tracez_ppm with ppm_type = 0'
-       call bl_error("Error:: trace_ppm_3d.f90 :: tracez_ppm")
+!       print *,'Oops -- shouldnt be in tracez_ppm with ppm_type = 0'
+!       call bl_error("Error:: trace_ppm_3d.f90 :: tracez_ppm")
     end if
 
     !==========================================================================
@@ -1267,10 +1298,22 @@ contains
     ! Note: in contrast to the above code for x and y, here the loop
     ! is over interfaces, not over cell-centers.
 
+    !$acc data present(qpass_map, qzm, qzp, q, Im, Ip, Im_src, Ip_src, Im_gc, Ip_gc)
+    !$acc parallel
 
     !--------------------------------------------------------------------------
     ! construct qzp  -- plus state on face kc
     !--------------------------------------------------------------------------
+    !$acc loop vector collapse(2) &
+    !$acc private(i, j, gfactor, rho, cc, csq, Clag, u, v, w) &
+    !$acc private(p, rhoe, enth, game, gam) &
+    !$acc private(rho_ref, w_ref, p_ref, rhoe_ref, tau_ref, gam_ref, game_ref) &
+    !$acc private(cc_ref, csq_ref, Clag_ref, enth_ref) &
+    !$acc private(dwm, dpm, drho, dp, drhoe, dtau, dwp, dpp) &
+    !$acc private(rho_ev, cc_ev, csq_ev, Clag_ev, enth_ev, p_ev, tau_ev) &
+    !$acc private(alpham, alphap, alpha0r, alpha0e, de, dge) &
+    !$acc private(amright, apright, azrright, azeright) &
+    !$acc private(xi, xi1)
     do j = ilo2-1, ihi2+1
        !DIR$ vector always
        do i = ilo1-1, ihi1+1
@@ -1729,12 +1772,14 @@ contains
 
        end do
     end do
+    !$acc end loop
 
     !--------------------------------------------------------------------------
     ! passively advected quantities
     !--------------------------------------------------------------------------
 
     ! Do all of the passively advected quantities in one loop
+    !$acc loop vector private(ipassive, i, j, n, w, xi)
     do ipassive = 1, npassive
        n = qpass_map(ipassive)
        do j = ilo2-1, ihi2+1
@@ -1778,6 +1823,10 @@ contains
           enddo
        enddo
     enddo
+    !$acc end loop
+
+    !$acc end parallel
+    !$acc end data
       
   end subroutine tracez_ppm
 

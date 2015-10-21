@@ -131,8 +131,6 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                srcQ,lo(1)-1,lo(2)-1,lo(3)-1,hi(1)+1,hi(2)+1,hi(3)+1, &
                courno,dx,dy,dz,dt,ngq,ngf)
 
-  !$acc update host(q,c,gamc,csml,srcQ)
-
   ! Compute hyperbolic fluxes using unsplit Godunov
   call umeth3d(q,c,gamc,csml,flatn,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
                srcQ,lo(1)-1,lo(2)-1,lo(3)-1,hi(1)+1,hi(2)+1,hi(3)+1, &
@@ -145,13 +143,9 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                ugdnvz_out,ugdnvz_l1,ugdnvz_l2,ugdnvz_l3,ugdnvz_h1,ugdnvz_h2,ugdnvz_h3, &
                pdivu, domlo, domhi)
 
-  !$acc update device(q)
-
   ! Compute divergence of velocity field (on surroundingNodes(lo,hi))
   call divu(lo,hi,q,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
             dx,dy,dz,div,lo(1),lo(2),lo(3),hi(1)+1,hi(2)+1,hi(3)+1)
-
-  !$acc update device(flux1, flux2, flux3, pdivu)
 
   ! Conservative update
   call consup(uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &

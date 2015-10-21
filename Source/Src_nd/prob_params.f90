@@ -21,5 +21,8 @@ module prob_params_module
   ! indices that we use for dimension agnostic routines 
   ! to ensure we don't illegally access non-existent ghost cells
   integer         , save :: dg(3)
+
+  !$acc declare create(physbc_lo, physbc_hi, Outflow, Symmetry, SlipWall, NoSlipWall) &
+  !$acc create(coord_type, center, problo, probhi, dim, dg)
   
 end module prob_params_module
