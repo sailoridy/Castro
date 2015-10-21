@@ -397,8 +397,7 @@ contains
           call tracexy(q,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                        dqx,dqy,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
                        qxm,qxp,qym,qyp,ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
-                       ilo1,ilo2,ihi1,ihi2,dx,dy,dt,kc,k3d)
-          
+                       ilo1,ilo2,ihi1,ihi2,dx,dy,dt,kc,k3d)          
        end if
 
        ! Compute \tilde{F}^x at kc (k3d)
@@ -806,18 +805,15 @@ contains
     call bl_allocate(   dpde, q_l1,q_h1,q_l2,q_h2,q_l3,q_h3)
 !    call bl_allocate(dpdX_er, q_l1,q_h1,q_l2,q_h2,q_l3,q_h3,1,nspec)
 
-    !$acc data copyin(dpdrho, dpde) present(q, src, srcQ, c, csml, gamc, upass_map, qpass_map) &
+    !$acc data create(dpdrho, dpde) present(q, src, srcQ, c, csml, gamc, upass_map, qpass_map) &
     !$acc copy(courno) copyin(dtdx, dtdy, dtdz, loq, hiq)
+
+    !$acc kernels
 
     !
     ! Make q (all but p), except put e in slot for rho.e, fix after eos call.
     ! The temperature is used as an initial guess for the eos call and will be overwritten.
     !
-
-    !$acc kernels
-
-!    !$acc loop private(rhoinv, kineng, eos_state, eos_state % xn(:), eos_state % rho, eos_state % T) &
-!    !$acc private(eos_state % e, eos_state % p, eos_state % dpde, eos_state % dpdr_e, eos_state % cs, eos_state % gam1)
     !$acc loop private(rhoinv, kineng, eos_state)
     do k = loq(3),hiq(3)
        do j = loq(2),hiq(2)
@@ -1018,10 +1014,10 @@ contains
           hiq(n)=hi(n)+ngf
        enddo
        call uflaten(loq,hiq, &
-                    q(q_l1,q_l2,q_l3,QPRES), &
-                    q(q_l1,q_l2,q_l3,QU), &
-                    q(q_l1,q_l2,q_l3,QV), &
-                    q(q_l1,q_l2,q_l3,QW), &
+                    q(:,:,:,QPRES), &
+                    q(:,:,:,QU), &
+                    q(:,:,:,QV), &
+                    q(:,:,:,QW), &
                     flatn,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3)
     else
        flatn = ONE
@@ -1088,6 +1084,9 @@ contains
     double precision :: div1, volinv
     integer          :: i, j, k, n
 
+    !$acc parallel loop present(flux1, flux2, flux3, area1, area2, area3, div, uin) &
+    !$acc present(dx, dy, dz, dt) &
+    !$acc private(i, j, k, n, div1, volinv)
     do n = 1, NVAR
          
        if ( n.eq.UTEMP ) then
@@ -1134,6 +1133,7 @@ contains
        endif
 
     enddo
+    !$acc end parallel loop
 
     if (normalize_species .eq. 1) &
          call normalize_species_fluxes( &
@@ -1142,6 +1142,10 @@ contains
                   flux3,flux3_l1,flux3_l2,flux3_l3,flux3_h1,flux3_h2,flux3_h3, &
                   lo,hi)
 
+    !$acc parallel loop private(i, j, k, n) present(lo, hi, uout, uin, flux1, flux2, flux3, pdivu) &
+    !$acc present(dt) &
+    !$acc private(volinv) &
+    !$acc reduction(+:E_added_flux, xmom_added_flux, ymom_added_flux, zmom_added_flux)
     do n = 1, NVAR
 
        ! pass temperature through
@@ -1201,6 +1205,7 @@ contains
        endif
          
     enddo
+    !$acc end parallel loop
 
   end subroutine consup
 
@@ -1211,7 +1216,7 @@ contains
   subroutine divu(lo,hi,q,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3,dx,dy,dz, &
                   div,div_l1,div_l2,div_l3,div_h1,div_h2,div_h3)
     
-    use meth_params_module, only : QU, QV, QW
+    use meth_params_module, only : QU, QV, QW, QVAR
     use bl_constants_module
     
     implicit none
@@ -1221,7 +1226,7 @@ contains
     integer          :: div_l1,div_l2,div_l3,div_h1,div_h2,div_h3
     double precision :: dx, dy, dz
     double precision :: div(div_l1:div_h1,div_l2:div_h2,div_l3:div_h3)
-    double precision :: q(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,*)
+    double precision :: q(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR)
 
     integer          :: i, j, k
     double precision :: ux, vy, wz, dxinv, dyinv, dzinv
@@ -1230,6 +1235,8 @@ contains
     dyinv = ONE/dy
     dzinv = ONE/dz
 
+    !$acc parallel loop private(ux, vy, wz, i, j, k) copyin(dxinv, dyinv, dzinv) &
+    !$acc present(lo, hi, q)
     do k=lo(3),hi(3)+1
        do j=lo(2),hi(2)+1
           do i=lo(1),hi(1)+1
@@ -1257,6 +1264,7 @@ contains
           enddo
        enddo
     enddo
+    !$acc end parallel loop
     
   end subroutine divu
 
@@ -1271,7 +1279,7 @@ contains
                                       flux3,flux3_l1,flux3_l2,flux3_l3, &
                                       flux3_h1,flux3_h2,flux3_h3, &
                                       lo,hi)
-    
+
     use network, only : nspec
     use meth_params_module, only : NVAR, URHO, UFS
     use bl_constants_module
@@ -1289,7 +1297,8 @@ contains
     ! Local variables
     integer          :: i,j,k,n
     double precision :: sum,fac
-    
+
+    !$acc parallel loop private(i,j,k,n,sum,fac) present(flux1)    
     do k = lo(3),hi(3)
        do j = lo(2),hi(2)
           do i = lo(1),hi(1)+1
@@ -1309,6 +1318,7 @@ contains
        end do
     end do
 
+    !$acc parallel loop private(i,j,k,n,sum,fac) present(flux2)
     do k = lo(3),hi(3)
        do j = lo(2),hi(2)+1
           do i = lo(1),hi(1)
@@ -1328,6 +1338,7 @@ contains
        end do
     end do
 
+    !$acc parallel loop private(i,j,k,sum,fac) present(flux3)
     do k = lo(3),hi(3)+1
        do j = lo(2),hi(2)
           do i = lo(1),hi(1)
@@ -1395,6 +1406,11 @@ contains
 
     max_dens = ZERO
 
+    !$acc parallel loop private(i, j, k, i_set, j_set, k_set, ii, jj, kk, n) &
+    !$acc private(eos_state, max_dens) &
+    !$acc reduction(+:initial_mass, initial_eint, initial_eden) &
+    !$acc reduction(+:final_mass, final_eint, final_eden) &
+    !$acc present(uout)
     do k = lo(3),hi(3)
        do j = lo(2),hi(2)
           do i = lo(1),hi(1)
@@ -1405,9 +1421,9 @@ contains
              
              if (uout(i,j,k,URHO) .eq. ZERO) then
                 
-                print *,'DENSITY EXACTLY ZERO AT CELL ',i,j,k
-                print *,'  in grid ',lo(1),lo(2),lo(3),hi(1),hi(2),hi(3)
-                call bl_error("Error:: Castro_3d.f90 :: enforce_minimum_density")
+!                print *,'DENSITY EXACTLY ZERO AT CELL ',i,j,k
+!                print *,'  in grid ',lo(1),lo(2),lo(3),hi(1),hi(2),hi(3)
+!                call bl_error("Error:: Castro_3d.f90 :: enforce_minimum_density")
                 
              else if (uout(i,j,k,URHO) < small_dens) then
                 
@@ -1526,6 +1542,7 @@ contains
     integer          :: i,j,k,n
     double precision :: fac,sum
     
+    !$acc parallel loop present(u) private(sum, fac)
     do k = lo(3),hi(3)
        do j = lo(2),hi(2)
           do i = lo(1),hi(1)
@@ -1544,6 +1561,7 @@ contains
           end do
        end do
     end do
+    !$acc end parallel loop
     
   end subroutine normalize_new_species
 

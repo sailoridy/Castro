@@ -39,7 +39,10 @@ contains
     call bl_allocate(z  ,lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,lo(3)-1,hi(3)+1)
     call bl_allocate(chi,lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,lo(3)-1,hi(3)+1)
 
+    !$acc data create(dp, z, chi)
+
     ! x-direction flattening coef
+    !$acc parallel loop private(i, j, k, denom, zeta, tst, tmp, ishft) present(p, u)
     do k = lo(3),hi(3)
        do j = lo(2),hi(2) 
           !dir$ ivdep
@@ -71,8 +74,12 @@ contains
           enddo
        enddo
     enddo
+    !$acc end parallel loop
+
+    !$acc wait
 
     ! y-direction flattening coef
+    !$acc parallel loop private(i, j, k, denom, zeta, tst, tmp, ishft, ftmp) present(p, v)
     do k = lo(3),hi(3)
        do j = lo(2)-1,hi(2)+1
           !dir$ ivdep
@@ -107,8 +114,12 @@ contains
           enddo
        enddo
     enddo
+    !$acc end parallel loop
+ 
+    !$acc wait
 
     ! z-direction flattening coef
+    !$acc parallel loop private(i, j, k, denom, zeta, tst, tmp) present(p, w)
     do k = lo(3)-1,hi(3)+1
        do j = lo(2),hi(2) 
           !dir$ ivdep
@@ -131,6 +142,9 @@ contains
           enddo
        enddo
     enddo
+    !$acc end parallel loop
+    !$acc wait
+    !$acc parallel loop private(ishft, ftmp)
     do k = lo(3),hi(3)
        do j = lo(2),hi(2) 
           do i = lo(1),hi(1)
@@ -145,6 +159,8 @@ contains
           enddo
        enddo
     enddo
+
+    !$acc end data
     
     call bl_deallocate(dp )
     call bl_deallocate(z  )

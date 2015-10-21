@@ -105,19 +105,20 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   !$acc copyin(lo, hi, dx, dy, dz, dt, ngq, ngf) &
   !$acc copyin(uin, uin_l1, uin_l2, uin_l3, uin_h1, uin_h2, uin_h3) &
   !$acc copyin(src, src_l1, src_l2, src_l3, src_h1, src_h2, src_h3) &
-!  !$acc copyin(flux1, flux1_l1, flux1_l2, flux1_l3, flux1_h1, flux1_h2, flux1_h3) &
-!  !$acc copyin(flux2, flux2_l1, flux2_l2, flux2_l3, flux2_h1, flux2_h2, flux2_h3) & 
-!  !$acc copyin(flux3, flux3_l1, flux3_l2, flux3_l3, flux3_h1, flux3_h2, flux3_h3) &
-!  !$acc copyin(ugdnvx_out, ugdnvx_l1, ugdnvx_l2, ugdnvx_l3, ugdnvx_h1, ugdnvx_h2, ugdnvx_h3) &
-!  !$acc copyin(ugdnvy_out, ugdnvy_l1, ugdnvy_l2, ugdnvy_l3, ugdnvy_h1, ugdnvy_h2, ugdnvy_h3) &
-!  !$acc copyin(ugdnvz_out, ugdnvz_l1, ugdnvz_l2, ugdnvz_l3, ugdnvz_h1, ugdnvz_h2, ugdnvz_h3) &
-!  !$acc copyin(area1, area1_l1, area1_l2, area1_l3, area1_h1, area1_h2, area1_h3) &
-!  !$acc copyin(area2, area2_l1, area2_l2, area2_l3, area2_h1, area2_h2, area2_h3) &
-!  !$acc copyin(area3, area3_l1, area3_l2, area3_l3, area3_h1, area3_h2, area3_h3) &
-!  !$acc copyin(vol, vol_l1, vol_l2, vol_l3, vol_h1, vol_h2, vol_h3) &
+  !$acc copy(uout, uout_l1, uout_l2, uout_l3, uout_h1, uout_h2, uout_h3) &
+  !$acc copy(flux1, flux1_l1, flux1_l2, flux1_l3, flux1_h1, flux1_h2, flux1_h3) &
+  !$acc copy(flux2, flux2_l1, flux2_l2, flux2_l3, flux2_h1, flux2_h2, flux2_h3) & 
+  !$acc copy(flux3, flux3_l1, flux3_l2, flux3_l3, flux3_h1, flux3_h2, flux3_h3) &
+  !$acc copy(ugdnvx_out, ugdnvx_l1, ugdnvx_l2, ugdnvx_l3, ugdnvx_h1, ugdnvx_h2, ugdnvx_h3) &
+  !$acc copy(ugdnvy_out, ugdnvy_l1, ugdnvy_l2, ugdnvy_l3, ugdnvy_h1, ugdnvy_h2, ugdnvy_h3) &
+  !$acc copy(ugdnvz_out, ugdnvz_l1, ugdnvz_l2, ugdnvz_l3, ugdnvz_h1, ugdnvz_h2, ugdnvz_h3) &
+  !$acc copyin(area1, area1_l1, area1_l2, area1_l3, area1_h1, area1_h2, area1_h3) &
+  !$acc copyin(area2, area2_l1, area2_l2, area2_l3, area2_h1, area2_h2, area2_h3) &
+  !$acc copyin(area3, area3_l1, area3_l2, area3_l3, area3_h1, area3_h2, area3_h3) &
+  !$acc copyin(vol, vol_l1, vol_l2, vol_l3, vol_h1, vol_h2, vol_h3) &
   !$acc copyin(q_l1,q_l2,q_l3,q_h1,q_h2,q_h3) &
- ! !$acc copyin(q,c,gamc,csml,flatn,div,pdivu,srcQ)
- !$acc copyin(q,c,gamc,csml,srcQ)
+  !$acc copyin(q,c,gamc,csml,flatn,div,pdivu,srcQ) &
+  !$acc copy(E_added_flux, xmom_added_flux, ymom_added_flux, zmom_added_flux)
 
   ! 1) Translate conserved variables (u) to primitive variables (q).
   ! 2) Compute sound speeds (c) and gamma (gamc).
@@ -144,9 +145,13 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                ugdnvz_out,ugdnvz_l1,ugdnvz_l2,ugdnvz_l3,ugdnvz_h1,ugdnvz_h2,ugdnvz_h3, &
                pdivu, domlo, domhi)
 
+  !$acc update device(q)
+
   ! Compute divergence of velocity field (on surroundingNodes(lo,hi))
   call divu(lo,hi,q,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
             dx,dy,dz,div,lo(1),lo(2),lo(3),hi(1)+1,hi(2)+1,hi(3)+1)
+
+  !$acc update device(flux1, flux2, flux3, pdivu)
 
   ! Conservative update
   call consup(uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
@@ -419,6 +424,11 @@ subroutine ca_enforce_nonnegative_species(uout,uout_l1,uout_l2,uout_l3, &
   
   double precision, parameter :: eps = -1.0d-16
   
+  ! Note that we need to do a pcopy on uout here because this is called from
+  ! C++ as well as from the Fortran umdrv call.
+
+  !$acc parallel loop private(i, j, k, n, x, any_negative, dom_spec, int_dom_spec) &
+  !$acc pcopy(uout) 
   do k = lo(3),hi(3)
      do j = lo(2),hi(2)
         do i = lo(1),hi(1)
@@ -465,13 +475,13 @@ subroutine ca_enforce_nonnegative_species(uout,uout_l1,uout_l2,uout_l3, &
                     ! Here we only print the bigger negative values.
                     !
                     if (x .lt. -1.d-2) then
-                       print *,'Correcting nth negative species ',n-UFS+1
-                       print *,'   at cell (i,j,k)              ',i,j,k
-                       print *,'Negative (rho*X) is             ',uout(i,j,k,n)
-                       print *,'Negative      X  is             ',x
-                       print *,'Filling from dominant species   ',int_dom_spec-UFS+1
-                       print *,'  which had X =                 ',&
-                            uout(i,j,k,int_dom_spec) / uout(i,j,k,URHO)
+!                       print *,'Correcting nth negative species ',n-UFS+1
+!                       print *,'   at cell (i,j,k)              ',i,j,k
+!                       print *,'Negative (rho*X) is             ',uout(i,j,k,n)
+!                       print *,'Negative      X  is             ',x
+!                       print *,'Filling from dominant species   ',int_dom_spec-UFS+1
+!                       print *,'  which had X =                 ',&
+!                            uout(i,j,k,int_dom_spec) / uout(i,j,k,URHO)
                     end if
                     !
                     ! Take enough from the dominant species to fill the negative one.
@@ -481,10 +491,10 @@ subroutine ca_enforce_nonnegative_species(uout,uout_l1,uout_l2,uout_l3, &
                     ! Test that we didn't make the dominant species negative.
                     !
                     if (uout(i,j,k,int_dom_spec) .lt. ZERO) then 
-                       print *,' Just made nth dominant species negative ',int_dom_spec-UFS+1,' at ',i,j,k 
-                       print *,'We were fixing species ',n-UFS+1,' which had value ',x
-                       print *,'Dominant species became ',uout(i,j,k,int_dom_spec) / uout(i,j,k,URHO)
-                       call bl_error("Error:: Castro_3d.f90 :: ca_enforce_nonnegative_species")
+!                       print *,' Just made nth dominant species negative ',int_dom_spec-UFS+1,' at ',i,j,k 
+!                       print *,'We were fixing species ',n-UFS+1,' which had value ',x
+!                       print *,'Dominant species became ',uout(i,j,k,int_dom_spec) / uout(i,j,k,URHO)
+!                       call bl_error("Error:: Castro_3d.f90 :: ca_enforce_nonnegative_species")
                     end if
                     !
                     ! Now set the negative species to zero.
@@ -498,6 +508,7 @@ subroutine ca_enforce_nonnegative_species(uout,uout_l1,uout_l2,uout_l3, &
         enddo
      enddo
   enddo
+  !$acc end parallel loop
   
 end subroutine ca_enforce_nonnegative_species
 
