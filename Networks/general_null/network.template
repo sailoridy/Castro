@@ -29,6 +29,8 @@ module actual_network
   character (len= 5), save :: short_aux_names(naux)
 
   double precision, save   :: aion(nspec), zion(nspec)
+  
+  !$acc declare create(aion, zion)
 
 contains
   
@@ -43,6 +45,8 @@ contains
     @@ZION@@
 
     @@AUX_NAMES@@
+
+    !$acc update device(aion, zion)
 
   end subroutine actual_network_init
 

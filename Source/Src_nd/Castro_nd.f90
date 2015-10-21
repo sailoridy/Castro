@@ -455,7 +455,9 @@
            enddo
            npassive = npassive + nspec + naux
         endif
-        
+
+
+        !$acc enter data copyin (upass_map, qpass_map)
 
          
         !---------------------------------------------------------------------

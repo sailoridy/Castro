@@ -8,14 +8,20 @@ DIM        = 3
 COMP	   = gcc
 FCOMP	   = gfortran
 
+COMP = PGI
+FCOMP = PGI
+
 USE_MPI    = TRUE
 USE_OMP    = FALSE
+
+USE_ACC = TRUE
 
 # define the location of the CASTRO top directory
 CASTRO_DIR  := ../..
 
 # This sets the EOS directory in Castro/EOS
 EOS_dir     := gamma_law
+#EOS_dir = gamma_law_general
 
 # This sets the network directory in Castro/Networks
 Network_dir := general_null
