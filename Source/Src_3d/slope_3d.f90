@@ -16,6 +16,8 @@ contains
                         dqx,dqy,dqz,qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3, &
                         ilo1,ilo2,ihi1,ihi2,kc,k3d,nv)
 
+      !$acc routine vector
+
       use mempool_module, only : bl_allocate, bl_deallocate
       use meth_params_module
       use bl_constants_module
@@ -38,18 +40,23 @@ contains
       double precision dlft, drgt, slop, dq1
       double precision dm, dp, dc, ds, sl, dl, dfm, dfp
 
-      double precision, pointer::dsgn(:,:),dlim(:,:),df(:,:),dcen(:,:)
+!      double precision, pointer::dsgn(:,:),dlim(:,:),df(:,:),dcen(:,:)
+      double precision :: dsgn(ilo-2:ihi+2,ilo-2:ihi+2)
+      double precision :: dlim(ilo-2:ihi+2,ilo-2:ihi+2)
+      double precision ::   df(ilo-2:ihi+2,ilo-2:ihi+2)
+      double precision :: dcen(ilo-2:ihi+2,ilo-2:ihi+2)
 
       ilo = MIN(ilo1,ilo2)
       ihi = MAX(ihi1,ihi2)
 
-      call bl_allocate (dsgn, ilo-2,ihi+2,ilo-2,ihi+2)
-      call bl_allocate (dlim, ilo-2,ihi+2,ilo-2,ihi+2)
-      call bl_allocate (  df, ilo-2,ihi+2,ilo-2,ihi+2)
-      call bl_allocate (dcen, ilo-2,ihi+2,ilo-2,ihi+2)
+!      call bl_allocate (dsgn, ilo-2,ihi+2,ilo-2,ihi+2)
+!      call bl_allocate (dlim, ilo-2,ihi+2,ilo-2,ihi+2)
+!      call bl_allocate (  df, ilo-2,ihi+2,ilo-2,ihi+2)
+!      call bl_allocate (dcen, ilo-2,ihi+2,ilo-2,ihi+2)
 
       if(iorder.eq.1) then
 
+         !$acc loop vector collapse(3)
          do n = 1, nv
             do j = ilo2-1, ihi2+1
                do i = ilo1-1, ihi1+1
@@ -59,9 +66,11 @@ contains
                enddo
             enddo
          enddo
+         !$acc end loop
 
       else
 
+         !$acc loop vector
          do n = 1, nv 
 
             ! Compute slopes in first coordinate direction
@@ -165,13 +174,14 @@ contains
                enddo
             enddo
          enddo
+         !$acc end loop
 
       endif
 
-      call bl_deallocate (dsgn)
-      call bl_deallocate (dlim)
-      call bl_deallocate (  df)
-      call bl_deallocate (dcen)
+!      call bl_deallocate (dsgn)
+!      call bl_deallocate (dlim)
+!      call bl_deallocate (  df)
+!      call bl_deallocate (dcen)
 
       end subroutine uslope
 
@@ -183,6 +193,8 @@ contains
                         dpx,dpy,dpz,qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3, &
                         src,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
                         ilo1,ilo2,ihi1,ihi2,kc,k3d,dx,dy,dz)
+
+        !$acc routine vector
         
         use mempool_module, only : bl_allocate, bl_deallocate
         use meth_params_module
@@ -211,18 +223,23 @@ contains
         double precision dm, dp, dc, dl, dfm, dfp, ds
 
         !     Local arrays
-        double precision, pointer::dsgn(:,:),dlim(:,:),df(:,:),dcen(:,:)
+!        double precision, pointer::dsgn(:,:),dlim(:,:),df(:,:),dcen(:,:)
+        double precision :: dsgn(ilo-2:ihi+2,ilo-2:ihi+2)
+        double precision :: dlim(ilo-2:ihi+2,ilo-2:ihi+2)
+        double precision ::   df(ilo-2:ihi+2,ilo-2:ihi+2)
+        double precision :: dcen(ilo-2:ihi+2,ilo-2:ihi+2)
 
         ilo = MIN(ilo1,ilo2)
         ihi = MAX(ihi1,ihi2)
 
-        call bl_allocate (dsgn, ilo-2,ihi+2,ilo-2,ihi+2)
-        call bl_allocate (dlim, ilo-2,ihi+2,ilo-2,ihi+2)
-        call bl_allocate (  df, ilo-2,ihi+2,ilo-2,ihi+2)
-        call bl_allocate (dcen, ilo-2,ihi+2,ilo-2,ihi+2)
+!        call bl_allocate (dsgn, ilo-2,ihi+2,ilo-2,ihi+2)
+!        call bl_allocate (dlim, ilo-2,ihi+2,ilo-2,ihi+2)
+!        call bl_allocate (  df, ilo-2,ihi+2,ilo-2,ihi+2)
+!        call bl_allocate (dcen, ilo-2,ihi+2,ilo-2,ihi+2)
 
         if(iorder.eq.1) then
 
+           !$acc loop vector collapse(2)
            do j = ilo2-1, ihi2+1
               do i = ilo1-1, ihi1+1
                  dpx(i,j,kc) = ZERO
@@ -230,9 +247,11 @@ contains
                  dpz(i,j,kc) = ZERO
               enddo
            enddo
+           !$acc end loop
 
         else
            ! Compute slopes in first coordinate direction
+           !$acc loop vector
            do j = ilo2-1, ihi2+1
 
               ! First compute Fromm slopes
@@ -264,8 +283,10 @@ contains
                  dpx(i,j,kc) = dpx(i,j,kc) + rho(i,j,k3d)*src(i,j,k3d,QU)*dx
               enddo
            enddo
+           !$acc end loop
 
            ! Compute slopes in second coordinate direction
+           !$acc loop vector
            do i = ilo1-1, ihi1+1
 
               ! First compute Fromm slopes
@@ -296,8 +317,10 @@ contains
                  dpy(i,j,kc) = dpy(i,j,kc) + rho(i,j,k3d)*src(i,j,k3d,QV)*dy
               enddo
            enddo
+           !$acc end loop
 
            ! Compute slopes in third coordinate direction
+           !$acc loop vector
            do j = ilo2-1, ihi2+1
               do i = ilo1-1, ihi1+1
 
@@ -357,13 +380,14 @@ contains
                  dpz(i,j,kc) = dpz(i,j,kc) + rho(i,j,k3d)*src(i,j,k3d,QW)*dz
               enddo
            enddo
+           !$acc end loop
 
         endif
 
-        call bl_deallocate (dsgn)
-        call bl_deallocate (dlim)
-        call bl_deallocate (  df)
-        call bl_deallocate (dcen)
+!        call bl_deallocate (dsgn)
+!        call bl_deallocate (dlim)
+!        call bl_deallocate (  df)
+!        call bl_deallocate (dcen)
 
       end subroutine pslope
 

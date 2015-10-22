@@ -13,6 +13,8 @@ contains
                          qxm,qxp,qym,qyp,qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3, &
                          ilo1,ilo2,ihi1,ihi2,dx,dy,dt,kc,k3d)
 
+      !$acc routine vector
+
       use network, only : nspec, naux
       use meth_params_module, only : QVAR, QRHO, QU, QV, QW, &
                                      QREINT, QESGS, QPRES, QFS, QFX, &
@@ -59,8 +61,8 @@ contains
       dtdy = dt/dy
 
       if (ppm_type .ne. 0) then
-        print *,'Oops -- shouldnt be in tracexy with ppm_type != 0'
-        call bl_error("Error:: Castro_advection_3d.f90 :: tracexy")
+!        print *,'Oops -- shouldnt be in tracexy with ppm_type != 0'
+!        call bl_error("Error:: Castro_advection_3d.f90 :: tracexy")
       end if
 
       !!!!!!!!!!!!!!!
@@ -68,6 +70,7 @@ contains
       !!!!!!!!!!!!!!!
       
       ! Compute left and right traced states
+      !$acc loop vector collapse(2)
       do j = ilo2-1, ihi2+1
          do i = ilo1-1, ihi1+1
 
@@ -163,10 +166,12 @@ contains
 
          enddo
       enddo
+      !$acc end loop
 
       ! Treat K as a passively advected quantity
       if (QESGS .gt. -1) then
          n = QESGS
+         !$acc loop vector
          do j = ilo2-1, ihi2+1
             ! Right state
             do i = ilo1, ihi1+1
@@ -192,8 +197,10 @@ contains
                qxm(i+1,j,kc,n) = q(i,j,k3d,n) + acmpleft
             enddo
          enddo
+         !$acc end loop
       endif
 
+      !$acc loop vector
       do ipassive = 1, npassive
          n = qpass_map(ipassive)
 
@@ -225,7 +232,9 @@ contains
 
          enddo
       enddo
+      !$acc end loop
 
+      !$acc loop vector collapse(2)
       do j = ilo2-1, ihi2+1
          do i = ilo1-1, ihi1+1
 
@@ -321,10 +330,12 @@ contains
 
          enddo
       enddo
+      !$acc end loop
 
       ! Treat K as a passively advected quantity
       if (QESGS .gt. -1) then
          n = QESGS
+         !$acc loop vector
          do i = ilo1-1, ihi1+1
  
             ! Top state
@@ -351,8 +362,10 @@ contains
                qym(i,j+1,kc,n) = q(i,j,k3d,n) + acmpbot
             enddo
          enddo
+         !$acc end loop
       endif
 
+      !$acc loop vector
       do ipassive = 1, npassive
          n = qpass_map(ipassive)
 
@@ -384,6 +397,7 @@ contains
 
          enddo
       enddo
+      !$acc end loop
 
     end subroutine tracexy
 
@@ -395,6 +409,8 @@ contains
            dqz,dq_l1,dq_l2,dq_l3,dq_h1,dq_h2,dq_h3, &
            qzm,qzp,qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3, &
            ilo1,ilo2,ihi1,ihi2,dz,dt,km,kc,k3d)
+
+      !$acc routine vector
 
       use network, only : nspec, naux
       use meth_params_module, only : QVAR, QRHO, QU, QV, QW, &
@@ -437,8 +453,8 @@ contains
       double precision ascmpbot, ascmptop
 
       if (ppm_type .ne. 0) then
-        print *,'Oops -- shouldnt be in tracez with ppm_type != 0'
-        call bl_error("Error:: Castro_advection_3d.f90 :: tracez")
+!        print *,'Oops -- shouldnt be in tracez with ppm_type != 0'
+!        call bl_error("Error:: Castro_advection_3d.f90 :: tracez")
       end if
 
       dtdz = dt/dz
@@ -446,7 +462,8 @@ contains
       !!!!!!!!!!!!!!!
       ! NON-PPM CODE
       !!!!!!!!!!!!!!!
-      
+
+      !$acc loop vector collapse(2)
       do j = ilo2-1, ihi2+1
          do i = ilo1-1, ihi1+1
 
@@ -563,10 +580,12 @@ contains
 
          enddo
       enddo
+      !$acc end loop
 
       ! Treat K as a passively advected quantity
       if (QESGS .gt. -1) then
          n = QESGS
+         !$acc loop vector
          do j = ilo2-1, ihi2+1
             do i = ilo1-1, ihi1+1
  
@@ -592,8 +611,10 @@ contains
  
             enddo
          enddo
+         !$acc end loop
       endif
 
+      !$acc loop vector
       do ipassive = 1, npassive
          n = qpass_map(ipassive)
 
@@ -622,6 +643,7 @@ contains
             enddo
          enddo
       enddo
+      !$acc end loop
 
     end subroutine tracez
 

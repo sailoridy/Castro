@@ -2997,7 +2997,9 @@ contains
                      gamc,gc_l1,gc_l2,gc_l3,gc_h1,gc_h2,gc_h3, &
                      srcQ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3,&
                      hdt,cdtdy,cdtdz,ilo,ihi,jlo,jhi,km,kc,k3d)
-    
+
+    !$acc routine vector
+
     use network, only : nspec, naux
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
                                    QPRES, QREINT, QGAME, QESGS, QFS, &
