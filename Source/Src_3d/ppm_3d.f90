@@ -148,10 +148,9 @@ contains
     ! compute s at x-edges
 
     !$acc data create(dsvl, sedge) present(flatn, s, Ip, Im, cspd)
-    !$acc parallel
 
     ! compute van Leer slopes in x-direction
-    !$acc loop vector collapse(2) private(i,j,dsc,dsl,dsr)
+    !$acc parallel loop vector collapse(2) private(i,j,dsc,dsl,dsr)
     do j=ilo2-1,ihi2+1
        do i=ilo1-2,ihi1+2
           dsc = HALF * (s(i+1,j,k3d) - s(i-1,j,k3d))
@@ -164,15 +163,10 @@ contains
           end if
        end do
     end do
-    !$acc end loop
-
-    ! Need to force synchronization here because sedge 
-    ! relies on neighboring values of the slope.
-
-    !$acc wait
+    !$acc end parallel loop
 
     ! interpolate s to x-edges
-    !$acc loop vector collapse(2) private(i,j)
+    !$acc parallel loop vector collapse(2) private(i,j)
     do j=ilo2-1,ihi2+1
        !dir$ ivdep
        do i=ilo1-1,ihi1+2
@@ -183,11 +177,9 @@ contains
           sedge(i,j) = min(sedge(i,j),max(s(i,j,k3d),s(i-1,j,k3d)))
        end do
     end do
-    !$acc end loop
+    !$acc end parallel loop
 
-    !$acc wait
-
-    !$acc loop vector collapse(2) private(i, j, sm, sp, s6, sigma)
+    !$acc parallel loop vector collapse(2) private(i, j, sm, sp, s6, sigma)
     do j=ilo2-1,ihi2+1
        do i=ilo1-1,ihi1+1
 
@@ -288,7 +280,7 @@ contains
 
        end do
     end do
-    !$acc end loop
+    !$acc end parallel loop
 
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ! y-direction
@@ -297,7 +289,7 @@ contains
     ! compute s at y-edges
 
     ! compute van Leer slopes in y-direction
-    !$acc loop vector collapse(2) private(i, j, dsc, dsl, dsr)
+    !$acc parallel loop vector collapse(2) private(i, j, dsc, dsl, dsr)
     do j=ilo2-2,ihi2+2
        do i=ilo1-1,ihi1+1
           dsc = HALF * (s(i,j+1,k3d) - s(i,j-1,k3d))
@@ -310,12 +302,10 @@ contains
           end if
        end do
     end do
-    !$acc end loop
-
-    !$acc wait
+    !$acc end parallel loop
 
     ! interpolate s to y-edges
-    !$acc loop vector collapse(2) private(i, j)
+    !$acc parallel loop vector collapse(2) private(i, j)
     do j=ilo2-1,ihi2+2
        !dir$ ivdep
        do i=ilo1-1,ihi1+1
@@ -326,11 +316,9 @@ contains
           sedge(i,j) = min(sedge(i,j),max(s(i,j,k3d),s(i,j-1,k3d)))
        end do
     end do
-    !$acc end loop
+    !$acc end parallel loop
 
-    !$acc wait
-
-    !$acc loop vector collapse(2) private(i, j, sm, sp, s6, sigma)
+    !$acc parallel loop vector collapse(2) private(i, j, sm, sp, s6, sigma)
     do j=ilo2-1,ihi2+1
        do i=ilo1-1,ihi1+1
 
@@ -424,7 +412,7 @@ contains
 
        end do
     end do
-    !$acc end loop
+    !$acc end parallel loop
 
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ! z-direction
@@ -433,7 +421,7 @@ contains
     ! compute s at z-edges
 
     ! compute van Leer slopes in z-direction
-    !$acc loop vector collapse(2) private(i, j, k, dsc, dsl, dsr, dsvlm, dsvlp, dsvl0) &
+    !$acc parallel loop vector collapse(2) private(i, j, k, dsc, dsl, dsr, dsvlm, dsvlp, dsvl0) &
     !$acc private(sm, sp, s6, sigma)
     do j=ilo2-1,ihi2+1
        do i=ilo1-1,ihi1+1
@@ -573,9 +561,8 @@ contains
 
        end do
     end do
-    !$acc end loop
+    !$acc end parallel loop
 
-    !$acc end parallel
     !$acc end data
 
 !    call bl_deallocate(dsvl)

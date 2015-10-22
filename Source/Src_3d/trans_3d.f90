@@ -76,14 +76,13 @@ contains
     type (eos_t) :: eos_state
 
     !$acc data present(fx, qym, qyp, qymo, qypo, upass_map, qpass_map)
-    !$acc parallel
 
     !-------------------------------------------------------------------------
     ! update all of the passively-advected quantities with the
     ! transerse term and convert back to the primitive quantity
     !-------------------------------------------------------------------------
 
-    !$acc loop vector private(i, j, n, nq, ipassive) &
+    !$acc parallel loop vector private(i, j, n, nq, ipassive) &
     !$acc private(rr, rrnew, compn, compu)
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
@@ -111,11 +110,9 @@ contains
           enddo
        enddo
     enddo
-    !$acc end loop
+    !$acc end parallel loop
 
-    !$acc wait
-
-    !$acc loop vector private(i, j) &
+    !$acc parallel loop vector private(i, j) &
     !$acc private(pgp, pgm, ugp, ugm, gegp, gegm) &
     !$acc private(dup, pav, uav, geav, du, dge) &
     !$acc private(rrry, rury, rvry, rwry, ekenry, rery) &
@@ -390,9 +387,8 @@ contains
           end if
        end if
     enddo
-    !$acc end loop
+    !$acc end parallel loop
 
-    !$acc end parallel
     !$acc end data
 
   end subroutine transx1
@@ -463,14 +459,13 @@ contains
     type (eos_t) :: eos_state
 
     !$acc data present(fx, qzm, qzp, qzmo, qzpo, upass_map, qpass_map)
-    !$acc parallel
 
     !-------------------------------------------------------------------------
     ! update all of the passively-advected quantities with the
     ! transerse term and convert back to the primitive quantity
     !-------------------------------------------------------------------------
 
-    !$acc loop vector private(i, j, n, nq, ipassive) &
+    !$acc parallel loop vector private(i, j, n, nq, ipassive) &
     !$acc private(rr, rrnew, compn, compu)
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
@@ -496,11 +491,9 @@ contains
           enddo
        enddo
     enddo
-    !$acc end loop
+    !$acc end parallel loop
 
-    !$acc wait
-
-    !$acc loop vector private(i, j) &
+    !$acc parallel loop vector private(i, j) &
     !$acc private(pgp, pgm, ugp, ugm, gegp, gegm) &
     !$acc private(dup, pav, uav, geav, du, dge) &
     !$acc private(rrrz, rurz, rvrz, rwrz, ekenrz, rerz) &
@@ -777,9 +770,8 @@ contains
           end if
        end if
     enddo
-    !$acc end loop
+    !$acc end parallel loop
 
-    !$acc end parallel
     !$acc end data
 
   end subroutine transx2
@@ -850,14 +842,13 @@ contains
     type (eos_t) :: eos_state
 
     !$acc data present(fy, qxm, qxp, qxmo, qxpo, upass_map, qpass_map)
-    !$acc parallel
 
     !-------------------------------------------------------------------------    
     ! update all of the passively-advected quantities with the
     ! transerse term and convert back to the primitive quantity
     !-------------------------------------------------------------------------
 
-    !$acc loop vector private(i, j, n, nq, ipassive) &
+    !$acc parallel loop vector private(i, j, n, nq, ipassive) &
     !$acc private(rr, rrnew, compn, compu)
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
@@ -884,11 +875,9 @@ contains
           enddo
        enddo
     enddo
-    !$acc end loop
+    !$acc end parallel loop
 
-    !$acc wait
-
-    !$acc loop vector private(i, j) &
+    !$acc parallel loop vector private(i, j) &
     !$acc private(pgp, pgm, ugp, ugm, gegp, gegm) &
     !$acc private(dup, pav, uav, geav, du, dge) &
     !$acc private(rrrx, rurx, rvrx, rwrx, ekenrx, rerx) &
@@ -1159,9 +1148,8 @@ contains
        end if
 
     enddo
-    !$acc end loop
+    !$acc end parallel loop
 
-    !$acc end parallel
     !$acc end data
 
   end subroutine transy1
@@ -1232,14 +1220,13 @@ contains
     type (eos_t) :: eos_state
 
     !$acc data present(fy, qzm, qzp, qzmo, qzpo, upass_map, qpass_map)
-    !$acc parallel
 
     !-------------------------------------------------------------------------
     ! update all of the passively-advected quantities with the
     ! transerse term and convert back to the primitive quantity
     !-------------------------------------------------------------------------
 
-    !$acc loop vector private(i, j, n, nq, ipassive) &
+    !$acc parallel loop vector private(i, j, n, nq, ipassive) &
     !$acc private(rr, rrnew, compn, compu)
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
@@ -1265,11 +1252,9 @@ contains
           enddo
        enddo
     enddo
-    !$acc end loop
+    !$acc end parallel loop
 
-    !$acc wait
-
-    !$acc loop vector private(i, j) &
+    !$acc parallel loop vector private(i, j) &
     !$acc private(pgp, pgm, ugp, ugm, gegp, gegm) &
     !$acc private(dup, pav, uav, geav, du, dge) &
     !$acc private(rrrz, rurz, rvrz, rwrz, ekenrz, rerz) &
@@ -1550,9 +1535,8 @@ contains
        end if
 
     enddo
-    !$acc end loop
+    !$acc end parallel loop
 
-    !$acc end parallel
     !$acc end data
 
   end subroutine transy2
@@ -1627,14 +1611,13 @@ contains
     type (eos_t) :: eos_state
 
     !$acc data present(fz, qxm, qxp, qxpo, qypo, qym, qyp, qymo, qypo, upass_map, qpass_map)
-    !$acc parallel
 
     !-------------------------------------------------------------------------    
     ! update all of the passively-advected quantities with the
     ! transerse term and convert back to the primitive quantity
     !-------------------------------------------------------------------------
 
-    !$acc loop vector private(i, j, n, nq, ipassive) &
+    !$acc parallel loop vector private(i, j, n, nq, ipassive) &
     !$acc private(rr, rrnew, compn, compu)
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
@@ -1676,11 +1659,9 @@ contains
           enddo
        enddo
     enddo
-    !$acc end loop
+    !$acc end parallel loop
 
-    !$acc wait
-
-    !$acc loop vector private(i, j) &
+    !$acc parallel loop vector private(i, j) &
     !$acc private(pgp, pgm, ugp, ugm, gegp, gegm) &
     !$acc private(dup, pav, uav, geav, du, dge) &
     !$acc private(rrrx, rurx, rvrx, rwrx, ekenrx, rerx) &
@@ -2187,9 +2168,8 @@ contains
        end if
 
     enddo
-    !$acc end loop
+    !$acc end parallel loop
 
-    !$acc end parallel
     !$acc end data
 
   end subroutine transz
@@ -2267,14 +2247,13 @@ contains
     type (eos_t) :: eos_state
 
     !$acc data present(fxy, fyx, qmo, qpo, upass_map, qpass_map)
-    !$acc parallel
 
     !-------------------------------------------------------------------------    
     ! update all of the passively-advected quantities with the
     ! transerse term and convert back to the primitive quantity
     !-------------------------------------------------------------------------
 
-    !$acc loop vector private(i, j, n, nq, ipassive) &
+    !$acc parallel loop vector private(i, j, n, nq, ipassive) &
     !$acc private(rrr, rrl, compr, compl, rrnewr, rrnewl, compnr, compnl)
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
@@ -2305,11 +2284,9 @@ contains
           enddo
        enddo
     enddo
-    !$acc end loop
+    !$acc end parallel loop
 
-    !$acc wait
-
-    !$acc loop vector private(i, j) &
+    !$acc parallel loop vector private(i, j) &
     !$acc private(pgxp, pgxm, ugxp, ugxm, gegxp, gegxm) &
     !$acc private(pgxpm, pgxmm, ugxpm, ugxmm, gegxpm, gegxmm) &
     !$acc private(pgyp, pgym, ugyp, ugym, gegyp, gegym) &
@@ -2647,9 +2624,8 @@ contains
        end if
 
     enddo
-    !$acc end loop
+    !$acc end parallel loop
 
-    !$acc end parallel
     !$acc end data
 
   end subroutine transxy
@@ -2724,14 +2700,13 @@ contains
     type (eos_t) :: eos_state
 
     !$acc data present(fxz, fzx, qmo, qpo, upass_map, qpass_map)
-    !$acc parallel
 
     !-------------------------------------------------------------------------    
     ! update all of the passively-advected quantities with the
     ! transerse term and convert back to the primitive quantity
     !-------------------------------------------------------------------------
 
-    !$acc loop vector private(i, j, n, nq, ipassive) &
+    !$acc parallel loop vector private(i, j, n, nq, ipassive) &
     !$acc private(rrr, rrl, compr, compl, rrnewr, rrnewl, compnr, compnl)
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
@@ -2768,11 +2743,9 @@ contains
           enddo
        enddo
     enddo
-    !$acc end loop
+    !$acc end parallel loop
 
-    !$acc wait
-
-    !$acc loop vector private(i, j) &
+    !$acc parallel loop vector private(i, j) &
     !$acc private(pgxp, pgxm, ugxp, ugxm, gegxp, gegxm) &
     !$acc private(pgzp, pgzm, ugzp, ugzm, gegzp, gegzm) &
     !$acc private(duxp, pxav, uxav, gexav, dux, dgex, pxnew, gexnew) &
@@ -3082,9 +3055,8 @@ contains
           end if
        end if
     enddo
-    !$acc end loop
+    !$acc end parallel loop
 
-    !$acc end parallel
     !$acc end data
 
   end subroutine transxz
@@ -3158,14 +3130,13 @@ contains
     type (eos_t) :: eos_state
 
     !$acc data present(fyz, fzy, qmo, qpo, upass_map, qpass_map)
-    !$acc parallel
 
     !-------------------------------------------------------------------------    
     ! update all of the passively-advected quantities with the
     ! transerse term and convert back to the primitive quantity
     !-------------------------------------------------------------------------
 
-    !$acc loop vector private(i, j, n, nq, ipassive) &
+    !$acc parallel loop vector private(i, j, n, nq, ipassive) &
     !$acc private(rrr, rrl, compr, compl, rrnewr, rrnewl, compnr, compnl)
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
@@ -3201,11 +3172,9 @@ contains
           enddo
        enddo
     enddo
-    !$acc end loop
+    !$acc end parallel loop
 
-    !$acc wait
-
-    !$acc loop vector private(i, j) &
+    !$acc parallel loop vector private(i, j) &
     !$acc private(pgyp, pgym, ugyp, ugym, gegyp, gegym) &
     !$acc private(pgzp, pgzm, ugzp, ugzm, gegzp, gegzm) &
     !$acc private(duyp, pyav, uyav, geyav, duy, dgey, pynew, geynew) &
@@ -3518,9 +3487,8 @@ contains
        end if
 
     enddo
-    !$acc end loop
+    !$acc end parallel loop
 
-    !$acc end parallel
     !$acc end data
 
   end subroutine transyz
