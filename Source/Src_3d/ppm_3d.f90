@@ -579,6 +579,8 @@ contains
                        flatn,f_l1,f_l2,f_l3,f_h1,f_h2,f_h3, &
                        Ip,Im,ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc)
 
+    !$acc routine vector
+
     use mempool_module, only : bl_allocate, bl_deallocate
     use meth_params_module, only : ppm_type, ppm_flatten_before_integrals
     use bl_constants_module
@@ -614,8 +616,10 @@ contains
     double precision :: sm, sp
 
     ! s_{i+\half}^{H.O.}
-    double precision, pointer :: sedge(:,:)
-    double precision, pointer :: sedgez(:,:,:)
+ !   double precision, pointer :: sedge(:,:)
+    double precision :: sedge(ilo1-2:ihi1+3,ilo2-2:ihi2+3)
+!    double precision, pointer :: sedgez(:,:,:)
+    double precision :: sedgez(ilo1-1:ihi1+1,ilo2-2:ihi2+1,k3d-1:k3d+2)
 
     ! constant used in Colella 2008
     double precision, parameter :: C = 1.25d0
@@ -624,24 +628,26 @@ contains
     dtdy = dt/dy
     dtdz = dt/dz
 
-    if (ppm_type .ne. 2) &
-         call bl_error("Should have ppm_type = 2 in ppm_type2")
+!    if (ppm_type .ne. 2) &
+!         call bl_error("Should have ppm_type = 2 in ppm_type2")
 
-    if (s_l1 .gt. ilo1-3 .or. s_l2 .gt. ilo2-3) then
-         print *,'Low bounds of array: ',s_l1, s_l2
-         print *,'Low bounds of  loop: ',ilo1 , ilo2
-         call bl_error("Need more ghost cells on array in ppm_type2")
-    end if
+!    if (s_l1 .gt. ilo1-3 .or. s_l2 .gt. ilo2-3) then
+!         print *,'Low bounds of array: ',s_l1, s_l2
+!         print *,'Low bounds of  loop: ',ilo1 , ilo2
+!         call bl_error("Need more ghost cells on array in ppm_type2")
+!    end if
 
-    if (s_h1 .lt. ihi1+3 .or. s_h2 .lt. ihi2+3) then
-         print *,'Hi  bounds of array: ',s_h1, s_h2
-         print *,'Hi  bounds of  loop: ',ihi1 , ihi2
-         call bl_error("Need more ghost cells on array in ppm_type2")
-    end if
+!    if (s_h1 .lt. ihi1+3 .or. s_h2 .lt. ihi2+3) then
+!         print *,'Hi  bounds of array: ',s_h1, s_h2
+!         print *,'Hi  bounds of  loop: ',ihi1 , ihi2
+!         call bl_error("Need more ghost cells on array in ppm_type2")
+!    end if
 
     ! edge-centered indexing
-    call bl_allocate(sedge,ilo1-2,ihi1+3,ilo2-2,ihi2+3)
-    call bl_allocate(sedgez,ilo1-1,ihi1+1,ilo2-1,ihi2+1,k3d-1,k3d+2)
+!    call bl_allocate(sedge,ilo1-2,ihi1+3,ilo2-2,ihi2+3)
+!    call bl_allocate(sedgez,ilo1-1,ihi1+1,ilo2-1,ihi2+1,k3d-1,k3d+2)
+
+    !$acc data create(sedge, sedgez) present(s, u, cspd, flatn, Im, Ip)
 
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ! x-direction
@@ -650,6 +656,7 @@ contains
     ! compute s at x-edges
 
     ! interpolate s to x-edges
+    !$acc parallel loop vector private(i, j, D2, D2L, D2R, sgn, D2LIM)
     do j=ilo2-1,ihi2+1
        do i=ilo1-2,ihi1+3
           sedge(i,j) = SEVEN12TH*(s(i-1,j,k3d)+s(i  ,j,k3d)) &
@@ -667,11 +674,15 @@ contains
           end if
        end do
     end do
+    !$acc end parallel loop
     !
     ! Use Colella 2008 limiters.
     !
     ! This is a new version of the algorithm to eliminate sensitivity to roundoff.
     !
+    !$acc parallel loop private(i, j, alphap, alpham, bigp, bigm, extremum) &
+    !$acc private(dafacem, dafacep, dabarm, dabarp, dafacemin, dabarmin, dachkm, dachkp) &
+    !$acc private(delam, amax, sm, sp, s6, sigma)
     do j=ilo2-1,ihi2+1
        do i=ilo1-1,ihi1+1
 
@@ -809,6 +820,7 @@ contains
 
        end do
     end do
+    !$acc end parallel loop
 
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ! y-direction
@@ -817,6 +829,7 @@ contains
     ! compute s at y-edges
 
     ! interpolate s to y-edges
+    !$acc parallel loop vector private(i, j, D2, D2L, D2R, sgn, D2LIM)    
     do j=ilo2-2,ihi2+3
        do i=ilo1-1,ihi1+1
           sedge(i,j) = SEVEN12TH*(s(i,j-1,k3d)+s(i,j,k3d)) &
@@ -834,11 +847,15 @@ contains
           end if
        end do
     end do
+    !$acc end parallel loop
     !
     ! Use Colella 2008 limiters.
     !
     ! This is a new version of the algorithm to eliminate sensitivity to roundoff.
     !
+    !$acc parallel loop private(i, j, alphap, alpham, bigp, bigm, extremum) &
+    !$acc private(dafacem, dafacep, dabarm, dabarp, dafacemin, dabarmin, dachkm, dachkp) &
+    !$acc private(delam, amax, sm, sp, s6, sigma)
     do j=ilo2-1,ihi2+1
        do i=ilo1-1,ihi1+1
 
@@ -977,6 +994,7 @@ contains
 
        end do
     end do
+    !$acc end parallel loop
 
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ! z-direction
@@ -985,6 +1003,7 @@ contains
     ! compute s at z-edges
 
     ! interpolate s to z-edges
+    !$acc parallel loop vector private(i, j, D2, D2L, D2R, sgn, D2LIM)
     do k=k3d-1,k3d+2
        do j=ilo2-1,ihi2+1
           !dir$ ivdep
@@ -1005,12 +1024,16 @@ contains
           end do
        end do
     end do
+    !$acc end parallel loop
     !
     ! Use Colella 2008 limiters.
     !
     ! This is a new version of the algorithm to eliminate sensitivity to roundoff.
     !
     k = k3d
+    !$acc parallel loop private(i, j, alphap, alpham, bigp, bigm, extremum) &
+    !$acc private(dafacem, dafacep, dabarm, dabarp, dafacemin, dabarmin, dachkm, dachkp) &
+    !$acc private(delam, amax, sm, sp, s6, sigma)
     do j=ilo2-1,ihi2+1
        do i=ilo1-1,ihi1+1
 
@@ -1149,9 +1172,11 @@ contains
 
        end do
     end do
+    !$acc end parallel loop
 
-    call bl_deallocate(sedge)
-    call bl_deallocate(sedgez)
+    !$acc end data
+!    call bl_deallocate(sedge)
+!    call bl_deallocate(sedgez)
 
   end subroutine ppm_type2
 
