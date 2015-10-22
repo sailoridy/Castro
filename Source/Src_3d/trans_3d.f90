@@ -2384,7 +2384,9 @@ contains
           ! if ppm_trace_sources == 1, then we already added the piecewise parabolic traced
           ! source terms to the normal edge states.
           if (ppm_trace_sources == 0 .or. ppm_type == 0) then
-             qpo(i,j,kc,QU:QW) = qpo(i,j,kc,QU:QW) + hdt * srcQ(i,j,k3d,QU:QW)
+             do n = QU, QW
+                qpo(i,j,kc,n) = qpo(i,j,kc,n) + hdt * srcQ(i,j,k3d,n)
+             enddo
           endif
           
           ! note: we run the risk of (rho e) being negative here
@@ -2429,7 +2431,9 @@ contains
           ! if ppm_trace_sources == 1, then we already added the piecewise parabolic traced
           ! source terms to the normal edge states.
           if (ppm_trace_sources == 0 .or. ppm_type == 0) then
-             qmo(i,j,kc,QU:QW) = qmo(i,j,kc,QU:QW) + hdt * srcQ(i,j,k3d-1,QU:QW)
+             do n = QU, QW
+                qmo(i,j,kc,n) = qmo(i,j,kc,n) + hdt * srcQ(i,j,k3d-1,n)
+             enddo
           endif          
           
           ! note: we run the risk of (rho e) being negative here
@@ -2765,7 +2769,9 @@ contains
              ! if ppm_trace_sources == 1, then we already added the piecewise parabolic traced
              ! source terms to the normal edge states.
              if (ppm_trace_sources == 0 .or. ppm_type == 0) then
-                qpo(i,j,km,QU:QW) = qpo(i,j,km,QU:QW) + hdt * srcQ(i,j,k3d,QU:QW)
+                do n = QU, QW
+                   qpo(i,j,km,n) = qpo(i,j,km,n) + hdt * srcQ(i,j,k3d,n)
+                enddo
              endif
              
              ! note: we run the risk of (rho e) being negative here
@@ -2843,7 +2849,9 @@ contains
              ! if ppm_trace_sources == 1, then we already added the piecewise parabolic traced
              ! source terms to the normal edge states.
              if (ppm_trace_sources == 0 .or. ppm_type == 0) then
-                qmo(i,j+1,km,QU:QW) = qmo(i,j+1,km,QU:QW) + hdt * srcQ(i,j,k3d,QU:QW)
+                do n = QU, QW
+                   qmo(i,j+1,km,n) = qmo(i,j+1,km,n) + hdt * srcQ(i,j,k3d,n)
+                enddo
              endif
              
              ! note: we run the risk of (rho e) being negative here
@@ -3188,7 +3196,9 @@ contains
              ! if ppm_trace_sources == 1, then we already added the piecewise parabolic traced
              ! source terms to the normal edge states.
              if (ppm_trace_sources == 0 .or. ppm_type == 0) then
-                qpo(i,j,km,QU:QW) = qpo(i,j,km,QU:QW) + hdt * srcQ(i,j,k3d,QU:QW)
+                do n = QU, QW
+                   qpo(i,j,km,n) = qpo(i,j,km,n) + hdt * srcQ(i,j,k3d,n)
+                enddo
              endif
              
              ! note: we run the risk of (rho e) being negative here
@@ -3268,7 +3278,9 @@ contains
              ! if ppm_trace_sources == 1, then we already added the piecewise parabolic traced
              ! source terms to the normal edge states.
              if (ppm_trace_sources == 0 .or. ppm_type == 0) then
-                qmo(i+1,j,km,QU:QW) = qmo(i+1,j,km,QU:QW) + hdt * srcQ(i,j,k3d,QU:QW)
+                do n = QU, QW
+                   qmo(i+1,j,km,n) = qmo(i+1,j,km,n) + hdt * srcQ(i,j,k3d,n)
+                enddo
              endif
              
              ! note: we run the risk of (rho e) being negative here
