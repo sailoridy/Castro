@@ -312,7 +312,7 @@ contains
     !$acc present(ugdnvx_out, ugdnvy_out, ugdnvz_out) &
     !$acc present(flux1, flux2, flux3)
 
-    !$acc parallel loop gang private(eos_state)
+    !$acc parallel loop gang
     do k3d = ilo3-1, ihi3+1
 
        ! Swap pointers to levels
@@ -352,9 +352,9 @@ contains
                       ilo1,ilo2,ihi1,ihi2,dx,dy,dz,dt,k3d,kc)
           else          
 
+             !$acc loop vector collapse(4) private(eos_state)
              do iwave = 1, 3
                 do idim = 1, 3
-
                    do j = ilo2-1, ihi2+1
                       do i = ilo1-1, ihi1+1
                          eos_state % rho = Ip(i,j,kc,idim,iwave,QRHO)
@@ -370,7 +370,12 @@ contains
                          Ip_gc(i,j,kc,idim,iwave,1)   = eos_state % gam1
                       enddo
                    enddo
+                enddo
+             enddo
 
+             !$acc loop vector collapse(4) private(eos_state)
+             do iwave = 1, 3
+                do idim = 1, 3
                    do j = ilo2-1, ihi2+1
                       do i = ilo1-1, ihi1+1
                          eos_state % rho = Im(i,j,kc,idim,iwave,QRHO)
@@ -386,7 +391,6 @@ contains
                          Im_gc(i,j,kc,idim,iwave,1)   = eos_state % gam1
                       enddo
                    enddo
-
                 enddo
              enddo
 
@@ -549,13 +553,16 @@ contains
                       shk(ilo1-1,ilo2-1,ilo3-1),ilo1-1,ilo2-1,ilo3-1,ihi1+1,ihi2+1,ihi3+1, &
                       3,ilo1,ihi1,ilo2,ihi2,kc,k3d,k3d,domlo,domhi)
 
+          !$acc loop vector collapse(2)
           do j=ilo2-1,ihi2+1
              do i=ilo1-1,ihi1+1
                 ugdnvz_out(i,j,k3d) = ugdnvzf(i,j,kc)
              end do
           end do
+          !$acc end loop
 
           if (k3d .ge. ilo3+1 .and. k3d .le. ihi3+1) then
+             !$acc loop vector collapse(2)
              do j = ilo2,ihi2
                 do i = ilo1,ihi1
                    pdivu(i,j,k3d-1) = pdivu(i,j,k3d-1) +  &
@@ -563,6 +570,7 @@ contains
                               (ugdnvzf(i,j,kc)-ugdnvzf(i,j,km))*dzinv
                 end do
              end do
+             !$acc end loop
           end if
           
           if (k3d.gt.ilo3) then
@@ -619,12 +627,14 @@ contains
                          gamc,csml,c,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
                          shk(ilo1-1,ilo2-1,ilo3-1),ilo1-1,ilo2-1,ilo3-1,ihi1+1,ihi2+1,ihi3+1, &
                          1,ilo1,ihi1+1,ilo2,ihi2,km,k3d-1,k3d-1,domlo,domhi)
-             
+
+             !$acc loop vector collapse(2)
              do j=ilo2-1,ihi2+1
                 do i=ilo1-1,ihi1+2
                    ugdnvx_out(i,j,k3d-1) = ugdnvxf(i,j,km)
                 end do
              end do
+             !$acc end loop
              
              ! Compute F^y at km (k3d-1)
              call cmpflx(qyl(ilo1-1,ilo2-1,1,1),qyr(ilo1-1,ilo2-1,1,1),ilo1-1,ilo2-1,1,ihi1+2,ihi2+2,2, &
@@ -634,12 +644,15 @@ contains
                          shk(ilo1-1,ilo2-1,ilo3-1),ilo1-1,ilo2-1,ilo3-1,ihi1+1,ihi2+1,ihi3+1, &
                          2,ilo1,ihi1,ilo2,ihi2+1,km,k3d-1,k3d-1,domlo,domhi)
 
+             !$acc loop vector collapse(2)
              do j=ilo2-1,ihi2+2
                 do i=ilo1-1,ihi1+1
                    ugdnvy_out(i,j,k3d-1) = ugdnvyf(i,j,km)
                 end do
              end do
+             !$acc end loop
 
+             !$acc loop vector collapse(2)
              do j = ilo2,ihi2
                 do i = ilo1,ihi1
                    pdivu(i,j,k3d-1) = pdivu(i,j,k3d-1) +  &
@@ -649,6 +662,7 @@ contains
                               (ugdnvyf(i,j+1,km)-ugdnvyf(i,j,km))*dyinv
                 end do
              end do
+             !$acc end loop
                
           end if
        end if
@@ -843,13 +857,11 @@ contains
     !$acc data create(dpdrho, dpde) present(q, src, srcQ, c, csml, gamc, upass_map, qpass_map) &
     !$acc copy(courno) copyin(dtdx, dtdy, dtdz, loq, hiq)
 
-    !$acc kernels
-
     !
     ! Make q (all but p), except put e in slot for rho.e, fix after eos call.
     ! The temperature is used as an initial guess for the eos call and will be overwritten.
     !
-    !$acc loop private(eos_state)
+    !$acc parallel loop collapse(3) private(eos_state)
     do k = loq(3),hiq(3)
        do j = loq(2),hiq(2)
 
@@ -916,29 +928,25 @@ contains
           enddo
        enddo
     enddo
-    !$acc end loop
-
-    !$acc wait
+    !$acc end parallel loop
 
     ! Load passively advected quantities into q
-    !$acc loop
+    !$acc parallel loop collapse(4)
     do ipassive = 1, npassive
-       n  = upass_map(ipassive)
-       nq = qpass_map(ipassive)
        do k = loq(3),hiq(3)
           do j = loq(2),hiq(2)
              do i = loq(1),hiq(1)
+                n  = upass_map(ipassive)
+                nq = qpass_map(ipassive)
                 q(i,j,k,nq) = uin(i,j,k,n)/q(i,j,k,QRHO)
              enddo
           enddo
        enddo
     enddo
-    !$acc end loop
-
-    !$acc wait
+    !$acc end parallel loop
       
     ! compute srcQ terms
-    !$acc loop
+    !$acc parallel loop collapse(3)
     do k = lo(3)-1, hi(3)+1
        do j = lo(2)-1, hi(2)+1
           do i = lo(1)-1, hi(1)+1
@@ -965,18 +973,15 @@ contains
           enddo
        enddo
     enddo
-    !$acc end loop
+    !$acc end parallel loop
 
-    !$acc wait
-
-    !$acc loop
+    !$acc parallel loop collapse(4)
     do ipassive = 1, npassive
-       n = upass_map(ipassive)
-       nq = qpass_map(ipassive)
-
        do k = lo(3)-1, hi(3)+1
           do j = lo(2)-1, hi(2)+1
              do i = lo(1)-1, hi(1)+1
+                n = upass_map(ipassive)
+                nq = qpass_map(ipassive)
                 srcQ(i,j,k,nq) = ( src(i,j,k,n) - q(i,j,k,nq) * srcQ(i,j,k,QRHO) ) / &
                      q(i,j,k,QRHO)
              enddo
@@ -984,16 +989,14 @@ contains
        enddo
 
     enddo
-    !$acc end loop
-
-    !$acc wait  
+    !$acc end parallel loop
 
     ! Compute running max of Courant number over grids
 !    courmx = courno
 !    courmy = courno
 !    courmz = courno
 
-    !$acc loop reduction(max:courno)
+    !$acc parallel loop collapse(3) reduction(max:courno)
     do k = lo(3),hi(3)
        do j = lo(2),hi(2)
           do i = lo(1),hi(1)
@@ -1034,11 +1037,9 @@ contains
           enddo
        enddo
     enddo
-    !$end loop
+    !$acc end parallel loop
 
 !    courno = max( courmx, courmy, courmz )
-
-    !$acc end kernels
 
     !$acc end data
 
@@ -1416,6 +1417,8 @@ contains
     double precision ::  uin( uin_l1: uin_h1, uin_l2: uin_h2, uin_l3: uin_h3,NVAR)
     double precision :: uout(uout_l1:uout_h1,uout_l2:uout_h2,uout_l3:uout_h3,NVAR)
     double precision :: mass_added, eint_added, eden_added
+
+    double precision :: u_temp(uout_l1:uout_h1,uout_l2:uout_h2,uout_l3:uout_h3,NVAR)
     
     ! Local variables
     integer          :: i,ii,j,jj,k,kk,n,ipassive
@@ -1439,10 +1442,30 @@ contains
 
     max_dens = ZERO
 
-    !$acc parallel loop private(eos_state) &
+    ! Make a copy of the state array.
+
+    !$acc data create(u_temp)
+
+    !$acc parallel loop collapse(4)
+    do n = 1, NVAR
+       do k = uout_l3, uout_h3
+          do j = uout_l2, uout_h2
+             do i = uout_l1, uout_h1
+                u_temp(i,j,k,n) = uout(i,j,k,n)
+             enddo
+          enddo
+       enddo
+    enddo
+    !$acc end parallel loop
+
+    ! Don't parallelize this since the loop iterations are not 
+    ! independent (we should probably fix that though).
+
+    !$acc parallel loop vector private(eos_state) collapse(3) &
     !$acc reduction(+:initial_mass, initial_eint, initial_eden) &
     !$acc reduction(+:final_mass, final_eint, final_eden) &
-    !$acc present(uout)
+    !$acc reduction(max:max_dens) &
+    !$acc present(uout, lo, hi)
     do k = lo(3),hi(3)
        do j = lo(2),hi(2)
           do i = lo(1),hi(1)
@@ -1468,11 +1491,11 @@ contains
                       do ii = -1,1
                          if (i+ii.ge.lo(1) .and. j+jj.ge.lo(2) .and. k+kk.ge.lo(3) .and. &
                              i+ii.le.hi(1) .and. j+jj.le.hi(2) .and. k+kk.le.hi(3)) then
-                              if (uout(i+ii,j+jj,k+kk,URHO) .gt. max_dens) then
+                              if (u_temp(i+ii,j+jj,k+kk,URHO) .gt. max_dens) then
                                   i_set = i+ii
                                   j_set = j+jj
                                   k_set = k+kk
-                                  max_dens = uout(i_set,j_set,k_set,URHO)
+                                  max_dens = u_temp(i_set,j_set,k_set,URHO)
                               endif
                          endif
                       end do
@@ -1486,55 +1509,58 @@ contains
 
                 if (max_dens < small_dens) then
 
+                   !$acc loop independent
                    do ipassive = 1, npassive
                       n = upass_map(ipassive)
-                      uout(i,j,k,n) = uout(i_set,j_set,k_set,n) * (small_dens / uout(i,j,k,URHO))
+                      uout(i,j,k,n) = u_temp(i_set,j_set,k_set,n) * (small_dens / uout(i,j,k,URHO))
                    end do
 
-                   eos_state % rho = small_dens
-                   eos_state % T   = small_temp
-                   eos_state % xn  = uout(i,j,k,UFS:UFS+nspec-1) / uout(i,j,k,URHO)
-
-                   call eos(eos_input_rt, eos_state)
-
-                   uout(i,j,k,URHO ) = eos_state % rho
-                   uout(i,j,k,UTEMP) = eos_state % T
-
+                   uout(i,j,k,URHO ) = small_dens
+                   uout(i,j,k,UTEMP) = small_temp
                    uout(i,j,k,UMX  ) = ZERO
                    uout(i,j,k,UMY  ) = ZERO
                    uout(i,j,k,UMZ  ) = ZERO
 
+                   eos_state % rho = uout(i,j,k,URHO)
+                   eos_state % T   = uout(i,j,k,UTEMP)
+                   eos_state % xn  = uout(i,j,k,UFS:UFS+nspec-1) / uout(i,j,k,URHO)
+
+                   call eos(eos_input_rt, eos_state)
+
                    uout(i,j,k,UEINT) = eos_state % rho * eos_state % e
                    uout(i,j,k,UEDEN) = uout(i,j,k,UEINT)
 
+                else
+                
+!                 if (verbose .gt. 0) then
+!                    if (uout(i,j,k,URHO) < ZERO) then
+!                       print *,'   '
+!                       print *,'>>> RESETTING NEG.  DENSITY AT ',i,j,k
+!                       print *,'>>> FROM ',uout(i,j,k,URHO),' TO ',uout(i_set,j_set,k_set,URHO)
+!                       print *,'   '
+!                    else
+!                       print *,'   '
+!                       print *,'>>> RESETTING SMALL DENSITY AT ',i,j,k
+!                       print *,'>>> FROM ',uout(i,j,k,URHO),' TO ',uout(i_set,j_set,k_set,URHO)
+!                       print *,'   '
+!                    end if
+!                 end if
+                
+                   uout(i,j,k,URHO ) = u_temp(i_set,j_set,k_set,URHO )
+                   uout(i,j,k,UTEMP) = u_temp(i_set,j_set,k_set,UTEMP)
+                   uout(i,j,k,UEINT) = u_temp(i_set,j_set,k_set,UEINT)
+                   uout(i,j,k,UEDEN) = u_temp(i_set,j_set,k_set,UEDEN)
+                   uout(i,j,k,UMX  ) = u_temp(i_set,j_set,k_set,UMX  )
+                   uout(i,j,k,UMY  ) = u_temp(i_set,j_set,k_set,UMY  )
+                   uout(i,j,k,UMZ  ) = u_temp(i_set,j_set,k_set,UMZ  )
+
+                   !$acc loop independent
+                   do ipassive = 1, npassive
+                      n = upass_map(ipassive)
+                      uout(i,j,k,n) = u_temp(i_set,j_set,k_set,n)
+                   end do
+
                 endif
-                
-                if (verbose .gt. 0) then
-                   if (uout(i,j,k,URHO) < ZERO) then
-                      print *,'   '
-                      print *,'>>> RESETTING NEG.  DENSITY AT ',i,j,k
-                      print *,'>>> FROM ',uout(i,j,k,URHO),' TO ',uout(i_set,j_set,k_set,URHO)
-                      print *,'   '
-                   else
-                      print *,'   '
-                      print *,'>>> RESETTING SMALL DENSITY AT ',i,j,k
-                      print *,'>>> FROM ',uout(i,j,k,URHO),' TO ',uout(i_set,j_set,k_set,URHO)
-                      print *,'   '
-                   end if
-                end if
-                
-                uout(i,j,k,URHO ) = uout(i_set,j_set,k_set,URHO )
-                uout(i,j,k,UTEMP) = uout(i_set,j_set,k_set,UTEMP)
-                uout(i,j,k,UEINT) = uout(i_set,j_set,k_set,UEINT)
-                uout(i,j,k,UEDEN) = uout(i_set,j_set,k_set,UEDEN)
-                uout(i,j,k,UMX  ) = uout(i_set,j_set,k_set,UMX  )
-                uout(i,j,k,UMY  ) = uout(i_set,j_set,k_set,UMY  )
-                uout(i,j,k,UMZ  ) = uout(i_set,j_set,k_set,UMZ  )
-   
-                do ipassive = 1, npassive
-                   n = upass_map(ipassive)
-                   uout(i,j,k,n) = uout(i_set,j_set,k_set,n)
-                end do
                 
              end if
 
@@ -1545,6 +1571,8 @@ contains
           enddo
        enddo
     enddo
+
+    !$acc end data
 
     if ( max_dens /= ZERO ) then
        mass_added = mass_added + final_mass - initial_mass

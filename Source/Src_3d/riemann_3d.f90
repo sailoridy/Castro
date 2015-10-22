@@ -161,12 +161,15 @@ contains
        !$acc loop vector collapse(2) private(eos_state)
        do j = jlo, jhi
           do i = ilo, ihi
-             rhoInv = ONE / qp(i,j,kc,QRHO)
+
+             ! this is an initial guess for iterations, since we
+             ! can't be certain that temp is on interfaces
+             eos_state % T = 10000.0d0
              
              eos_state % rho = qp(i,j,kc,QRHO)
              eos_state % p   = qp(i,j,kc,QPRES)
-             eos_state % xn  = qp(i,j,kc,QFS:QFS+nspec-1) * rhoInv
-             eos_state % aux = qp(i,j,kc,QFX:QFX+naux-1) * rhoInv
+             eos_state % xn  = qp(i,j,kc,QFS:QFS+nspec-1)
+             eos_state % aux = qp(i,j,kc,QFX:QFX+naux-1)
 
              call eos(eos_input_rp, eos_state)
 
@@ -505,6 +508,7 @@ contains
 !    call bl_allocate(pstar_hist, 1,iter_max)
 !    call bl_allocate(us1d, ilo,ihi)
 
+    !$acc loop vector private(eos_state, pstar_hist, us1d)
     do j = jlo, jhi
 
        bnd_fac_y = ONE
@@ -897,6 +901,7 @@ contains
 
        enddo
     enddo
+    !$acc end loop
 
 !    call bl_deallocate(pstar_hist)
 !    call bl_deallocate(us1d)
@@ -1026,7 +1031,7 @@ contains
 
 !    call bl_allocate(us1d,ilo,ihi)
 
-    !$acc data create(us1d) present(uflx,ql,qr,ugdnv,pgdnv,gegdnv)
+    !$acc data present(uflx,ql,qr,ugdnv,pgdnv,gegdnv)
 
     if (idir .eq. 1) then
        iu = QU
@@ -1074,7 +1079,7 @@ contains
        end if
     end if
 
-    !$acc loop vector 
+    !$acc loop vector private(us1d)
     do j = jlo, jhi
 
        bnd_fac_y = ONE

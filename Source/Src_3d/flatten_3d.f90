@@ -42,7 +42,7 @@ contains
     !$acc data create(dp, z, chi)
 
     ! x-direction flattening coef
-    !$acc parallel loop present(p, u)
+    !$acc parallel loop collapse(3) present(p, u)
     do k = lo(3),hi(3)
        do j = lo(2),hi(2) 
           !dir$ ivdep
@@ -76,10 +76,8 @@ contains
     enddo
     !$acc end parallel loop
 
-    !$acc wait
-
     ! y-direction flattening coef
-    !$acc parallel loop present(p, v)
+    !$acc parallel loop collapse(3) present(p, v)
     do k = lo(3),hi(3)
        do j = lo(2)-1,hi(2)+1
           !dir$ ivdep
@@ -116,10 +114,8 @@ contains
     enddo
     !$acc end parallel loop
  
-    !$acc wait
-
     ! z-direction flattening coef
-    !$acc parallel loop present(p, w)
+    !$acc parallel loop collapse(3) present(p, w)
     do k = lo(3)-1,hi(3)+1
        do j = lo(2),hi(2) 
           !dir$ ivdep
@@ -143,8 +139,8 @@ contains
        enddo
     enddo
     !$acc end parallel loop
-    !$acc wait
-    !$acc parallel loop
+
+    !$acc parallel loop collapse(3)
     do k = lo(3),hi(3)
        do j = lo(2),hi(2) 
           do i = lo(1),hi(1)
@@ -159,6 +155,7 @@ contains
           enddo
        enddo
     enddo
+    !$acc end parallel loop
 
     !$acc end data
     

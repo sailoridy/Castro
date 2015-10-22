@@ -41,20 +41,24 @@ contains
       double precision dm, dp, dc, ds, sl, dl, dfm, dfp
 
 !      double precision, pointer::dsgn(:,:),dlim(:,:),df(:,:),dcen(:,:)
-      double precision :: dsgn(ilo-2:ihi+2,ilo-2:ihi+2)
-      double precision :: dlim(ilo-2:ihi+2,ilo-2:ihi+2)
-      double precision ::   df(ilo-2:ihi+2,ilo-2:ihi+2)
-      double precision :: dcen(ilo-2:ihi+2,ilo-2:ihi+2)
+      double precision :: dsgn(MIN(ilo1,ilo2)-2:MAX(ihi1,ihi2)+2,MIN(ilo1,ilo2)-2:MAX(ihi1,ihi2)+2)
+      double precision :: dlim(MIN(ilo1,ilo2)-2:MAX(ihi1,ihi2)+2,MIN(ilo1,ilo2)-2:MAX(ihi1,ihi2)+2)
+      double precision ::   df(MIN(ilo1,ilo2)-2:MAX(ihi1,ihi2)+2,MIN(ilo1,ilo2)-2:MAX(ihi1,ihi2)+2)
+      double precision :: dcen(MIN(ilo1,ilo2)-2:MAX(ihi1,ihi2)+2,MIN(ilo1,ilo2)-2:MAX(ihi1,ihi2)+2)
 
-      ilo = MIN(ilo1,ilo2)
-      ihi = MAX(ihi1,ihi2)
+      double precision :: dsgn, dlim, df, dcen
+
+!      ilo = MIN(ilo1,ilo2)
+!      ihi = MAX(ihi1,ihi2)
 
 !      call bl_allocate (dsgn, ilo-2,ihi+2,ilo-2,ihi+2)
 !      call bl_allocate (dlim, ilo-2,ihi+2,ilo-2,ihi+2)
 !      call bl_allocate (  df, ilo-2,ihi+2,ilo-2,ihi+2)
 !      call bl_allocate (dcen, ilo-2,ihi+2,ilo-2,ihi+2)
 
-      if(iorder.eq.1) then
+      !$acc data create(dsgn, dlim, df, dcen)
+      
+     if(iorder.eq.1) then
 
          !$acc loop vector collapse(3)
          do n = 1, nv
@@ -178,6 +182,8 @@ contains
 
       endif
 
+      !$acc end data
+
 !      call bl_deallocate (dsgn)
 !      call bl_deallocate (dlim)
 !      call bl_deallocate (  df)
@@ -224,18 +230,20 @@ contains
 
         !     Local arrays
 !        double precision, pointer::dsgn(:,:),dlim(:,:),df(:,:),dcen(:,:)
-        double precision :: dsgn(ilo-2:ihi+2,ilo-2:ihi+2)
-        double precision :: dlim(ilo-2:ihi+2,ilo-2:ihi+2)
-        double precision ::   df(ilo-2:ihi+2,ilo-2:ihi+2)
-        double precision :: dcen(ilo-2:ihi+2,ilo-2:ihi+2)
+        double precision :: dsgn(MIN(ilo1,ilo2)-2:MAX(ihi1,ihi2)+2,MIN(ilo1,ilo2)-2:MAX(ihi1,ihi2)+2)
+        double precision :: dlim(MIN(ilo1,ilo2)-2:MAX(ihi1,ihi2)+2,MIN(ilo1,ilo2)-2:MAX(ihi1,ihi2)+2)
+        double precision ::   df(MIN(ilo1,ilo2)-2:MAX(ihi1,ihi2)+2,MIN(ilo1,ilo2)-2:MAX(ihi1,ihi2)+2)
+        double precision :: dcen(MIN(ilo1,ilo2)-2:MAX(ihi1,ihi2)+2,MIN(ilo1,ilo2)-2:MAX(ihi1,ihi2)+2)
 
-        ilo = MIN(ilo1,ilo2)
-        ihi = MAX(ihi1,ihi2)
+!        ilo = MIN(ilo1,ilo2)
+!        ihi = MAX(ihi1,ihi2)
 
 !        call bl_allocate (dsgn, ilo-2,ihi+2,ilo-2,ihi+2)
 !        call bl_allocate (dlim, ilo-2,ihi+2,ilo-2,ihi+2)
 !        call bl_allocate (  df, ilo-2,ihi+2,ilo-2,ihi+2)
 !        call bl_allocate (dcen, ilo-2,ihi+2,ilo-2,ihi+2)
+
+        !$acc data create(dsgn, dlim, df, dcen)
 
         if(iorder.eq.1) then
 
@@ -383,6 +391,8 @@ contains
            !$acc end loop
 
         endif
+
+        !$acc end data
 
 !        call bl_deallocate (dsgn)
 !        call bl_deallocate (dlim)
