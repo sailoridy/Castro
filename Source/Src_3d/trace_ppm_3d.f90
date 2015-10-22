@@ -126,20 +126,10 @@ contains
     !-------------------------------------------------------------------------
 
     !$acc data present(qpass_map, qxm, qxp, qym, qyp, q, Im, Ip, Im_gc, Ip_gc, Im_src, Ip_src)
-    !$acc parallel
 
     ! Trace to left and right edges using upwind PPM
 
-    !$acc loop vector collapse(2) &
-    !$acc private(i, j, gfactor, rho, cc, csq, Clag, u, v, w) &
-    !$acc private(p, rhoe, enth, game, gam) &
-    !$acc private(rho_ref, u_ref, p_ref, rhoe_ref, tau_ref, gam_ref, game_ref) &
-    !$acc private(cc_ref, csq_ref, Clag_ref, enth_ref) &
-    !$acc private(dum, dpm, drho, dp, drhoe, dtau, dup, dpp) &
-    !$acc private(rho_ev, cc_ev, csq_ev, Clag_ev, enth_ev, p_ev, tau_ev) &
-    !$acc private(alpham, alphap, alpha0r, alpha0e, de, dge) &
-    !$acc private(amright, apright, azrright, azeright) &
-    !$acc private(xi, xi1)
+    !$acc loop vector collapse(2)
     do j = ilo2-1, ihi2+1
        !DIR$ vector always
        do i = ilo1-1, ihi1+1
@@ -611,7 +601,7 @@ contains
     !--------------------------------------------------------------------------
 
     ! Do all of the passively advected quantities in one loop
-    !$acc loop vector private(ipassive, i, j, n, u, xi)
+    !$acc loop vector
     do ipassive = 1, npassive
        n = qpass_map(ipassive)
        do j = ilo2-1, ihi2+1
@@ -685,16 +675,7 @@ contains
     !--------------------------------------------------------------------------
 
     ! Trace to bottom and top edges using upwind PPM
-    !$acc loop vector collapse(2) &
-    !$acc private(i, j, gfactor, rho, cc, csq, Clag, u, v, w) &
-    !$acc private(p, rhoe, enth, game, gam) &
-    !$acc private(rho_ref, v_ref, p_ref, rhoe_ref, tau_ref, gam_ref, game_ref) &
-    !$acc private(cc_ref, csq_ref, Clag_ref, enth_ref) &
-    !$acc private(dvm, dpm, drho, dp, drhoe, dtau, dvp, dpp) &
-    !$acc private(rho_ev, cc_ev, csq_ev, Clag_ev, enth_ev, p_ev, tau_ev) &
-    !$acc private(alpham, alphap, alpha0r, alpha0e, de, dge) &
-    !$acc private(amright, apright, azrright, azeright) &
-    !$acc private(xi, xi1)
+    !$acc loop vector collapse(2)
     do j = ilo2-1, ihi2+1
        !DIR$ vector always
        do i = ilo1-1, ihi1+1
@@ -1152,7 +1133,7 @@ contains
     !--------------------------------------------------------------------------
 
     ! Do all of the passively advected quantities in one loop
-    !$acc loop vector private(ipassive, i, j, n, v, xi)
+    !$acc loop vector
     do ipassive = 1, npassive
        n = qpass_map(ipassive)
 
@@ -1203,7 +1184,6 @@ contains
     enddo
     !$acc end loop
 
-    !$acc end parallel
     !$acc end data
 
   end subroutine tracexy_ppm
@@ -1299,21 +1279,11 @@ contains
     ! is over interfaces, not over cell-centers.
 
     !$acc data present(qpass_map, qzm, qzp, q, Im, Ip, Im_src, Ip_src, Im_gc, Ip_gc)
-    !$acc parallel
 
     !--------------------------------------------------------------------------
     ! construct qzp  -- plus state on face kc
     !--------------------------------------------------------------------------
-    !$acc loop vector collapse(2) &
-    !$acc private(i, j, gfactor, rho, cc, csq, Clag, u, v, w) &
-    !$acc private(p, rhoe, enth, game, gam) &
-    !$acc private(rho_ref, w_ref, p_ref, rhoe_ref, tau_ref, gam_ref, game_ref) &
-    !$acc private(cc_ref, csq_ref, Clag_ref, enth_ref) &
-    !$acc private(dwm, dpm, drho, dp, drhoe, dtau, dwp, dpp) &
-    !$acc private(rho_ev, cc_ev, csq_ev, Clag_ev, enth_ev, p_ev, tau_ev) &
-    !$acc private(alpham, alphap, alpha0r, alpha0e, de, dge) &
-    !$acc private(amright, apright, azrright, azeright) &
-    !$acc private(xi, xi1)
+    !$acc loop vector collapse(2)
     do j = ilo2-1, ihi2+1
        !DIR$ vector always
        do i = ilo1-1, ihi1+1
@@ -1779,7 +1749,7 @@ contains
     !--------------------------------------------------------------------------
 
     ! Do all of the passively advected quantities in one loop
-    !$acc loop vector private(ipassive, i, j, n, w, xi)
+    !$acc loop vector
     do ipassive = 1, npassive
        n = qpass_map(ipassive)
        do j = ilo2-1, ihi2+1
@@ -1825,7 +1795,6 @@ contains
     enddo
     !$acc end loop
 
-    !$acc end parallel
     !$acc end data
       
   end subroutine tracez_ppm

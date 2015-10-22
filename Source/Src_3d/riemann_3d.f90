@@ -87,10 +87,8 @@ contains
     !$acc data create(smallc, cavg, gamcm, gamcp) &
     !$acc present(c, csml, gamc, shk)
 
-    !$acc parallel
-
     if(idir.eq.1) then
-       !$acc loop vector collapse(2) private(i,j)
+       !$acc loop vector collapse(2)
        do j = jlo, jhi
           !dir$ ivdep
           do i = ilo, ihi
@@ -102,7 +100,7 @@ contains
        enddo
        !$acc end loop
     elseif(idir.eq.2) then
-       !$acc loop vector collapse(2) private(i,j)
+       !$acc loop vector collapse(2)
        do j = jlo, jhi
           !dir$ ivdep
           do i = ilo, ihi
@@ -114,7 +112,7 @@ contains
        enddo
        !$acc end loop
     else
-       !$acc loop vector collapse(2) private(i,j)
+       !$acc loop vector collapse(2)
        do j = jlo, jhi
           !dir$ ivdep
           do i = ilo, ihi
@@ -182,8 +180,6 @@ contains
 
     endif
 
-    !$acc end parallel
-
     ! Solve Riemann problem
     if (use_colglaz == 1) then
        call riemanncg(qm,qp,qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3, &
@@ -204,7 +200,7 @@ contains
     if (hybrid_riemann == 1) then
        ! correct the fluxes using an HLL scheme if we are in a shock
        ! and doing the hybrid approach
-       !$acc parallel loop vector collapse(2) private(i, j, is_shock, cl, cr)
+       !$acc loop vector collapse(2)
        do j = jlo, jhi
           do i = ilo, ihi
 
@@ -238,7 +234,7 @@ contains
 
           enddo
        enddo
-       !$acc end parallel loop
+       !$acc end loop
 
     endif
 
@@ -290,7 +286,7 @@ contains
     dzinv = ONE/dz
 
     if (coord_type /= 0) then
-       call bl_error("ERROR: invalid geometry in shock()")
+!       call bl_error("ERROR: invalid geometry in shock()")
     endif
 
     do k = ilo3-1, ihi3+1
@@ -702,7 +698,7 @@ contains
              print *, ' '
              print *, 'left state  (r,u,p,re,gc): ', rl, ul, pl, rel, gcl
              print *, 'right state (r,u,p,re,gc): ', rr, ur, pr, rer, gcr
-             call bl_error("ERROR: non-convergence in the Riemann solver")
+!             call bl_error("ERROR: non-convergence in the Riemann solver")
           endif
 
 
@@ -1031,7 +1027,6 @@ contains
 !    call bl_allocate(us1d,ilo,ihi)
 
     !$acc data create(us1d) present(uflx,ql,qr,ugdnv,pgdnv,gegdnv)
-    !$acc parallel
 
     if (idir .eq. 1) then
        iu = QU
@@ -1079,15 +1074,7 @@ contains
        end if
     end if
 
-    !$acc loop vector private(i, j, bnd_fac_x, bnd_fac_y) &
-    !$acc private(rl, ul, v1l, v2l, pl, rel) &
-    !$acc private(rr, ur, v1r, v2r, pr, rer) &
-    !$acc private(csmall, wsmall, wl, wr, wwinv, pstar, ustar) &
-    !$acc private(ro, uo, reo, gamco) &
-    !$acc private(roinv, co, co2inv, entho, rstar, estar, cstar) &
-    !$acc private(sgnm, spout, spin, ushock, scr, frac) &
-    !$acc private(v1gdnv, v2gdnv, rgdnv, regdnv, rhoetot) &
-    !$acc private(n, nq, qavg, rho_K_contrib, ipassive)
+    !$acc loop vector 
     do j = jlo, jhi
 
        bnd_fac_y = ONE
@@ -1283,7 +1270,6 @@ contains
     enddo
     !$acc end loop
 
-    !$acc end parallel
     !$acc end data
 
 !    call bl_deallocate(us1d)

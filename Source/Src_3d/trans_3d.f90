@@ -82,8 +82,7 @@ contains
     ! transerse term and convert back to the primitive quantity
     !-------------------------------------------------------------------------
 
-    !$acc parallel loop vector private(i, j, n, nq, ipassive) &
-    !$acc private(rr, rrnew, compn, compu)
+    !$acc loop vector
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
@@ -110,17 +109,9 @@ contains
           enddo
        enddo
     enddo
-    !$acc end parallel loop
+    !$acc end loop
 
-    !$acc parallel loop vector private(i, j) &
-    !$acc private(pgp, pgm, ugp, ugm, gegp, gegm) &
-    !$acc private(dup, pav, uav, geav, du, dge) &
-    !$acc private(rrry, rury, rvry, rwry, ekenry, rery) &
-    !$acc private(rrnewry, runewry, rvnewry, rwnewry, renewry) &
-    !$acc private(rhoinv, rhoekenry) &
-    !$acc private(rrly, ruly, rvly, rwly, ekenly, rely) &
-    !$acc private(rrnewly, runewly, rvnewly, rwnewly, renewly) &
-    !$acc private(eos_state, reset)
+    !$acc loop vector private(eos_state)
     do j = jlo, jhi 
        !DIR$ vector always
        do i = ilo, ihi 
@@ -387,7 +378,7 @@ contains
           end if
        end if
     enddo
-    !$acc end parallel loop
+    !$acc end loop
 
     !$acc end data
 
@@ -465,8 +456,7 @@ contains
     ! transerse term and convert back to the primitive quantity
     !-------------------------------------------------------------------------
 
-    !$acc parallel loop vector private(i, j, n, nq, ipassive) &
-    !$acc private(rr, rrnew, compn, compu)
+    !$acc loop vector
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
@@ -491,17 +481,9 @@ contains
           enddo
        enddo
     enddo
-    !$acc end parallel loop
+    !$acc end loop
 
-    !$acc parallel loop vector private(i, j) &
-    !$acc private(pgp, pgm, ugp, ugm, gegp, gegm) &
-    !$acc private(dup, pav, uav, geav, du, dge) &
-    !$acc private(rrrz, rurz, rvrz, rwrz, ekenrz, rerz) &
-    !$acc private(rrnewrz, runewrz, rvnewrz, rwnewrz, renewrz) &
-    !$acc private(rhoinv, rhoekenrz) &
-    !$acc private(rrlz, rulz, rvlz, rwlz, ekenlz, relz) &
-    !$acc private(rrnewlz, runewlz, rvnewlz, rwnewlz, renewlz) &
-    !$acc private(eos_state, reset)
+    !$acc loop vector private(eos_state)
     do j = jlo, jhi 
        !DIR$ vector always
        do i = ilo, ihi 
@@ -770,7 +752,7 @@ contains
           end if
        end if
     enddo
-    !$acc end parallel loop
+    !$acc end loop
 
     !$acc end data
 
@@ -848,8 +830,7 @@ contains
     ! transerse term and convert back to the primitive quantity
     !-------------------------------------------------------------------------
 
-    !$acc parallel loop vector private(i, j, n, nq, ipassive) &
-    !$acc private(rr, rrnew, compn, compu)
+    !$acc loop vector
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
@@ -875,17 +856,9 @@ contains
           enddo
        enddo
     enddo
-    !$acc end parallel loop
+    !$acc end loop
 
-    !$acc parallel loop vector private(i, j) &
-    !$acc private(pgp, pgm, ugp, ugm, gegp, gegm) &
-    !$acc private(dup, pav, uav, geav, du, dge) &
-    !$acc private(rrrx, rurx, rvrx, rwrx, ekenrx, rerx) &
-    !$acc private(rrnewrx, runewrx, rvnewrx, rwnewrx, renewrx) &
-    !$acc private(rhoinv, rhoekenrx) &
-    !$acc private(rrlx, rulx, rvlx, rwlx, ekenlx, relx) &
-    !$acc private(rrnewlx, runewlx, rvnewlx, rwnewlx, renewlx) &
-    !$acc private(eos_state, reset)
+    !$acc loop vector private(eos_state)
     do j = jlo, jhi
        !DIR$ vector always
        do i = ilo, ihi
@@ -1148,7 +1121,7 @@ contains
        end if
 
     enddo
-    !$acc end parallel loop
+    !$acc end loop
 
     !$acc end data
 
@@ -1226,8 +1199,7 @@ contains
     ! transerse term and convert back to the primitive quantity
     !-------------------------------------------------------------------------
 
-    !$acc parallel loop vector private(i, j, n, nq, ipassive) &
-    !$acc private(rr, rrnew, compn, compu)
+    !$acc loop vector
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
@@ -1252,17 +1224,9 @@ contains
           enddo
        enddo
     enddo
-    !$acc end parallel loop
+    !$acc end loop
 
-    !$acc parallel loop vector private(i, j) &
-    !$acc private(pgp, pgm, ugp, ugm, gegp, gegm) &
-    !$acc private(dup, pav, uav, geav, du, dge) &
-    !$acc private(rrrz, rurz, rvrz, rwrz, ekenrz, rerz) &
-    !$acc private(rrnewrz, runewrz, rvnewrz, rwnewrz, renewrz) &
-    !$acc private(rhoinv, rhoekenrz) &
-    !$acc private(rrlz, rulz, rvlz, rwlz, ekenlz, relz) &
-    !$acc private(rrnewlz, runewlz, rvnewlz, rwnewlz, renewlz) &
-    !$acc private(eos_state, reset)
+    !$acc loop vector private(eos_state)
     do j = jlo, jhi
        !DIR$ vector always
        do i = ilo, ihi
@@ -1535,7 +1499,7 @@ contains
        end if
 
     enddo
-    !$acc end parallel loop
+    !$acc end loop
 
     !$acc end data
 
@@ -1617,8 +1581,7 @@ contains
     ! transerse term and convert back to the primitive quantity
     !-------------------------------------------------------------------------
 
-    !$acc parallel loop vector private(i, j, n, nq, ipassive) &
-    !$acc private(rr, rrnew, compn, compu)
+    !$acc loop vector
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
@@ -1659,22 +1622,9 @@ contains
           enddo
        enddo
     enddo
-    !$acc end parallel loop
+    !$acc end loop
 
-    !$acc parallel loop vector private(i, j) &
-    !$acc private(pgp, pgm, ugp, ugm, gegp, gegm) &
-    !$acc private(dup, pav, uav, geav, du, dge) &
-    !$acc private(rrrx, rurx, rvrx, rwrx, ekenrx, rerx) &
-    !$acc private(rrnewrx, runewrx, rvnewrx, rwnewrx, renewrx) &
-    !$acc private(rhoekenlx, rhoekenrx) &
-    !$acc private(rrlx, rulx, rvlx, rwlx, ekenlx, relx) &
-    !$acc private(rrnewlx, runewlx, rvnewlx, rwnewlx, renewlx) &
-    !$acc private(rrry, rury, rvry, rwry, ekenry, rery) &
-    !$acc private(rrnewry, runewry, rvnewry, rwnewry, renewry) &
-    !$acc private(rhoekenly, rhoekenry) &
-    !$acc private(rrly, ruly, rvly, rwly, ekenly, rely) &
-    !$acc private(rrnewly, runewly, rvnewly, rwnewly, renewly) &
-    !$acc private(eos_state, reset)
+    !$acc loop vector private(eos_state)
     do j = jlo, jhi 
        !DIR$ vector always
        do i = ilo, ihi 
@@ -2168,7 +2118,7 @@ contains
        end if
 
     enddo
-    !$acc end parallel loop
+    !$acc end loop
 
     !$acc end data
 
@@ -2253,8 +2203,7 @@ contains
     ! transerse term and convert back to the primitive quantity
     !-------------------------------------------------------------------------
 
-    !$acc parallel loop vector private(i, j, n, nq, ipassive) &
-    !$acc private(rrr, rrl, compr, compl, rrnewr, rrnewl, compnr, compnl)
+    !$acc loop vector
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
@@ -2284,23 +2233,9 @@ contains
           enddo
        enddo
     enddo
-    !$acc end parallel loop
+    !$acc end loop
 
-    !$acc parallel loop vector private(i, j) &
-    !$acc private(pgxp, pgxm, ugxp, ugxm, gegxp, gegxm) &
-    !$acc private(pgxpm, pgxmm, ugxpm, ugxmm, gegxpm, gegxmm) &
-    !$acc private(pgyp, pgym, ugyp, ugym, gegyp, gegym) &
-    !$acc private(pgypm, pgymm, ugypm, ugymm, gegypm, gegymm) &
-    !$acc private(duxp, pxav, uxav, gexav, dux, dgex, pxnew, gexnew) &
-    !$acc private(duxpm, pxavm, uxavm, gexavm, duxm, dgexm, pxnewm, gexnewm) &
-    !$acc private(duyp, pyav, uyav, geyav, duy, dgey, pynew, geynew) &
-    !$acc private(duypm, pyavm, uyavm, geyavm, duym, dgeym, pynewm, geynewm) &
-    !$acc private(rrr, rur, rvr, rwr, ekenr, rer) &
-    !$acc private(rrnewr, runewr, rvnewr, rwnewr, renewr) &
-    !$acc private(rhoekenr, rhoekenl) &
-    !$acc private(rrl, rul, rvl, rwl, ekenl, rel) &
-    !$acc private(rrnewl, runewl, rvnewl, rwnewl, renewl) &
-    !$acc private(eos_state, reset)
+    !$acc loop vector private(eos_state)
     do j = jlo, jhi 
        !DIR$ vector always
        do i = ilo, ihi 
@@ -2624,7 +2559,7 @@ contains
        end if
 
     enddo
-    !$acc end parallel loop
+    !$acc end loop
 
     !$acc end data
 
@@ -2706,8 +2641,7 @@ contains
     ! transerse term and convert back to the primitive quantity
     !-------------------------------------------------------------------------
 
-    !$acc parallel loop vector private(i, j, n, nq, ipassive) &
-    !$acc private(rrr, rrl, compr, compl, rrnewr, rrnewl, compnr, compnl)
+    !$acc loop vector
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
@@ -2743,19 +2677,9 @@ contains
           enddo
        enddo
     enddo
-    !$acc end parallel loop
+    !$acc end loop
 
-    !$acc parallel loop vector private(i, j) &
-    !$acc private(pgxp, pgxm, ugxp, ugxm, gegxp, gegxm) &
-    !$acc private(pgzp, pgzm, ugzp, ugzm, gegzp, gegzm) &
-    !$acc private(duxp, pxav, uxav, gexav, dux, dgex, pxnew, gexnew) &
-    !$acc private(duzp, pzav, uzav, gezav, duz, dgez, pznew, geznew) &
-    !$acc private(rrr, rur, rvr, rwr, ekenr, rer) &
-    !$acc private(rrnewr, runewr, rvnewr, rwnewr, renewr) &
-    !$acc private(rhoekenr, rhoekenl) &
-    !$acc private(rrl, rul, rvl, rwl, ekenl, rel) &
-    !$acc private(rrnewl, runewl, rvnewl, rwnewl, renewl) &
-    !$acc private(eos_state, reset)
+    !$acc loop vector private(eos_state)
     do j = jlo, jhi 
        !DIR$ vector always
        do i = ilo, ihi 
@@ -3055,7 +2979,7 @@ contains
           end if
        end if
     enddo
-    !$acc end parallel loop
+    !$acc end loop
 
     !$acc end data
 
@@ -3136,8 +3060,7 @@ contains
     ! transerse term and convert back to the primitive quantity
     !-------------------------------------------------------------------------
 
-    !$acc parallel loop vector private(i, j, n, nq, ipassive) &
-    !$acc private(rrr, rrl, compr, compl, rrnewr, rrnewl, compnr, compnl)
+    !$acc loop vector
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
@@ -3172,19 +3095,9 @@ contains
           enddo
        enddo
     enddo
-    !$acc end parallel loop
+    !$acc end loop
 
-    !$acc parallel loop vector private(i, j) &
-    !$acc private(pgyp, pgym, ugyp, ugym, gegyp, gegym) &
-    !$acc private(pgzp, pgzm, ugzp, ugzm, gegzp, gegzm) &
-    !$acc private(duyp, pyav, uyav, geyav, duy, dgey, pynew, geynew) &
-    !$acc private(duzp, pzav, uzav, gezav, duz, dgez, pznew, geznew) &
-    !$acc private(rrr, rur, rvr, rwr, ekenr, rer) &
-    !$acc private(rrnewr, runewr, rvnewr, rwnewr, renewr) &
-    !$acc private(rhoekenr, rhoekenl) &
-    !$acc private(rrl, rul, rvl, rwl, ekenl, rel) &
-    !$acc private(rrnewl, runewl, rvnewl, rwnewl, renewl) &
-    !$acc private(eos_state, reset)
+    !$acc loop vector private(eos_state)
     do j = jlo, jhi 
        !DIR$ vector always
        do i = ilo, ihi 
@@ -3487,7 +3400,7 @@ contains
        end if
 
     enddo
-    !$acc end parallel loop
+    !$acc end loop
 
     !$acc end data
 

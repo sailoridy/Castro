@@ -421,8 +421,7 @@ subroutine ca_enforce_nonnegative_species(uout,uout_l1,uout_l2,uout_l3, &
   ! Note that we need to do a pcopy on uout here because this is called from
   ! C++ as well as from the Fortran umdrv call.
 
-  !$acc parallel loop private(i, j, k, n, x, any_negative, dom_spec, int_dom_spec) &
-  !$acc pcopy(uout) 
+  !$acc parallel loop pcopy(uout) 
   do k = lo(3),hi(3)
      do j = lo(2),hi(2)
         do i = lo(1),hi(1)

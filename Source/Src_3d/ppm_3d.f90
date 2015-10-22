@@ -150,7 +150,7 @@ contains
     !$acc data create(dsvl, sedge) present(flatn, s, Ip, Im, cspd)
 
     ! compute van Leer slopes in x-direction
-    !$acc parallel loop vector collapse(2) private(i,j,dsc,dsl,dsr)
+    !$acc loop vector collapse(2)
     do j=ilo2-1,ihi2+1
        do i=ilo1-2,ihi1+2
           dsc = HALF * (s(i+1,j,k3d) - s(i-1,j,k3d))
@@ -163,10 +163,10 @@ contains
           end if
        end do
     end do
-    !$acc end parallel loop
+    !$acc end loop
 
     ! interpolate s to x-edges
-    !$acc parallel loop vector collapse(2) private(i,j)
+    !$acc loop vector collapse(2)
     do j=ilo2-1,ihi2+1
        !dir$ ivdep
        do i=ilo1-1,ihi1+2
@@ -177,9 +177,9 @@ contains
           sedge(i,j) = min(sedge(i,j),max(s(i,j,k3d),s(i-1,j,k3d)))
        end do
     end do
-    !$acc end parallel loop
+    !$acc end loop
 
-    !$acc parallel loop vector collapse(2) private(i, j, sm, sp, s6, sigma)
+    !$acc loop vector collapse(2)
     do j=ilo2-1,ihi2+1
        do i=ilo1-1,ihi1+1
 
@@ -280,7 +280,7 @@ contains
 
        end do
     end do
-    !$acc end parallel loop
+    !$acc end loop
 
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ! y-direction
@@ -289,7 +289,7 @@ contains
     ! compute s at y-edges
 
     ! compute van Leer slopes in y-direction
-    !$acc parallel loop vector collapse(2) private(i, j, dsc, dsl, dsr)
+    !$acc loop vector collapse(2)
     do j=ilo2-2,ihi2+2
        do i=ilo1-1,ihi1+1
           dsc = HALF * (s(i,j+1,k3d) - s(i,j-1,k3d))
@@ -302,10 +302,10 @@ contains
           end if
        end do
     end do
-    !$acc end parallel loop
+    !$acc end loop
 
     ! interpolate s to y-edges
-    !$acc parallel loop vector collapse(2) private(i, j)
+    !$acc loop vector collapse(2)
     do j=ilo2-1,ihi2+2
        !dir$ ivdep
        do i=ilo1-1,ihi1+1
@@ -316,9 +316,9 @@ contains
           sedge(i,j) = min(sedge(i,j),max(s(i,j,k3d),s(i,j-1,k3d)))
        end do
     end do
-    !$acc end parallel loop
+    !$acc end loop
 
-    !$acc parallel loop vector collapse(2) private(i, j, sm, sp, s6, sigma)
+    !$acc loop vector collapse(2)
     do j=ilo2-1,ihi2+1
        do i=ilo1-1,ihi1+1
 
@@ -412,7 +412,7 @@ contains
 
        end do
     end do
-    !$acc end parallel loop
+    !$acc end loop
 
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ! z-direction
@@ -421,8 +421,7 @@ contains
     ! compute s at z-edges
 
     ! compute van Leer slopes in z-direction
-    !$acc parallel loop vector collapse(2) private(i, j, k, dsc, dsl, dsr, dsvlm, dsvlp, dsvl0) &
-    !$acc private(sm, sp, s6, sigma)
+    !$acc loop vector collapse(2)
     do j=ilo2-1,ihi2+1
        do i=ilo1-1,ihi1+1
 
@@ -561,7 +560,7 @@ contains
 
        end do
     end do
-    !$acc end parallel loop
+    !$acc end loop
 
     !$acc end data
 
@@ -656,7 +655,7 @@ contains
     ! compute s at x-edges
 
     ! interpolate s to x-edges
-    !$acc parallel loop vector private(i, j, D2, D2L, D2R, sgn, D2LIM)
+    !$acc loop vector collapse(2)
     do j=ilo2-1,ihi2+1
        do i=ilo1-2,ihi1+3
           sedge(i,j) = SEVEN12TH*(s(i-1,j,k3d)+s(i  ,j,k3d)) &
@@ -674,15 +673,13 @@ contains
           end if
        end do
     end do
-    !$acc end parallel loop
+    !$acc end loop
     !
     ! Use Colella 2008 limiters.
     !
     ! This is a new version of the algorithm to eliminate sensitivity to roundoff.
     !
-    !$acc parallel loop private(i, j, alphap, alpham, bigp, bigm, extremum) &
-    !$acc private(dafacem, dafacep, dabarm, dabarp, dafacemin, dabarmin, dachkm, dachkp) &
-    !$acc private(delam, amax, sm, sp, s6, sigma)
+    !$acc loop vector collapse(2)
     do j=ilo2-1,ihi2+1
        do i=ilo1-1,ihi1+1
 
@@ -820,7 +817,7 @@ contains
 
        end do
     end do
-    !$acc end parallel loop
+    !$acc end loop
 
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ! y-direction
@@ -829,7 +826,7 @@ contains
     ! compute s at y-edges
 
     ! interpolate s to y-edges
-    !$acc parallel loop vector private(i, j, D2, D2L, D2R, sgn, D2LIM)    
+    !$acc loop vector collapse(2)
     do j=ilo2-2,ihi2+3
        do i=ilo1-1,ihi1+1
           sedge(i,j) = SEVEN12TH*(s(i,j-1,k3d)+s(i,j,k3d)) &
@@ -847,15 +844,13 @@ contains
           end if
        end do
     end do
-    !$acc end parallel loop
+    !$acc end loop
     !
     ! Use Colella 2008 limiters.
     !
     ! This is a new version of the algorithm to eliminate sensitivity to roundoff.
     !
-    !$acc parallel loop private(i, j, alphap, alpham, bigp, bigm, extremum) &
-    !$acc private(dafacem, dafacep, dabarm, dabarp, dafacemin, dabarmin, dachkm, dachkp) &
-    !$acc private(delam, amax, sm, sp, s6, sigma)
+    !$acc loop vector collapse(2)
     do j=ilo2-1,ihi2+1
        do i=ilo1-1,ihi1+1
 
@@ -994,7 +989,7 @@ contains
 
        end do
     end do
-    !$acc end parallel loop
+    !$acc end loop
 
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ! z-direction
@@ -1003,7 +998,7 @@ contains
     ! compute s at z-edges
 
     ! interpolate s to z-edges
-    !$acc parallel loop vector private(i, j, D2, D2L, D2R, sgn, D2LIM)
+    !$acc loop vector collapse(3)
     do k=k3d-1,k3d+2
        do j=ilo2-1,ihi2+1
           !dir$ ivdep
@@ -1024,16 +1019,14 @@ contains
           end do
        end do
     end do
-    !$acc end parallel loop
+    !$acc end loop
     !
     ! Use Colella 2008 limiters.
     !
     ! This is a new version of the algorithm to eliminate sensitivity to roundoff.
     !
     k = k3d
-    !$acc parallel loop private(i, j, alphap, alpham, bigp, bigm, extremum) &
-    !$acc private(dafacem, dafacep, dabarm, dabarp, dafacemin, dabarmin, dachkm, dachkp) &
-    !$acc private(delam, amax, sm, sp, s6, sigma)
+    !$acc loop vector collapse(2)
     do j=ilo2-1,ihi2+1
        do i=ilo1-1,ihi1+1
 
@@ -1172,7 +1165,7 @@ contains
 
        end do
     end do
-    !$acc end parallel loop
+    !$acc end loop
 
     !$acc end data
 !    call bl_deallocate(sedge)

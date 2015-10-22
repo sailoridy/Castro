@@ -307,12 +307,12 @@ contains
     !$acc create(pgdnvtmpz1, ugdnvtmpz1, gegdnvtmpz1, pgdnvtmpz2, ugdnvtmpz2, gegdnvtmpz2) &
     !$acc create(qxm, qxp, qmxy, qpxy, qmxz, qpxz, qym, qyp, qmyx, qpyz, qzm, qzp) &
     !$acc create(qxl, qxr, qyl, qyr, qzl, qzr, qmzx, qpzx, qmzy, qpzy) &
-    !$acc create(fx, fy, fz, fxy, fxz, fyx, fyz, fzx, fzy)
-
-    !$acc parallel loop gang private(k3d, kc, km, kt, eos_state) &
+    !$acc create(fx, fy, fz, fxy, fxz, fyx, fyz, fzx, fzy) &
     !$acc present(dx, dy, dz, dt) &
     !$acc present(ugdnvx_out, ugdnvy_out, ugdnvz_out) &
     !$acc present(flux1, flux2, flux3)
+
+    !$acc parallel loop gang private(eos_state)
     do k3d = ilo3-1, ihi3+1
 
        ! Swap pointers to levels
@@ -834,7 +834,7 @@ contains
     ! Make q (all but p), except put e in slot for rho.e, fix after eos call.
     ! The temperature is used as an initial guess for the eos call and will be overwritten.
     !
-    !$acc loop private(rhoinv, kineng, eos_state)
+    !$acc loop private(eos_state)
     do k = loq(3),hiq(3)
        do j = loq(2),hiq(2)
 
@@ -923,7 +923,7 @@ contains
     !$acc wait
       
     ! compute srcQ terms
-    !$acc loop private(rhoinv)
+    !$acc loop
     do k = lo(3)-1, hi(3)+1
        do j = lo(2)-1, hi(2)+1
           do i = lo(1)-1, hi(1)+1
@@ -978,7 +978,7 @@ contains
 !    courmy = courno
 !    courmz = courno
 
-    !$acc loop reduction(max:courno) private(courx, coury, courz)
+    !$acc loop reduction(max:courno)
     do k = lo(3),hi(3)
        do j = lo(2),hi(2)
           do i = lo(1),hi(1)
@@ -1105,8 +1105,7 @@ contains
     integer          :: i, j, k, n
 
     !$acc parallel loop present(flux1, flux2, flux3, area1, area2, area3, div, uin) &
-    !$acc present(dx, dy, dz, dt) &
-    !$acc private(i, j, k, n, div1, volinv)
+    !$acc present(dx, dy, dz, dt)
     do n = 1, NVAR
          
        if ( n.eq.UTEMP ) then
@@ -1162,9 +1161,8 @@ contains
                   flux3,flux3_l1,flux3_l2,flux3_l3,flux3_h1,flux3_h2,flux3_h3, &
                   lo,hi)
 
-    !$acc parallel loop private(i, j, k, n) present(lo, hi, uout, uin, flux1, flux2, flux3, pdivu) &
+    !$acc parallel loop present(lo, hi, uout, uin, flux1, flux2, flux3, pdivu) &
     !$acc present(dt) &
-    !$acc private(volinv) &
     !$acc reduction(+:E_added_flux, xmom_added_flux, ymom_added_flux, zmom_added_flux)
     do n = 1, NVAR
 
@@ -1255,7 +1253,7 @@ contains
     dyinv = ONE/dy
     dzinv = ONE/dz
 
-    !$acc parallel loop private(ux, vy, wz, i, j, k) copyin(dxinv, dyinv, dzinv) &
+    !$acc parallel loop copyin(dxinv, dyinv, dzinv) &
     !$acc present(lo, hi, q)
     do k=lo(3),hi(3)+1
        do j=lo(2),hi(2)+1
@@ -1318,7 +1316,7 @@ contains
     integer          :: i,j,k,n
     double precision :: sum,fac
 
-    !$acc parallel loop private(i,j,k,n,sum,fac) present(flux1)    
+    !$acc parallel loop present(flux1)    
     do k = lo(3),hi(3)
        do j = lo(2),hi(2)
           do i = lo(1),hi(1)+1
@@ -1338,7 +1336,7 @@ contains
        end do
     end do
 
-    !$acc parallel loop private(i,j,k,n,sum,fac) present(flux2)
+    !$acc parallel loop present(flux2)
     do k = lo(3),hi(3)
        do j = lo(2),hi(2)+1
           do i = lo(1),hi(1)
@@ -1358,7 +1356,7 @@ contains
        end do
     end do
 
-    !$acc parallel loop private(i,j,k,sum,fac) present(flux3)
+    !$acc parallel loop present(flux3)
     do k = lo(3),hi(3)+1
        do j = lo(2),hi(2)
           do i = lo(1),hi(1)
@@ -1426,8 +1424,7 @@ contains
 
     max_dens = ZERO
 
-    !$acc parallel loop private(i, j, k, i_set, j_set, k_set, ii, jj, kk, n) &
-    !$acc private(eos_state, max_dens) &
+    !$acc parallel loop private(eos_state) &
     !$acc reduction(+:initial_mass, initial_eint, initial_eden) &
     !$acc reduction(+:final_mass, final_eint, final_eden) &
     !$acc present(uout)
@@ -1562,7 +1559,7 @@ contains
     integer          :: i,j,k,n
     double precision :: fac,sum
     
-    !$acc parallel loop present(u) private(sum, fac)
+    !$acc parallel loop present(u)
     do k = lo(3),hi(3)
        do j = lo(2),hi(2)
           do i = lo(1),hi(1)
