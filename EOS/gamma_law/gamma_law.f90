@@ -13,14 +13,14 @@ module actual_eos_module
 
   implicit none
 
-  character (len=64) :: eos_name = "gamma_law"  
-  
+  character (len=64) :: eos_name = "gamma_law"
+
   double precision, save :: gamma_const
 
   logical, save :: assume_neutral
 
   !$acc declare create(gamma_const, assume_neutral)
-  
+
 contains
 
   subroutine actual_eos_init

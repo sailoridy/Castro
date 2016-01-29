@@ -2,7 +2,7 @@
 ! ::: ----------------------------------------------------------------
 ! :::
 
-      subroutine ca_network_init()
+      subroutine ca_network_init() bind(C)
 
         use network
 
@@ -15,7 +15,7 @@
 ! ::: ----------------------------------------------------------------
 ! :::
 
-      subroutine ca_extern_init(name,namlen)
+      subroutine ca_extern_init(name,namlen) bind(C)
 
         ! initialize the external runtime parameters in
         ! extern_probin_module
@@ -27,15 +27,15 @@
 
       end subroutine ca_extern_init
 
-! ::: 
+! :::
 ! ::: ----------------------------------------------------------------
-! ::: 
+! :::
 
-      subroutine get_num_spec(nspec_out)
+      subroutine get_num_spec(nspec_out) bind(C)
 
         use network, only : nspec
 
-        implicit none 
+        implicit none
 
         integer, intent(out) :: nspec_out
 
@@ -43,15 +43,15 @@
 
       end subroutine get_num_spec
 
-! ::: 
+! :::
 ! ::: ----------------------------------------------------------------
-! ::: 
+! :::
 
-      subroutine get_num_aux(naux_out)
+      subroutine get_num_aux(naux_out) bind(C)
 
         use network, only : naux
 
-        implicit none 
+        implicit none
 
         integer, intent(out) :: naux_out
 
@@ -63,11 +63,11 @@
 ! ::: ----------------------------------------------------------------
 ! :::
 
-      subroutine get_spec_names(spec_names,ispec,len)
+      subroutine get_spec_names(spec_names,ispec,len) bind(C)
 
         use network, only : nspec, short_spec_names
 
-        implicit none 
+        implicit none
 
         integer, intent(in   ) :: ispec
         integer, intent(inout) :: len
@@ -88,11 +88,11 @@
 ! ::: ----------------------------------------------------------------
 ! :::
 
-      subroutine get_spec_az(ispec,A,Z)
+      subroutine get_spec_az(ispec,A,Z) bind(C)
 
         use network, only : nspec, aion, zion
 
-        implicit none 
+        implicit none
 
         integer         , intent(in   ) :: ispec
         double precision, intent(inout) :: A, Z
@@ -107,11 +107,11 @@
 ! ::: ----------------------------------------------------------------
 ! :::
 
-      subroutine get_aux_names(aux_names,iaux,len)
+      subroutine get_aux_names(aux_names,iaux,len) bind(C)
 
         use network, only : naux, short_aux_names
 
-        implicit none 
+        implicit none
 
         integer, intent(in   ) :: iaux
         integer, intent(inout) :: len
@@ -128,17 +128,52 @@
 
       end subroutine get_aux_names
 
-! ::: 
+! :::
 ! ::: ----------------------------------------------------------------
-! ::: 
+! :::
 
-      subroutine get_method_params(nGrowHyp)
+      subroutine set_amr_info(level_in, iteration_in, ncycle_in, time_in, dt_in) bind(C)
+
+        use amrinfo_module, only: amr_level, amr_iteration, amr_ncycle, amr_time, amr_dt
+
+        implicit none
+
+        integer, intent(in) :: level_in, iteration_in, ncycle_in
+        double precision, intent(in) :: time_in, dt_in
+
+        if (level_in .ge. 0) then
+           amr_level = level_in
+        endif
+
+        if (iteration_in .ge. 0) then
+           amr_iteration = iteration_in
+        endif
+
+        if (ncycle_in .ge. 0) then
+           amr_ncycle = ncycle_in
+        endif
+
+        if (time_in .ge. 0.0) then
+           amr_time = time_in
+        endif
+
+        if (dt_in .ge. 0.0) then
+           amr_dt = dt_in
+        endif
+
+      end subroutine set_amr_info
+      
+! :::
+! ::: ----------------------------------------------------------------
+! :::
+
+      subroutine get_method_params(nGrowHyp) bind(C)
 
         ! Passing data from f90 back to C++
 
         use meth_params_module
 
-        implicit none 
+        implicit none
 
         integer, intent(out) :: ngrowHyp
 
@@ -150,7 +185,7 @@
 ! ::: ----------------------------------------------------------------
 ! :::
 
-      subroutine allocate_outflow_data(np,nc)
+      subroutine allocate_outflow_data(np,nc) bind(C)
 
         use meth_params_module, only: outflow_data_old, outflow_data_new, outflow_data_allocated
 
@@ -170,7 +205,7 @@
 ! :::
 ! ::: ----------------------------------------------------------------
 ! :::
-      subroutine set_old_outflow_data(radial,time,np,nc)
+      subroutine set_old_outflow_data(radial,time,np,nc) bind(C)
 
         ! Passing data from C++ to f90
 
@@ -182,7 +217,7 @@
         double precision, intent(in) :: time
         integer         , intent(in) :: np,nc
 
-        ! Do this so the routine has the right size 
+        ! Do this so the routine has the right size
         deallocate(outflow_data_old)
           allocate(outflow_data_old(nc,np))
 
@@ -195,7 +230,7 @@
 ! :::
 ! ::: ----------------------------------------------------------------
 ! :::
-      subroutine set_new_outflow_data(radial,time,np,nc)
+      subroutine set_new_outflow_data(radial,time,np,nc) bind(C)
 
         ! Passing data from C++ to f90
 
@@ -207,7 +242,7 @@
         double precision, intent(in) :: time
         integer         , intent(in) :: np,nc
 
-        ! Do this so the routine has the right size 
+        ! Do this so the routine has the right size
         deallocate(outflow_data_new)
           allocate(outflow_data_new(nc,np))
 
@@ -220,7 +255,7 @@
 ! :::
 ! ::: ----------------------------------------------------------------
 ! :::
-      subroutine swap_outflow_data()
+      subroutine swap_outflow_data() bind(C)
 
         use meth_params_module, only: outflow_data_new, outflow_data_new_time, &
                                       outflow_data_old, outflow_data_old_time
@@ -237,10 +272,10 @@
            deallocate(outflow_data_old)
              allocate(outflow_data_old(nc,np))
         end if
-
+        
         if (size(outflow_data_old,dim=2) .ne. size(outflow_data_new,dim=2)) then
            print *,'size of old and new dont match in swap_outflow_data '
-            call bl_error("Error:: Castro_nd.f90 :: swap_outflow_data")
+           call bl_error("Error:: Castro_nd.f90 :: swap_outflow_data")
         end if
 
         outflow_data_old(1:nc,1:np) = outflow_data_new(1:nc,1:np)
@@ -251,78 +286,46 @@
 
       end subroutine swap_outflow_data
 
-! ::: 
+! :::
 ! ::: ----------------------------------------------------------------
-! ::: 
+! :::
 
       subroutine set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
                                    FirstAdv,FirstSpec,FirstAux,numadv, &
-                                   difmag_in, small_dens_in, small_temp_in, small_pres_in, small_ener_in, &
-                                   allow_negative_energy_in, &
-                                   ppm_type_in,ppm_reference_in, &
-                                   ppm_trace_sources_in, ppm_temp_fix_in, &
-                                   ppm_tau_in_tracing_in, ppm_predict_gammae_in, &
-                                   ppm_reference_edge_limit_in, &
-                                   ppm_flatten_before_integrals_in, &
-                                   ppm_reference_eigenvectors_in, &
-                                   hybrid_riemann_in, use_colglaz_in, use_flattening_in, &
-                                   transverse_use_eos_in, transverse_reset_density_in, transverse_reset_rhoe_in, &
-                                   cg_maxiter_in, cg_tol_in, &
-                                   use_pslope_in, &
-                                   do_grav_in, grav_source_type_in, &
-                                   do_sponge_in,normalize_species_in,fix_mass_flux_in,use_sgs, &
-                                   burning_timestep_factor_in, &
-                                   dual_energy_eta1_in,  dual_energy_eta2_in, dual_energy_eta3_in, dual_energy_update_E_from_E_in, &
-                                   do_rotation_in, rot_source_type_in, rot_axis_in, &
-                                   rot_period_in, rot_period_dot_in, &
-                                   const_grav_in, deterministic_in, do_acc_in)
-!                                  phys_bc_lo,phys_bc_hi
+                                   gravity_type_in, gravity_type_len, &
+                                   get_g_from_phi_in, &
+                                   use_sgs, &
+                                   diffuse_cutoff_density_in, &
+                                   const_grav_in) bind(C)
 
         ! Passing data from C++ into f90
 
         use meth_params_module
         use network, only : nspec, naux
-        use eos_module
         use parallel
+        use bl_constants_module, only : ZERO, ONE
 
-        implicit none 
- 
+        implicit none
+
         integer, intent(in) :: dm
-        integer, intent(in) :: Density, Xmom, Eden, Eint, Temp, FirstAdv, FirstSpec, FirstAux
+        integer, intent(in) :: Density, Xmom, Eden, Eint, Temp, &
+                               FirstAdv, FirstSpec, FirstAux
         integer, intent(in) :: numadv
-        integer, intent(in) :: allow_negative_energy_in, ppm_type_in
-        integer, intent(in) :: ppm_reference_in, ppm_trace_sources_in, ppm_temp_fix_in
-        integer, intent(in) :: ppm_tau_in_tracing_in, ppm_predict_gammae_in
-        integer, intent(in) :: ppm_reference_edge_limit_in
-        integer, intent(in) :: ppm_flatten_before_integrals_in
-        integer, intent(in) :: ppm_reference_eigenvectors_in
-        integer, intent(in) :: hybrid_riemann_in, use_colglaz_in, use_flattening_in
-        integer, intent(in) :: transverse_use_eos_in, transverse_reset_density_in, transverse_reset_rhoe_in
-        integer, intent(in) :: dual_energy_update_E_from_e_in
-        double precision, intent(in) :: dual_energy_eta1_in, dual_energy_eta2_in, dual_energy_eta3_in
-        integer, intent(in) :: use_pslope_in
-        integer, intent(in) :: do_grav_in, grav_source_type_in
-        integer, intent(in) :: cg_maxiter_in
-        double precision, intent(in) :: cg_tol_in
-        integer, intent(in) :: do_sponge_in
-        double precision, intent(in) :: difmag_in
-        double precision, intent(in) :: small_dens_in, small_temp_in, small_pres_in, small_ener_in
-        integer, intent(in) :: normalize_species_in
-        integer, intent(in) :: fix_mass_flux_in
+        integer, intent(in) :: gravity_type_len
+        integer, intent(in) :: get_g_from_phi_in
+        integer, intent(in) :: gravity_type_in(gravity_type_len)
         integer, intent(in) :: use_sgs
-        double precision, intent(in) :: burning_timestep_factor_in
-        double precision, intent(in) :: rot_period_in, rot_period_dot_in, const_grav_in
-        integer, intent(in) :: do_rotation_in, rot_source_type_in, rot_axis_in
-        integer, intent(in) :: deterministic_in, do_acc_in
+        double precision, intent(in) :: const_grav_in, diffuse_cutoff_density_in
         integer :: iadv, ispec
 
         integer             :: QLAST
 
+        integer :: i
+        integer :: ioproc
+
         call parallel_initialize()
 
-        iorder = 2 
-
-        difmag = difmag_in
+        iorder = 2
 
         !---------------------------------------------------------------------
         ! conserved state components
@@ -352,7 +355,7 @@
 
         if (numadv .ge. 1) then
           UFA   = FirstAdv  + 1
-        else 
+        else
           UFA = 1
         end if
 
@@ -360,7 +363,7 @@
 
         if (naux .ge. 1) then
           UFX = FirstAux  + 1
-        else 
+        else
           UFX = 1
         end if
 
@@ -372,7 +375,7 @@
         ! QTHERM: number of primitive variables: rho, game, p, (rho e), T
         !         + 3 velocity components + 1 SGS components (if defined)
         ! QVAR  : number of total variables in primitive form
-      
+
         QTHERM = NTHERM + 1  ! here the +1 is for QGAME always defined in primitive mode
                              ! the SGS component is accounted for already in NTHERM
 
@@ -398,19 +401,24 @@
            QESGS = -1
         endif
 
-        QTEMP   = QTHERM 
+        QTEMP   = QTHERM
 
-        if (numadv .ge. 1) then
+        if (numadv >= 1) then
           QFA = QTHERM + 1
           QFS = QFA + numadv
-        else 
+
+        else
           QFA = 1   ! density
           QFS = QTHERM + 1
+
         end if
-        if (naux .ge. 1) then
+
+        if (naux >= 1) then
           QFX = QFS + nspec
-        else 
+
+        else
           QFX = 1
+
         end if
 
         ! easy indexing for the passively advected quantities.  This
@@ -421,7 +429,7 @@
 
         ! Transverse velocities
 
-        if (dm .eq. 1) then
+        if (dm == 1) then
            upass_map(1) = UMY
            qpass_map(1) = QV
 
@@ -429,7 +437,8 @@
            qpass_map(2) = QW
 
            npassive = 2
-        else if (dm .eq. 2) then
+
+        else if (dm == 2) then
            upass_map(1) = UMZ
            qpass_map(1) = QW
 
@@ -443,12 +452,14 @@
            qpass_map(npassive + 1) = QESGS
            npassive = npassive + 1
         endif
+
         do iadv = 1, nadv
            upass_map(npassive + iadv) = UFA + iadv - 1
            qpass_map(npassive + iadv) = QFA + iadv - 1
         enddo
         npassive = npassive + nadv
-        if(QFS > -1) then
+
+        if (QFS > -1) then
            do ispec = 1, nspec+naux
               upass_map(npassive + ispec) = UFS + ispec - 1
               qpass_map(npassive + ispec) = QFS + ispec - 1
@@ -457,92 +468,33 @@
         endif
 
 
-        !$acc update device(upass_map, qpass_map, npassive)
-        !$acc update device(QVAR, NVAR)
-         
         !---------------------------------------------------------------------
         ! other initializations
         !---------------------------------------------------------------------
 
-        if (small_dens_in > 0.d0) then
-           small_dens = small_dens_in
-        else
-           small_dens = 1.d-200
-        endif
+        call bl_pd_is_ioproc(ioproc)
 
-        if (small_temp_in > 0.d0) then
-           small_temp = small_temp_in
-        else
-           small_temp = 1.d-200
-        endif
+        allocate(character(len=gravity_type_len) :: gravity_type)
 
-        if (small_pres_in > 0.d0) then
-           small_pres = small_pres_in
-        else
-           small_pres = 1.d-200
-        endif
+        do i = 1, gravity_type_len
+           gravity_type(i:i) = char(gravity_type_in(i))
+        enddo
 
-        if (small_ener_in > 0.d0) then
-           small_ener = small_ener_in
-        else
-           small_ener = 1.d-200
-        endif
+        get_g_from_phi               = get_g_from_phi_in .ne. 0
 
-        call eos_init(small_dens=small_dens, small_temp=small_temp)
-
-        ! The EOS might have modified our choices because of its
-        ! internal limitations, so let's get small_dens and small_temp
-        ! again just to make sure we're consistent with the EOS.
-        
-        call eos_get_small_dens(small_dens)
-        call eos_get_small_temp(small_temp)
-
-        !$acc update device(NTHERM, NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, UFA, UFS, UFX) &
-        !$acc device(QTHERM, QVAR, QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAMC, QGAME, QFA, QFS, QFX) &
-        !$acc device(UESGS, QESGS, nadv, small_dens, small_temp, small_pres, small_ener)
-        
-        allow_negative_energy        = allow_negative_energy_in
-        ppm_type                     = ppm_type_in
-        ppm_reference                = ppm_reference_in
-        ppm_trace_sources            = ppm_trace_sources_in
-        ppm_temp_fix                 = ppm_temp_fix_in
-        ppm_tau_in_tracing           = ppm_tau_in_tracing_in
-        ppm_predict_gammae           = ppm_predict_gammae_in
-        ppm_reference_edge_limit     = ppm_reference_edge_limit_in
-        ppm_flatten_before_integrals = ppm_flatten_before_integrals_in
-
-        ppm_reference_eigenvectors   = ppm_reference_eigenvectors_in
-        hybrid_riemann               = hybrid_riemann_in
-        use_colglaz                  = use_colglaz_in
-        use_flattening               = use_flattening_in
-        transverse_use_eos           = transverse_use_eos_in
-        transverse_reset_density     = transverse_reset_density_in
-        transverse_reset_rhoe        = transverse_reset_rhoe_in
-
-        cg_tol                       = cg_tol_in
-        cg_maxiter                   = cg_maxiter_in
-        use_pslope                   = use_pslope_in
-        do_grav                      = do_grav_in
-        grav_source_type             = grav_source_type_in
-        do_sponge                    = do_sponge_in
-        normalize_species            = normalize_species_in
-        fix_mass_flux                = fix_mass_flux_in
-        burning_timestep_factor      = burning_timestep_factor_in
-        do_rotation                  = do_rotation_in
-        rot_period                   = rot_period_in
-        rot_period_dot               = rot_period_dot_in
-        rot_source_type              = rot_source_type_in
-        rot_axis                     = rot_axis_in
+        diffuse_cutoff_density       = diffuse_cutoff_density_in
         const_grav                   = const_grav_in
-        deterministic                = deterministic_in .ne. 0
-        do_acc                       = do_acc_in
 
-        dual_energy_eta1             = dual_energy_eta1_in
-        dual_energy_eta2             = dual_energy_eta2_in
-        dual_energy_eta3             = dual_energy_eta3_in
-        dual_energy_update_E_from_e  = dual_energy_update_E_from_e_in .ne. 0
+        rot_vec = ZERO
+        rot_vec(rot_axis) = ONE
 
-        !$acc update device(allow_negative_energy, do_acc, ppm_type, ppm_reference, ppm_trace_sources) &
+        !$acc update &
+        !$acc device(upass_map, qpass_map, npassive) &
+        !$acc device(QVAR, NVAR) &
+        !$acc device(NTHERM, NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, UFA, UFS, UFX) &
+        !$acc device(QTHERM, QVAR, QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAMC, QGAME, QFA, QFS, QFX) &
+        !$acc device(UESGS, QESGS, nadv, small_dens, small_temp, small_pres, small_ener) &
+        !$acc device(allow_negative_energy, do_acc, ppm_type, ppm_reference, ppm_trace_sources) &
         !$acc device(ppm_temp_fix, ppm_tau_in_tracing, ppm_predict_gammae, ppm_reference_edge_limit) &
         !$acc device(ppm_flatten_before_integrals, ppm_reference_eigenvectors, hybrid_riemann, use_colglaz) &
         !$acc device(use_flattening, transverse_use_eos, transverse_reset_density, transverse_reset_rhoe) &
@@ -551,28 +503,51 @@
         !$acc device(dual_energy_eta1, dual_energy_eta2, dual_energy_eta3, dual_energy_update_E_from_e) &
         !$acc device(outflow_data_old, outflow_data_new, outflow_data_old_time, outflow_data_new_time, outflow_data_allocated) &
         !$acc device(max_dist, do_rotation, rot_period, rot_period_dot, rot_source_type, rot_axis, const_grav)
-        
+
       end subroutine set_method_params
 
-! ::: 
+      subroutine init_godunov_indices() bind(C)
+
+        use meth_params_module, only : GDRHO, GDU, GDV, GDW, GDPRES, GDGAME, ngdnv, &
+                                       QU, QV, QW
+
+        implicit none
+
+        ngdnv = 6
+        GDRHO = 1
+        GDU = 2
+        GDV = 3
+        GDW = 4
+        GDPRES = 5
+        GDGAME = 6
+
+        ! sanity check
+        if ((QU /= GDU) .or. (QV /= GDV) .or. (QW /= GDW)) then
+           call bl_error("ERROR: velocity components for godunov and primitive state are not aligned")
+        endif
+
+      end subroutine init_godunov_indices
+
+! :::
 ! ::: ----------------------------------------------------------------
-! ::: 
+! :::
 
       subroutine set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
-                                    Outflow_in, Symmetry_in, SlipWall_in, NoSlipWall_in, &
+                                    Interior_in, Inflow_in, Outflow_in, &
+                                    Symmetry_in, SlipWall_in, NoSlipWall_in, &
                                     coord_type_in, &
-                                    problo_in, probhi_in, center_in)
+                                    problo_in, probhi_in, center_in) bind(C)
 
         ! Passing data from C++ into f90
 
         use bl_constants_module, only: ZERO
         use prob_params_module
 
-        implicit none 
- 
+        implicit none
+
         integer, intent(in) :: dm
         integer, intent(in) :: physbc_lo_in(dm),physbc_hi_in(dm)
-        integer, intent(in) :: Outflow_in, Symmetry_in, SlipWall_in, NoSlipWall_in
+        integer, intent(in) :: Interior_in, Inflow_in, Outflow_in, Symmetry_in, SlipWall_in, NoSlipWall_in
         integer, intent(in) :: coord_type_in
         double precision, intent(in) :: problo_in(dm), probhi_in(dm), center_in(dm)
 
@@ -581,6 +556,8 @@
         physbc_lo(1:dm) = physbc_lo_in(1:dm)
         physbc_hi(1:dm) = physbc_hi_in(1:dm)
 
+        Interior   = Interior_in
+        Inflow     = Inflow_in
         Outflow    = Outflow_in
         Symmetry   = Symmetry_in
         SlipWall   = SlipWall_in
@@ -594,7 +571,7 @@
 
         problo(1:dm) = problo_in(1:dm)
         probhi(1:dm) = probhi_in(1:dm)
-        center(1:dm) = center_in(1:dm)        
+        center(1:dm) = center_in(1:dm)
 
         dg(:) = 1
 
@@ -611,28 +588,60 @@
 
       end subroutine set_problem_params
 
-! ::: 
+! :::
 ! ::: ----------------------------------------------------------------
-! ::: 
+! :::
 
-      subroutine ca_set_special_tagging_flag(dummy,flag) 
-      double precision :: dummy 
+      subroutine set_grid_info(max_level_in, dx_level_in, domlo_in, domhi_in) bind(C)
+
+        use prob_params_module
+
+        implicit none
+
+        integer,          intent(in) :: max_level_in
+        double precision, intent(in) :: dx_level_in(3*(max_level_in+1))
+        integer,          intent(in) :: domlo_in(3*(max_level_in+1)), domhi_in(3*(max_level_in+1))
+
+        integer :: lev, dir
+
+        max_level = max_level_in
+
+        allocate(dx_level(1:3, 0:max_level))
+        allocate(domlo_level(1:3, 0:max_level))
+        allocate(domhi_level(1:3, 0:max_level))
+        
+        do lev = 0, max_level
+           do dir = 1, 3
+              dx_level(dir,lev) = dx_level_in(3*lev + dir)
+              domlo_level(dir,lev) = domlo_in(3*lev + dir)
+              domhi_level(dir,lev) = domhi_in(3*lev + dir)
+           enddo
+        enddo
+
+      end subroutine set_grid_info
+
+! :::
+! ::: ----------------------------------------------------------------
+! :::
+
+      subroutine ca_set_special_tagging_flag(dummy,flag) bind(C)
+      double precision :: dummy
       integer          :: flag
       end subroutine ca_set_special_tagging_flag
 
-! ::: 
+! :::
 ! ::: ----------------------------------------------------------------
-! ::: 
+! :::
 
-      subroutine get_tagging_params(name, namlen)
+      subroutine get_tagging_params(name, namlen) bind(C)
 
-        use tagging_params_module
+        use tagging_module
 
         ! Initialize the tagging parameters
 
         integer :: namlen
         integer :: name(namlen)
-        
+
         integer :: un, i, status
 
         integer, parameter :: maxlen = 256
@@ -679,8 +688,7 @@
 
         ! create the filename
         if (namlen > maxlen) then
-           print *, 'probin file name too long'
-           stop
+           call bl_error('probin file name too long')
         endif
 
         do i = 1, namlen
@@ -698,8 +706,7 @@
 
         else if (status > 0) then
            ! some problem in the namelist
-           print *, 'ERROR: problem in the tagging namelist'
-           stop
+           call bl_error('ERROR: problem in the tagging namelist')
         endif
 
         close (unit=un)
@@ -708,35 +715,24 @@
 
 
 
-! ::: 
+! :::
 ! ::: ----------------------------------------------------------------
-! ::: 
+! :::
 
-      subroutine get_sponge_params(name, namlen)
+      subroutine get_sponge_params(name, namlen) bind(C)
 
-        use sponge_params_module, only : &
-             lower_radius => sponge_lower_radius, &
-             upper_radius => sponge_upper_radius, &
-             lower_density => sponge_lower_density, &
-             upper_density => sponge_upper_density, &
-             timescale => sponge_timescale
-
+        use sponge_module
 
         ! Initialize the sponge parameters
 
         integer :: namlen
         integer :: name(namlen)
-        
+
         integer :: un, i, status
 
         integer, parameter :: maxlen = 256
         character (len=maxlen) :: probin
 
-        double precision :: &
-             sponge_lower_radius, sponge_upper_radius, &
-             sponge_lower_density, sponge_upper_density, &
-             sponge_timescale
-        
         namelist /sponge/ &
              sponge_lower_radius, sponge_upper_radius, &
              sponge_lower_density, sponge_upper_density, &
@@ -746,16 +742,15 @@
 
         sponge_lower_radius = -1.d0
         sponge_upper_radius = -1.d0
-        
+
         sponge_lower_density = -1.d0
         sponge_upper_density = -1.d0
-        
+
         sponge_timescale    = -1.d0
 
         ! create the filename
         if (namlen > maxlen) then
-           print *, 'probin file name too long'
-           stop
+           call bl_error('probin file name too long')
         endif
 
         do i = 1, namlen
@@ -773,18 +768,9 @@
 
         else if (status > 0) then
            ! some problem in the namelist
-           print *, 'ERROR: problem in the sponge namelist'
-           stop
+           call bl_error('ERROR: problem in the sponge namelist')
         endif
 
         close (unit=un)
 
-        !$omp parallel
-        lower_radius = sponge_lower_radius
-        upper_radius = sponge_upper_radius
-        lower_density = sponge_lower_density
-        upper_density = sponge_upper_density
-        timescale = sponge_timescale
-        !$omp end parallel
-        
       end subroutine get_sponge_params

@@ -4,9 +4,7 @@ module advection_module
 
   private
 
-  public umeth2d, ctoprim, divu, consup, enforce_minimum_density, &
-       normalize_new_species, &
-       normalize_species_fluxes
+  public umeth2d, ctoprim, consup
   
 contains
 
@@ -35,10 +33,8 @@ contains
                      ilo1, ilo2, ihi1, ihi2, dx, dy, dt, &
                      flux1, fd1_l1, fd1_l2, fd1_h1, fd1_h2, &
                      flux2, fd2_l1, fd2_l2, fd2_h1, fd2_h2, &
-                     pgdx, pgdx_l1, pgdx_l2, pgdx_h1, pgdx_h2, &
-                     pgdy, pgdy_l1, pgdy_l2, pgdy_h1, pgdy_h2, &
-                     ugdx,ugdx_l1,ugdx_l2,ugdx_h1,ugdx_h2, &
-                     ugdy,ugdy_l1,ugdy_l2,ugdy_h1,ugdy_h2, &
+                     q1, q1_l1, q1_l2, q1_h1, q1_h2, &
+                     q2, q2_l1, q2_l2, q2_h1, q2_h2, &
                      area1, area1_l1, area1_l2, area1_h1, area1_h2, &
                      area2, area2_l1, area2_l2, area2_h1, area2_h2, &
                      pdivu, vol, vol_l1, vol_l2, vol_h1, vol_h2, &
@@ -46,7 +42,8 @@ contains
                      domlo, domhi)
 
     use network, only : nspec, naux
-    use meth_params_module, only : QVAR, NVAR, ppm_type, hybrid_riemann
+    use meth_params_module, only : QVAR, NVAR, ppm_type, hybrid_riemann, &
+                                   GDU, GDV, GDPRES, ngdnv
     use trace_module, only : trace
     use trace_ppm_module, only : trace_ppm
     use transverse_module
@@ -60,10 +57,8 @@ contains
     integer src_l1, src_l2, src_h1, src_h2
     integer fd1_l1, fd1_l2, fd1_h1, fd1_h2
     integer fd2_l1, fd2_l2, fd2_h1, fd2_h2
-    integer pgdx_l1, pgdx_l2, pgdx_h1, pgdx_h2
-    integer pgdy_l1, pgdy_l2, pgdy_h1, pgdy_h2
-    integer ugdx_l1,ugdx_l2,ugdx_h1,ugdx_h2
-    integer ugdy_l1,ugdy_l2,ugdy_h1,ugdy_h2
+    integer q1_l1, q1_l2, q1_h1, q1_h2
+    integer q2_l1, q2_l2, q2_h1, q2_h2
     integer area1_l1, area1_l2, area1_h1, area1_h2
     integer area2_l1, area2_l2, area2_h1, area2_h2
     integer vol_l1, vol_l2, vol_h1, vol_h2
@@ -78,10 +73,8 @@ contains
     double precision     c(qd_l1:qd_h1,qd_l2:qd_h2)
     double precision  srcQ(src_l1:src_h1,src_l2:src_h2,QVAR)
     double precision dloga(dloga_l1:dloga_h1,dloga_l2:dloga_h2)
-    double precision pgdx(pgdx_l1:pgdx_h1,pgdx_l2:pgdx_h2)
-    double precision pgdy(pgdy_l1:pgdy_h1,pgdy_l2:pgdy_h2)
-    double precision ugdx(ugdx_l1:ugdx_h1,ugdx_l2:ugdx_h2)
-    double precision ugdy(ugdy_l1:ugdy_h1,ugdy_l2:ugdy_h2)
+    double precision q1(q1_l1:q1_h1,q1_l2:q1_h2,ngdnv)
+    double precision q2(q2_l1:q2_h1,q2_l2:q2_h2,ngdnv)
     double precision flux1(fd1_l1:fd1_h1,fd1_l2:fd1_h2,NVAR)
     double precision flux2(fd2_l1:fd2_h1,fd2_l2:fd2_h2,NVAR)
     double precision area1(area1_l1:area1_h1,area1_l2:area1_h2)
@@ -96,8 +89,7 @@ contains
     
     ! Work arrays to hold riemann state and conservative fluxes
     double precision, allocatable ::  fx(:,:,:),  fy(:,:,:)
-    double precision, allocatable ::  pgdxtmp(:,:) ,  ugdxtmp(:,:)
-    double precision, allocatable :: gegdxtmp(:,:), gegdx(:,:), gegdy(:,:)
+    double precision, allocatable ::  qgdxtmp(:,:,:)
     double precision, allocatable :: shk(:,:)
 
     ! Local scalar variables
@@ -105,11 +97,7 @@ contains
     double precision :: hdtdx, hdt, hdtdy
     integer          :: i,j
 
-    allocate ( pgdxtmp(pgdx_l1:pgdx_h1,pgdx_l2:pgdx_h2))
-    allocate ( ugdxtmp(ugdx_l1:ugdx_h1,ugdx_l2:ugdx_h2))
-    allocate ( gegdxtmp(ugdx_l1:ugdx_h1,ugdx_l2:ugdx_h2))
-    allocate ( gegdx(ugdx_l1:ugdx_h1,ugdx_l2:ugdx_h2))
-    allocate ( gegdy(ugdy_l1:ugdy_h1,ugdy_l2:ugdy_h2))
+    allocate ( qgdxtmp(q1_l1:q1_h1,q1_l2:q1_h2,ngdnv))
 
     allocate (  qm(ilo1-1:ihi1+2,ilo2-1:ihi2+2,QVAR) )
     allocate (  qp(ilo1-1:ihi1+2,ilo2-1:ihi2+2,QVAR) )
@@ -165,9 +153,7 @@ contains
     ! guesses for the x-interface states.  This produces the flux fx
     call cmpflx(qxm, qxp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
                 fx, ilo1, ilo2-1, ihi1+1, ihi2+1, &
-                pgdxtmp, pgdx_l1, pgdx_l2, pgdx_h1, pgdx_h2, &
-                ugdxtmp, ugdx_l1, ugdx_l2, ugdx_h1, ugdx_h2, &
-                gegdxtmp, ugdx_l1, ugdx_l2, ugdx_h1, ugdx_h2, &                
+                qgdxtmp, q1_l1, q1_l2, q1_h1, q1_h2, &
                 gamc, csml, c, qd_l1, qd_l2, qd_h1, qd_h2, &
                 shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
                 1, ilo1, ihi1, ilo2-1, ihi2+1, domlo, domhi)
@@ -176,9 +162,7 @@ contains
     ! guesses for the y-interface states.  This produces the flux fy
     call cmpflx(qym, qyp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
                 fy, ilo1-1, ilo2, ihi1+1, ihi2+1, &
-                pgdy, pgdy_l1, pgdy_l2, pgdy_h1, pgdy_h2, &
-                ugdy, ugdy_l1, ugdy_l2, ugdy_h1, ugdy_h2, &
-                gegdy, ugdy_l1, ugdy_l2, ugdy_h1, ugdy_h2, &
+                q2, q2_l1, q2_l2, q2_h1, q2_h2, &
                 gamc, csml, c, qd_l1, qd_l2, qd_h1, qd_h2, &
                 shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
                 2, ilo1-1, ihi1+1, ilo2, ihi2, domlo, domhi)
@@ -188,9 +172,7 @@ contains
     ! states.  This results in the new x-interface states qm and qp
     call transy(qxm, qm, qxp, qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
                 fy, ilo1-1, ilo2, ihi1+1, ihi2+1, &
-                pgdy, pgdy_l1, pgdy_l2, pgdy_h1, pgdy_h2, &
-                ugdy, ugdy_l1, ugdy_l2, ugdy_h1, ugdy_h2, &
-                gegdy, ugdy_l1, ugdy_l2, ugdy_h1, ugdy_h2, &
+                q2, q2_l1, q2_l2, q2_h1, q2_h2, &
                 gamc, qd_l1, qd_l2, qd_h1, qd_h2, &
                 srcQ, src_l1, src_l2, src_h1, src_h2, &
                 hdt, hdtdy, &
@@ -201,9 +183,7 @@ contains
     ! is flux1
     call cmpflx(qm, qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
                 flux1, fd1_l1, fd1_l2, fd1_h1, fd1_h2, &
-                pgdx, pgdx_l1, pgdx_l2, pgdx_h1, pgdx_h2, &
-                ugdx, ugdx_l1, ugdx_l2, ugdx_h1, ugdx_h2, &
-                gegdx, ugdx_l1, ugdx_l2, ugdx_h1, ugdx_h2, &
+                q1, q1_l1, q1_l2, q1_h1, q1_h2, &
                 gamc, csml, c, qd_l1, qd_l2, qd_h1, qd_h2, &
                 shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
                 1, ilo1, ihi1, ilo2, ihi2, domlo, domhi)
@@ -213,9 +193,7 @@ contains
     ! states.  This results in the new y-interface states qm and qp
     call transx(qym, qm, qyp, qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
                 fx, ilo1, ilo2-1, ihi1+1, ihi2+1, &
-                pgdxtmp, pgdx_l1, pgdx_l2, pgdx_h1, pgdx_h2, &
-                ugdxtmp, ugdx_l1, ugdx_l2, ugdx_h1, ugdx_h2, &
-                gegdxtmp, ugdx_l1, ugdx_l2, ugdx_h1, ugdx_h2, &
+                qgdxtmp, q1_l1, q1_l2, q1_h1, q1_h2, &
                 gamc, qd_l1, qd_l2, qd_h1, qd_h2, &
                 srcQ,  src_l1,  src_l2,  src_h1,  src_h2, &
                 hdt, hdtdx, &
@@ -228,29 +206,28 @@ contains
     ! is flux2
     call cmpflx(qm, qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
                 flux2, fd2_l1, fd2_l2, fd2_h1, fd2_h2, &
-                pgdy, pgdy_l1, pgdy_l2, pgdy_h1, pgdy_h2, &
-                ugdy, ugdy_l1, ugdy_l2, ugdy_h1, ugdy_h2, &
-                gegdy, ugdy_l1, ugdy_l2, ugdy_h1, ugdy_h2, &
+                q2, q2_l1, q2_l2, q2_h1, q2_h2, &
                 gamc, csml, c, qd_l1, qd_l2, qd_h1, qd_h2, &
                 shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
                 2, ilo1, ihi1, ilo2, ihi2, domlo, domhi)
       
-
     ! Construct p div{U} -- this will be used as a source to the internal
     ! energy update.  Note we construct this using the interface states
     ! returned from the Riemann solver.
     do j = ilo2,ihi2
        do i = ilo1,ihi1
-          pdivu(i,j) = HALF * &
-               ((pgdx(i+1,j)+pgdx(i,j))*(ugdx(i+1,j)*area1(i+1,j)-ugdx(i,j)*area1(i,j)) &
-               +(pgdy(i,j+1)+pgdy(i,j))*(ugdy(i,j+1)*area2(i,j+1)-ugdy(i,j)*area2(i,j)) ) / vol(i,j)
+          pdivu(i,j) = HALF*( &
+               (q1(i+1,j,GDPRES) + q1(i,j,GDPRES)) * &
+               (q1(i+1,j,GDU)*area1(i+1,j) - q1(i,j,GDU)*area1(i,j)) + &
+               (q2(i,j+1,GDPRES) + q2(i,j,GDPRES)) * &
+               (q2(i,j+1,GDV)*area2(i,j+1) - q2(i,j,GDV)*area2(i,j)) ) / vol(i,j)
        end do
     end do
 
     deallocate(qm,qp,qxm,qxp,qym,qyp)
     deallocate(fx,fy)
     deallocate(shk)
-    deallocate(pgdxtmp,ugdxtmp,gegdxtmp,gegdx,gegdy)
+    deallocate(qgdxtmp)
     
   end subroutine umeth2d
 
@@ -359,7 +336,7 @@ contains
 
           kineng = HALF * q(i,j,QRHO) * sum(q(i,j,QU:QW)**2)
           
-          if ( (uin(i,j,UEDEN) - kineng) / uin(i,j,UEDEN) .lt. dual_energy_eta1) then
+          if ( (uin(i,j,UEDEN) - kineng) / uin(i,j,UEDEN) .gt. dual_energy_eta1) then
              q(i,j,QREINT) = (uin(i,j,UEDEN) - kineng) / q(i,j,QRHO)
           else
              q(i,j,QREINT) = uin(i,j,UEINT) / q(i,j,QRHO)
@@ -412,8 +389,8 @@ contains
     enddo
     
     ! Compute sources in terms of Q
-    do j = lo(2)-1, hi(2)+1
-       do i = lo(1)-1, hi(1)+1
+    do j = loq(2), hiq(2)
+       do i = loq(1), hiq(1)
           
           srcQ(i,j,QRHO  ) = src(i,j,URHO)
           srcQ(i,j,QU:QV ) = (src(i,j,UMX:UMY) - q(i,j,QU:QV) * srcQ(i,j,QRHO)) / q(i,j,QRHO)
@@ -435,8 +412,8 @@ contains
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
 
-       do j = lo(2)-1, hi(2)+1
-          do i = lo(1)-1, hi(1)+1
+       do j = loq(2), hiq(2)
+          do i = loq(1), hiq(1)
              srcQ(i,j,nq) = ( src(i,j,n) - q(i,j,nq) * srcQ(i,j,QRHO) ) / q(i,j,QRHO)
           enddo
        enddo
@@ -481,11 +458,12 @@ contains
           loq(n)=lo(n)-ngf
           hiq(n)=hi(n)+ngf
        enddo
-       call uflaten(loq,hiq, &
+       call uflaten((/ loq(1), loq(2), 0 /), (/ hiq(1), hiq(2), 0 /), &
             q(q_l1,q_l2,QPRES), &
             q(q_l1,q_l2,QU), &
             q(q_l1,q_l2,QV), &
-            flatn,q_l1,q_l2,q_h1,q_h2)
+            q(q_l1,q_l2,QW), &
+            flatn,(/ q_l1, q_l2, 0 /), (/ q_h1, q_h2, 0 /))
     else
        flatn = ONE
     endif
@@ -500,8 +478,8 @@ contains
 
   subroutine consup( uin, uin_l1, uin_l2, uin_h1, uin_h2, &
                      uout,uout_l1,uout_l2,uout_h1,uout_h2, &
-                     pgdx,pgdx_l1,pgdx_l2,pgdx_h1,pgdx_h2, &
-                     pgdy,pgdy_l1,pgdy_l2,pgdy_h1,pgdy_h2, &
+                     q1, q1_l1, q1_l2, q1_h1, q1_h2, &
+                     q2, q2_l1, q2_l2, q2_h1, q2_h2, &
                      src , src_l1, src_l2, src_h1, src_h2, &
                      flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
                      flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
@@ -509,33 +487,36 @@ contains
                      area2,area2_l1,area2_l2,area2_h1,area2_h2, &
                      vol,vol_l1,vol_l2,vol_h1,vol_h2, &
                      div,pdivu,lo,hi,dx,dy,dt,E_added_flux, &
-                     xmom_added_flux,ymom_added_flux)
+                     xmom_added_flux,ymom_added_flux,zmom_added_flux, &
+                     verbose)
 
     use eos_module
     use network, only : nspec, naux
-    use meth_params_module, only : difmag, NVAR, UMX, UMY, &
-                                   UEDEN, UEINT, UTEMP, &
+    use meth_params_module, only : difmag, NVAR, UMX, UMY, UMZ, &
+                                   UEDEN, UEINT, UTEMP, ngdnv, GDPRES, &
                                    normalize_species
+    use prob_params_module, only : coord_type
     use bl_constants_module
-
-    implicit none
+    use advection_util_module, only : normalize_species_fluxes
 
     integer lo(2), hi(2)
     integer uin_l1,uin_l2,uin_h1,uin_h2
     integer uout_l1,uout_l2,uout_h1,uout_h2
-    integer pgdx_l1,pgdx_l2,pgdx_h1,pgdx_h2
-    integer pgdy_l1,pgdy_l2,pgdy_h1,pgdy_h2
+    integer q1_l1, q1_l2, q1_h1, q1_h2
+    integer q2_l1, q2_l2, q2_h1, q2_h2
     integer   src_l1,  src_l2,  src_h1,  src_h2
     integer flux1_l1,flux1_l2,flux1_h1,flux1_h2
     integer flux2_l1,flux2_l2,flux2_h1,flux2_h2
     integer area1_l1,area1_l2,area1_h1,area1_h2
     integer area2_l1,area2_l2,area2_h1,area2_h2
     integer vol_l1,vol_l2,vol_h1,vol_h2
-    
+
+    integer verbose
+
     double precision uin(uin_l1:uin_h1,uin_l2:uin_h2,NVAR)
     double precision uout(uout_l1:uout_h1,uout_l2:uout_h2,NVAR)
-    double precision pgdx(pgdx_l1:pgdx_h1,pgdx_l2:pgdx_h2)
-    double precision pgdy(pgdy_l1:pgdy_h1,pgdy_l2:pgdy_h2)
+    double precision q1(q1_l1:q1_h1,q1_l2:q1_h2,ngdnv)
+    double precision q2(q2_l1:q2_h1,q2_l2:q2_h2,ngdnv)
     double precision   src(  src_l1:  src_h1,  src_l2:  src_h2,NVAR)
     double precision flux1(flux1_l1:flux1_h1,flux1_l2:flux1_h2,NVAR)
     double precision flux2(flux2_l1:flux2_h1,flux2_l2:flux2_h2,NVAR)
@@ -545,16 +526,15 @@ contains
     double precision div(lo(1):hi(1)+1,lo(2):hi(2)+1)
     double precision pdivu(lo(1):hi(1),lo(2):hi(2))
     double precision dx, dy, dt, E_added_flux
-    double precision xmom_added_flux, ymom_added_flux
+    double precision xmom_added_flux, ymom_added_flux, zmom_added_flux
     
     integer i, j, n
 
     double precision div1
-    !double precision SrU, SrV
     !double precision rho, Up, Vp, SrE
 
     ! Normalize the species fluxes
-    if (normalize_species .eq. 1) &
+    if (normalize_species == 1) &
          call normalize_species_fluxes( &
                 flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
                 flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
@@ -562,413 +542,114 @@ contains
 
     ! correct the fluxes to include the effects of the artificial viscosity
     do n = 1, NVAR
-       if ( n .eq. UTEMP ) then
+       if (n == UTEMP) then
           flux1(:,:,n) = ZERO
           flux2(:,:,n) = ZERO
        else 
-          do j = lo(2),hi(2)
-             do i = lo(1),hi(1)+1
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)+1
                 div1 = HALF*(div(i,j) + div(i,j+1))
                 div1 = difmag*min(ZERO,div1)
-                flux1(i,j,n) = flux1(i,j,n) &
-                     + dx*div1*(uin(i,j,n) - uin(i-1,j,n))
+
+                flux1(i,j,n) = flux1(i,j,n) + &
+                     dx*div1*(uin(i,j,n) - uin(i-1,j,n))
+
                 flux1(i,j,n) = area1(i,j)*flux1(i,j,n)
              enddo
           enddo
           
-          do j = lo(2),hi(2)+1
-             do i = lo(1),hi(1)
+          do j = lo(2), hi(2)+1
+             do i = lo(1), hi(1)
                 div1 = HALF*(div(i,j) + div(i+1,j))
                 div1 = difmag*min(ZERO,div1)
-                flux2(i,j,n) = flux2(i,j,n) &
-                     + dy*div1*(uin(i,j,n) - uin(i,j-1,n))
+
+                flux2(i,j,n) = flux2(i,j,n) + &
+                     dy*div1*(uin(i,j,n) - uin(i,j-1,n))
+
                 flux2(i,j,n) = area2(i,j)*flux2(i,j,n)
              enddo
           enddo
+
        endif
     enddo
     
     ! do the conservative updates
     do n = 1, NVAR
-       if (n .eq. UTEMP) then
+       if (n == UTEMP) then
           uout(lo(1):hi(1),lo(2):hi(2),n) = uin(lo(1):hi(1),lo(2):hi(2),n)
        else 
-          do j = lo(2),hi(2)
-             do i = lo(1),hi(1)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
                 uout(i,j,n) = uin(i,j,n) + dt * &
-                     ( flux1(i,j,n) - flux1(i+1,j,n) &
-                     +   flux2(i,j,n) - flux2(i,j+1,n) ) / vol(i,j)
+                     ( flux1(i,j,n) - flux1(i+1,j,n) + &
+                       flux2(i,j,n) - flux2(i,j+1,n) ) / vol(i,j)
                 
-                if (n .eq. UEINT) then
+                if (n == UEINT) then
                    ! Add p div(u) source term to (rho e)
                    uout(i,j,UEINT) = uout(i,j,UEINT)  - dt * pdivu(i,j)
                 endif
                    
-                ! Add up some diagnostic quantities
-                   
-                if (n .eq. UEDEN) then
-                   E_added_flux = E_added_flux + dt * & 
-                        ( flux1(i,j,n) - flux1(i+1,j,n) &
-                        +   flux2(i,j,n) - flux2(i,j+1,n) ) / vol(i,j) 
-                else if (n .eq. UMX) then
-                   xmom_added_flux = xmom_added_flux + dt * &
-                        ( flux1(i,j,n) - flux1(i+1,j,n) &
-                        +   flux2(i,j,n) - flux2(i,j+1,n) ) / vol(i,j) 
-                else if (n .eq. UMY) then
-                   ymom_added_flux = ymom_added_flux + dt * &
-                        ( flux1(i,j,n) - flux1(i+1,j,n) &
-                        +   flux2(i,j,n) - flux2(i,j+1,n) ) / vol(i,j) 
-                end if
              enddo
           enddo
        end if
     enddo
 
-    ! Add gradp term to momentum equation
-    do j = lo(2),hi(2)
-       do i = lo(1),hi(1)
-!         uout(i,j,UMX) = uout(i,j,UMX)+ HALF*(area1(i,j)+area1(i+1,j))* &
-!            dt * ( pgdx(i,j)-pgdx(i+1,j) )/vol(i,j)
-!         uout(i,j,UMY) = uout(i,j,UMY)+ HALF*(area2(i,j)+area2(i,j+1))* &
-!            dt * ( pgdy(i,j)-pgdy(i,j+1) )/vol(i,j)
+    ! Add up some diagnostic quantities. Note that these are volumetric sums
+    ! so we are not dividing by the cell volume.
+                   
+    if (verbose .eq. 1) then
 
-          uout(i,j,UMX) = uout(i,j,UMX) - dt * (pgdx(i+1,j)-pgdx(i,j))/ dx
-          uout(i,j,UMY) = uout(i,j,UMY) - dt * (pgdy(i,j+1)-pgdy(i,j))/ dy
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             xmom_added_flux = xmom_added_flux + dt * ( flux1(i,j,UMX) - flux1(i+1,j,UMX) + &
+                                                        flux2(i,j,UMX) - flux2(i,j+1,UMX) )
+
+             ymom_added_flux = ymom_added_flux + dt * ( flux1(i,j,UMY) - flux1(i+1,j,UMY) + &
+                                                        flux2(i,j,UMY) - flux2(i,j+1,UMY) )
+
+             zmom_added_flux = zmom_added_flux + dt * ( flux1(i,j,UMZ) - flux1(i+1,j,UMZ) + &
+                                                        flux2(i,j,UMZ) - flux2(i,j+1,UMZ) )
+
+             E_added_flux = E_added_flux + dt * ( flux1(i,j,UEDEN) - flux1(i+1,j,UEDEN) + &
+                                                  flux2(i,j,UEDEN) - flux2(i,j+1,UEDEN) )
+
+          enddo
        enddo
-    enddo
+
+    endif
+
+
+    ! Add gradp term to momentum equation -- only for axisymmetric
+    ! coords (and only for the radial flux)
+    if (coord_type == 1) then
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+             uout(i,j,UMX) = uout(i,j,UMX) - dt * (q1(i+1,j,GDPRES) - q1(i,j,GDPRES))/ dx
+             !uout(i,j,UMY) = uout(i,j,UMY) - dt * (pgdy(i,j+1)-pgdy(i,j))/ dy
+          enddo
+       enddo
+    endif
 
     ! scale the fluxes (and correct the momentum flux with the grad p part)
     ! so we can use them in the flux correction at coarse-fine interfaces
     ! later.
-    do j = lo(2),hi(2)
-       do i = lo(1),hi(1)+1
+    do j = lo(2), hi(2)
+       do i = lo(1), hi(1)+1
           flux1(i,j,1:NVAR) = dt * flux1(i,j,1:NVAR)
-          flux1(i,j,   UMX) = flux1(i,j,UMX) + dt*area1(i,j)*pgdx(i,j)
+          if (coord_type == 1) then
+             flux1(i,j,UMX) = flux1(i,j,UMX) + dt*area1(i,j)*q1(i,j,GDPRES)
+          endif
        enddo
     enddo
     
-    do j = lo(2),hi(2)+1 
-       do i = lo(1),hi(1)
+    do j = lo(2), hi(2)+1 
+       do i = lo(1), hi(1)
           flux2(i,j,1:NVAR) = dt * flux2(i,j,1:NVAR)
-          flux2(i,j,UMY) = flux2(i,j,UMY) + dt*area2(i,j)*pgdy(i,j)
+          !flux2(i,j,UMY) = flux2(i,j,UMY) + dt*area2(i,j)*pgdy(i,j)
        enddo
     enddo
     
   end subroutine consup
 
-! ::: 
-! ::: ------------------------------------------------------------------
-! ::: 
-
-  subroutine divu(lo,hi,q,q_l1,q_l2,q_h1,q_h2,dx, &
-                  div,div_l1,div_l2,div_h1,div_h2)
-
-    use prob_params_module, only : coord_type
-    use meth_params_module, only : QU, QV
-    use bl_constants_module
-    
-    implicit none
-    
-    integer          :: lo(2),hi(2)
-    integer          :: q_l1,q_l2,q_h1,q_h2
-    integer          :: div_l1,div_l2,div_h1,div_h2
-    double precision :: q(q_l1:q_h1,q_l2:q_h2,*)
-    double precision :: div(div_l1:div_h1,div_l2:div_h2)
-    double precision :: dx(2)
-    
-    integer          :: i, j
-    double precision :: rl, rr, rc, ul, ur
-    double precision :: vb, vt
-    double precision :: ux,vy
-    
-    if (coord_type .eq. 0) then
-       do j=lo(2),hi(2)+1
-          do i=lo(1),hi(1)+1
-             ux = HALF*(q(i,j,QU)-q(i-1,j,QU)+q(i,j-1,QU)-q(i-1,j-1,QU))/dx(1)
-             vy = HALF*(q(i,j,QV)-q(i,j-1,QV)+q(i-1,j,QV)-q(i-1,j-1,QV))/dx(2)
-             div(i,j) = ux + vy
-          enddo
-       enddo
-    else
-       do i=lo(1),hi(1)+1
-          
-          if (i.eq.0) then
-             
-             div(i,lo(2):hi(2)+1) = ZERO
-             
-          else 
-
-             rl = (dble(i)-HALF) * dx(1)
-             rr = (dble(i)+HALF) * dx(1)
-             rc = (dble(i)     ) * dx(1)
-             
-             do j=lo(2),hi(2)+1
-                ! These are transverse averages in the y-direction
-                ul = HALF * (q(i-1,j,QU)+q(i-1,j-1,QU))
-                ur = HALF * (q(i  ,j,QU)+q(i  ,j-1,QU))
-                
-                ! Take 1/r d/dr(r*u)
-                div(i,j) = (rr*ur - rl*ul) / dx(1) / rc
-                
-                ! These are transverse averages in the x-direction
-                vb = HALF * (q(i,j-1,QV)+q(i-1,j-1,QV))
-                vt = HALF * (q(i,j  ,QV)+q(i-1,j  ,QV))
-                
-                div(i,j) = div(i,j) + (vt - vb) / dx(2)
-             enddo
-             
-          end if
-       enddo
-    end if
-
-  end subroutine divu
-
-! ::
-! :: ----------------------------------------------------------
-! ::
-
-  subroutine normalize_species_fluxes(  &
-                    flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
-                    flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
-                    lo,hi)
-
-    use network, only : nspec
-    use meth_params_module, only : NVAR, URHO, UFS
-    use bl_constants_module
-    
-    implicit none
-
-    integer          :: lo(2),hi(2)
-    integer          :: flux1_l1,flux1_l2,flux1_h1,flux1_h2
-    integer          :: flux2_l1,flux2_l2,flux2_h1,flux2_h2
-    double precision :: flux1(flux1_l1:flux1_h1,flux1_l2:flux1_h2,NVAR)
-    double precision :: flux2(flux2_l1:flux2_h1,flux2_l2:flux2_h2,NVAR)
-    
-    ! Local variables
-    integer          :: i,j,n
-    double precision :: sum,fac
-    
-    do j = lo(2),hi(2)
-       do i = lo(1),hi(1)+1
-          sum = ZERO
-          do n = UFS, UFS+nspec-1
-             sum = sum + flux1(i,j,n)
-          end do
-          if (sum .ne. ZERO) then
-             fac = flux1(i,j,URHO) / sum
-          else
-             fac = ONE
-          end if
-          do n = UFS, UFS+nspec-1
-             flux1(i,j,n) = flux1(i,j,n) * fac
-          end do
-       end do
-    end do
-    do j = lo(2),hi(2)+1
-       do i = lo(1),hi(1)
-          sum = ZERO
-          do n = UFS, UFS+nspec-1
-             sum = sum + flux2(i,j,n)
-          end do
-          if (sum .ne. ZERO) then
-             fac = flux2(i,j,URHO) / sum
-          else
-             fac = ONE
-          end if
-          do n = UFS, UFS+nspec-1
-             flux2(i,j,n) = flux2(i,j,n) * fac
-          end do
-       end do
-    end do
-    
-  end subroutine normalize_species_fluxes
-
-! ::: 
-! ::: ------------------------------------------------------------------
-! ::: 
-
-  subroutine enforce_minimum_density( uin,  uin_l1, uin_l2, uin_h1, uin_h2, &
-                                      uout,uout_l1,uout_l2,uout_h1,uout_h2, &
-                                      lo, hi, mass_added, eint_added, eden_added, verbose)
-    use network, only : nspec, naux
-    use meth_params_module, only : NVAR, URHO, UMX, UMY, UEINT, UEDEN, UTEMP, &
-                                   UFS, small_dens, smalL_temp, npassive, upass_map
-    use bl_constants_module
-    use eos_type_module, only : eos_t
-    use eos_module, only : eos_input_rt, eos
-
-    implicit none
-
-    integer          :: lo(2), hi(2), verbose
-    integer          :: uin_l1,uin_l2,uin_h1,uin_h2
-    integer          :: uout_l1,uout_l2,uout_h1,uout_h2
-    double precision :: uin(uin_l1:uin_h1,uin_l2:uin_h2,NVAR)
-    double precision :: uout(uout_l1:uout_h1,uout_l2:uout_h2,NVAR)
-    double precision :: mass_added, eint_added, eden_added
-    
-    ! Local variables
-    integer                       :: i,ii,j,jj,n,ipassive
-    double precision              :: max_dens
-    integer                       :: i_set, j_set
-    double precision              :: initial_mass, final_mass
-    double precision              :: initial_eint, final_eint
-    double precision              :: initial_eden, final_eden
-
-    type (eos_t) :: eos_state
-    
-    initial_mass = ZERO
-    final_mass = ZERO
-    initial_eint = ZERO
-    final_eint = ZERO
-    initial_eden = ZERO
-    final_eden = ZERO
-
-    max_dens = ZERO
-    
-    do j = lo(2),hi(2)
-       do i = lo(1),hi(1)
-
-          initial_mass = initial_mass + uout(i,j,URHO)
-          initial_eint = initial_eint + uout(i,j,UEINT)
-          initial_eden = initial_eden + uout(i,j,UEDEN)
-          
-          if (uout(i,j,URHO) .eq. ZERO) then
-             
-             print *,'   '
-             print *,'>>> Error: Castro_2d::enforce_minimum_density ',i,j
-             print *,'>>> ... density exactly zero in grid ',lo(1),hi(1),lo(2),hi(2)
-             print *,'    '
-             call bl_error("Error:: Castro_2d.f90 :: enforce_minimum_density")
-             
-          else if (uout(i,j,URHO) < small_dens) then
-             
-             max_dens = uout(i,j,URHO)
-             do jj = -1,1
-                do ii = -1,1
-                   if (i+ii.ge.lo(1) .and. j+jj.ge.lo(2) .and. &
-                       i+ii.le.hi(1) .and. j+jj.le.hi(2)) then
-                        if (uout(i+ii,j+jj,URHO) > max_dens) then
-                           i_set = i+ii
-                           j_set = j+jj
-                           max_dens = uout(i_set,j_set,URHO)
-                        endif
-                   endif
-                end do
-             end do
-
-             ! If no neighboring zones are above small_dens, our only recourse 
-             ! is to set the density equal to small_dens, and the temperature 
-             ! equal to small_temp. We set the velocities to zero, 
-             ! though any choice here would be arbitrary.
-
-             if (max_dens < small_dens) then
-
-                do ipassive = 1, npassive
-                   n = upass_map(ipassive)
-                   uout(i,j,n) = uout(i_set,j_set,n) * (small_dens / uout(i,j,URHO))
-                end do
-
-                eos_state % rho = small_dens
-                eos_state % T   = small_temp
-                eos_state % xn  = uout(i,j,UFS:UFS+nspec-1) / uout(i,j,URHO)
-
-                call eos(eos_input_rt, eos_state)
-
-                uout(i,j,URHO ) = eos_state % rho
-                uout(i,j,UTEMP) = eos_state % T
-
-                uout(i,j,UMX  ) = ZERO
-                uout(i,j,UMY  ) = ZERO
-
-                uout(i,j,UEINT) = eos_state % rho * eos_state % e
-                uout(i,j,UEDEN) = uout(i,j,UEINT)
-
-             endif
-             
-             if (verbose .gt. 0) then
-                if (uout(i,j,URHO) < ZERO) then
-                   print *,'   '
-                   print *,'>>> Warning: Castro_2d::enforce_minimum_density ',i,j
-                   print *,'>>> ... resetting negative density '
-                   print *,'>>> ... from ',uout(i,j,URHO),' to ',uout(i_set,j_set,URHO)
-                   print *,'    '
-                else
-                   print *,'   '
-                   print *,'>>> Warning: Castro_2d::enforce_minimum_density ',i,j
-                   print *,'>>> ... resetting small density '
-                   print *,'>>> ... from ',uout(i,j,URHO),' to ',uout(i_set,j_set,URHO)
-                   print *,'    '
-                end if
-             end if
-
-             uout(i,j,URHO ) = uout(i_set,j_set,URHO )
-             uout(i,j,UTEMP) = uout(i_set,j_set,UTEMP)
-             uout(i,j,UEINT) = uout(i_set,j_set,UEINT)
-             uout(i,j,UEDEN) = uout(i_set,j_set,UEDEN)
-             uout(i,j,UMX  ) = uout(i_set,j_set,UMX  )
-             uout(i,j,UMY  ) = uout(i_set,j_set,UMY  )
-
-             do ipassive = 1, npassive
-                n = upass_map(ipassive)
-                uout(i,j,n) = uout(i_set,j_set,n)
-             end do
-             
-          end if
-
-          final_mass = final_mass + uout(i,j,URHO )
-          final_eint = final_eint + uout(i,j,UEINT)
-          final_eden = final_eden + uout(i,j,UEDEN)                
-          
-       enddo
-    enddo
-
-    if (max_dens /= ZERO) then
-    
-       mass_added = mass_added + (final_mass - initial_mass)
-       eint_added = eint_added + (final_eint - initial_eint)
-       eden_added = eden_added + (final_eden - initial_eden)
-
-    endif
-    
-  end subroutine enforce_minimum_density
-
-! :::
-! ::: ------------------------------------------------------------------
-! :::
-
-  subroutine normalize_new_species(u,u_l1,u_l2,u_h1,u_h2,lo,hi)
-
-    use network, only : nspec
-    use meth_params_module, only : NVAR, URHO, UFS
-    use bl_constants_module
-    
-    implicit none
-
-    integer          :: lo(2), hi(2)
-    integer          :: u_l1,u_l2,u_h1,u_h2
-    double precision :: u(u_l1:u_h1,u_l2:u_h2,NVAR)
-    
-    ! Local variables
-    integer          :: i,j,n
-    double precision :: fac,sum
-    
-    do j = lo(2),hi(2)
-       do i = lo(1),hi(1)
-          sum = ZERO
-          do n = UFS, UFS+nspec-1
-             sum = sum + u(i,j,n)
-          end do
-          if (sum .ne. ZERO) then
-             fac = u(i,j,URHO) / sum
-          else
-             fac = ONE
-          end if
-          do n = UFS, UFS+nspec-1
-             u(i,j,n) = u(i,j,n) * fac
-          end do
-       end do
-    end do
-    
-  end subroutine normalize_new_species
-  
 end module advection_module

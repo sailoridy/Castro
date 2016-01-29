@@ -12,8 +12,8 @@ contains
 ! ::: ------------------------------------------------------------------
 ! ::: 
 
-      subroutine uslope(q,flatn,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                        dqx,dqy,dqz,qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3, &
+      subroutine uslope(q,flatn,qd_lo,qd_hi, &
+                        dqx,dqy,dqz,qpd_lo,qpd_hi, &
                         ilo1,ilo2,ihi1,ihi2,kc,k3d,nv)
 
       !$acc routine vector
@@ -24,16 +24,15 @@ contains
 
       implicit none
 
-      integer ilo,ihi
-      integer qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3
-      integer qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3
-      integer ilo1,ilo2,ihi1,ihi2,kc,k3d,nv
+      integer          :: qd_lo(3), qd_hi(3)
+      integer          :: qpd_lo(3),qpd_hi(3)
+      integer          :: ilo1, ilo2, ihi1, ihi2, kc, k3d, nv
 
-      double precision q(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,nv)
-      double precision flatn(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3)
-      double precision dqx(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,nv)
-      double precision dqy(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,nv)
-      double precision dqz(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,nv)
+      double precision :: q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),nv)
+      double precision :: flatn(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
+      double precision :: dqx(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),nv)
+      double precision :: dqy(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),nv)
+      double precision :: dqz(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),nv)
 
       integer i, j, k, n
 
@@ -195,36 +194,37 @@ contains
 ! ::: ------------------------------------------------------------------
 ! ::: 
 
-      subroutine pslope(p,rho,flatn,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                        dpx,dpy,dpz,qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3, &
-                        src,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
-                        ilo1,ilo2,ihi1,ihi2,kc,k3d,dx,dy,dz)
+      subroutine pslope(p,rho,flatn,qd_lo,qd_hi, &
+                        dpx,dpy,dpz,qpd_lo,qpd_hi, &
+                        src,src_lo,src_hi, &
+                        ilo1,ilo2,ihi1,ihi2,kc,k3d,dx)
 
         !$acc routine vector
-        
+
         use mempool_module, only : bl_allocate, bl_deallocate
         use meth_params_module
         use bl_constants_module
 
         implicit none
 
-        integer ilo,ihi
-        integer qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3
-        integer qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3
-        integer src_l1,src_l2,src_l3,src_h1,src_h2,src_h3
-        integer ilo1,ilo2,ihi1,ihi2,kc,k3d
+        integer          :: qd_lo(3), qd_hi(3)
+        integer          :: qpd_lo(3),qpd_hi(3)
+        integer          :: src_lo(3),src_hi(3)
+        integer          :: ilo1, ilo2, ihi1, ihi2, kc, k3d
 
-        double precision p  (qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3)
-        double precision rho(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3)
-        double precision flatn(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3)
-        double precision dpx(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3)
-        double precision dpy(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3)
-        double precision dpz(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3)
-        double precision src(src_l1:src_h1,src_l2:src_h2,src_l3:src_h3,QVAR)
-        double precision dx,dy,dz
+        double precision :: p  (qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
+        double precision :: rho(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
+        double precision :: flatn(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
+        double precision :: dpx(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3))
+        double precision :: dpy(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3))
+        double precision :: dpz(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3))
+        double precision :: src(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
+        double precision :: dx(3)
 
         integer i, j, k
 
+        integer ilo,ihi        
+        
         double precision dlft, drgt, dp1
         double precision dm, dp, dc, dl, dfm, dfp, ds
 
@@ -270,9 +270,9 @@ contains
 
                  ! Subtract off (rho * acceleration) so as not to limit that part of the slope
                  dlft = dlft - FOURTH * &
-                      (rho(i,j,k3d)+rho(i-1,j,k3d))*(src(i,j,k3d,QU)+src(i-1,j,k3d,QU))*dx
+                      (rho(i,j,k3d)+rho(i-1,j,k3d))*(src(i,j,k3d,QU)+src(i-1,j,k3d,QU))*dx(1)
                  drgt = drgt - FOURTH * &
-                      (rho(i,j,k3d)+rho(i+1,j,k3d))*(src(i,j,k3d,QU)+src(i+1,j,k3d,QU))*dx
+                      (rho(i,j,k3d)+rho(i+1,j,k3d))*(src(i,j,k3d,QU)+src(i+1,j,k3d,QU))*dx(1)
 
                  dcen(i,j) = HALF*(dlft+drgt)
                  dsgn(i,j) = sign(ONE, dcen(i,j))
@@ -288,7 +288,7 @@ contains
               do i = ilo1-1, ihi1+1
                  dp1         = FOUR3RD*dcen(i,j) - SIXTH*(df(i+1,j) + df(i-1,j))
                  dpx(i,j,kc) = flatn(i,j,k3d)*dsgn(i,j)*min(dlim(i,j),abs(dp1))
-                 dpx(i,j,kc) = dpx(i,j,kc) + rho(i,j,k3d)*src(i,j,k3d,QU)*dx
+                 dpx(i,j,kc) = dpx(i,j,kc) + rho(i,j,k3d)*src(i,j,k3d,QU)*dx(1)
               enddo
            enddo
            !$acc end loop
@@ -304,9 +304,9 @@ contains
 
                  ! Subtract off (rho * acceleration) so as not to limit that part of the slope
                  dlft = dlft - FOURTH * &
-                      (rho(i,j,k3d)+rho(i,j-1,k3d))*(src(i,j,k3d,QV)+src(i,j-1,k3d,QV))*dy
+                      (rho(i,j,k3d)+rho(i,j-1,k3d))*(src(i,j,k3d,QV)+src(i,j-1,k3d,QV))*dx(2)
                  drgt = drgt - FOURTH * &
-                      (rho(i,j,k3d)+rho(i,j+1,k3d))*(src(i,j,k3d,QV)+src(i,j+1,k3d,QV))*dy
+                      (rho(i,j,k3d)+rho(i,j+1,k3d))*(src(i,j,k3d,QV)+src(i,j+1,k3d,QV))*dx(2)
 
                  dcen(i,j) = HALF*(dlft+drgt)
                  dsgn(i,j) = sign( ONE, dcen(i,j) )
@@ -322,7 +322,7 @@ contains
               do j = ilo2-1, ihi2+1
                  dp1 = FOUR3RD*dcen(i,j) - SIXTH*( df(i,j+1) + df(i,j-1) )
                  dpy(i,j,kc) = flatn(i,j,k3d)*dsgn(i,j)*min(dlim(i,j),abs(dp1))
-                 dpy(i,j,kc) = dpy(i,j,kc) + rho(i,j,k3d)*src(i,j,k3d,QV)*dy
+                 dpy(i,j,kc) = dpy(i,j,kc) + rho(i,j,k3d)*src(i,j,k3d,QV)*dx(2)
               enddo
            enddo
            !$acc end loop
@@ -337,9 +337,9 @@ contains
                  dm = p(i,j,k  ) - p(i,j,k-1)
                  dp = p(i,j,k+1) - p(i,j,k  )
                  dm = dm - FOURTH * (rho(i,j,k)+rho(i,j,k-1))* &
-                      (src(i,j,k,QW)+src(i,j,k-1,QW))*dz
+                      (src(i,j,k,QW)+src(i,j,k-1,QW))*dx(3)
                  dp = dp - FOURTH * (rho(i,j,k)+rho(i,j,k+1))* &
-                      (src(i,j,k,QW)+src(i,j,k+1,QW))*dz
+                      (src(i,j,k,QW)+src(i,j,k+1,QW))*dx(3)
                  dc = HALF*(dm+dp)
                  ds = sign( ONE, dc )
                  if (dm*dp .ge. ZERO) then
@@ -354,9 +354,9 @@ contains
                  dm = p(i,j,k  ) - p(i,j,k-1)
                  dp = p(i,j,k+1) - p(i,j,k  )
                  dm = dm - FOURTH * (rho(i,j,k)+rho(i,j,k-1))* &
-                      (src(i,j,k,QW)+src(i,j,k-1,QW))*dz
+                      (src(i,j,k,QW)+src(i,j,k-1,QW))*dx(3)
                  dp = dp - FOURTH * (rho(i,j,k)+rho(i,j,k+1))* &
-                      (src(i,j,k,QW)+src(i,j,k+1,QW))*dz
+                      (src(i,j,k,QW)+src(i,j,k+1,QW))*dx(3)
                  dc = HALF*(dm+dp)
                  ds = sign( ONE, dc )
                  if (dm*dp .ge. ZERO) then
@@ -371,9 +371,9 @@ contains
                  dm = p(i,j,k  ) - p(i,j,k-1)
                  dp = p(i,j,k+1) - p(i,j,k  )
                  dm = dm - FOURTH * (rho(i,j,k)+rho(i,j,k-1))* &
-                      (src(i,j,k,QW)+src(i,j,k-1,QW))*dz
+                      (src(i,j,k,QW)+src(i,j,k-1,QW))*dx(3)
                  dp = dp - FOURTH * (rho(i,j,k)+rho(i,j,k+1))* &
-                      (src(i,j,k,QW)+src(i,j,k+1,QW))*dz
+                      (src(i,j,k,QW)+src(i,j,k+1,QW))*dx(3)
                  dc = HALF*(dm+dp)
                  ds = sign( ONE, dc )
                  if (dm*dp .ge. ZERO) then
@@ -385,7 +385,7 @@ contains
                  ! now limited fourth order slopes
                  dp1 = FOUR3RD*dc - SIXTH*( dfp + dfm )
                  dpz(i,j,kc) = flatn(i,j,k3d)*ds*min(dl,abs(dp1))
-                 dpz(i,j,kc) = dpz(i,j,kc) + rho(i,j,k3d)*src(i,j,k3d,QW)*dz
+                 dpz(i,j,kc) = dpz(i,j,kc) + rho(i,j,k3d)*src(i,j,k3d,QW)*dx(3)
               enddo
            enddo
            !$acc end loop

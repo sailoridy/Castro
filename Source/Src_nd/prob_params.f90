@@ -9,7 +9,7 @@ module prob_params_module
   ! boundary condition information
   integer, save :: physbc_lo(3)
   integer, save :: physbc_hi(3)
-  integer, save :: Outflow, Symmetry, SlipWall, NoSlipWall
+  integer, save :: Interior, Inflow, Outflow, Symmetry, SlipWall, NoSlipWall
 
   ! geometry information
   integer         , save :: coord_type
@@ -22,7 +22,13 @@ module prob_params_module
   ! to ensure we don't illegally access non-existent ghost cells
   integer         , save :: dg(3)
 
+  ! grid information
+  integer         , save              :: max_level
+  double precision, save, allocatable :: dx_level(:,:)
+  integer         , save, allocatable :: domlo_level(:,:)
+  integer         , save, allocatable :: domhi_level(:,:)
+
   !$acc declare create(physbc_lo, physbc_hi, Outflow, Symmetry, SlipWall, NoSlipWall) &
   !$acc create(coord_type, center, problo, probhi, dim, dg)
-  
+
 end module prob_params_module

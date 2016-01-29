@@ -2,7 +2,10 @@
 #define _Castro_error_F_H_
 #include <BLFort.H>
 
-BL_FORT_PROC_DECL(CA_LAPLAC_ERROR,ca_laplac_error)
+extern "C"
+{
+
+  void ca_laplac_error
     (int* tag, const int* tag_lo, const int* tag_hi,
      const int* tagval, const int* clearval,
      BL_FORT_FAB_ARG_3D(var),
@@ -12,7 +15,7 @@ BL_FORT_PROC_DECL(CA_LAPLAC_ERROR,ca_laplac_error)
      const Real* dx, const Real* xlo, const Real* problo,
      const Real* time, const int* level);
 
-BL_FORT_PROC_DECL(CA_DENERROR,ca_denerror)
+  void ca_denerror
     (int* tag, const int* tag_lo, const int* tag_hi,
      const int* tagval, const int* clearval,
      BL_FORT_FAB_ARG_3D(den),
@@ -22,7 +25,7 @@ BL_FORT_PROC_DECL(CA_DENERROR,ca_denerror)
      const Real* dx, const Real* xlo, const Real* problo,
      const Real* time, const int* level);
 
-BL_FORT_PROC_DECL(CA_VELERROR,ca_velerror)
+  void ca_velerror
     (int* tag, const int* tag_lo, const int* tag_hi,
      const int* tagval, const int* clearval,
      BL_FORT_FAB_ARG_3D(vel),
@@ -32,7 +35,7 @@ BL_FORT_PROC_DECL(CA_VELERROR,ca_velerror)
      const Real* dx, const Real* xlo, const Real* problo,
      const Real* time, const int* level);
 
-BL_FORT_PROC_DECL(CA_VORTERROR,ca_vorterror)
+  void ca_vorterror
     (int* tag, const int* tag_lo, const int* tag_hi,
      const int* tagval, const int* clearval,
      BL_FORT_FAB_ARG_3D(vel),
@@ -42,7 +45,7 @@ BL_FORT_PROC_DECL(CA_VORTERROR,ca_vorterror)
      const Real* dx, const Real* xlo, const Real* problo,
      const Real* time, const int* level);
 
-BL_FORT_PROC_DECL(CA_TEMPERROR,ca_temperror)
+  void ca_temperror
     (int* tag, const int* tag_lo, const int* tag_hi,
      const int* tagval, const int* clearval,
      BL_FORT_FAB_ARG_3D(temp),
@@ -52,7 +55,7 @@ BL_FORT_PROC_DECL(CA_TEMPERROR,ca_temperror)
      const Real* dx, const Real* xlo, const Real* problo,
      const Real* time, const int* level);
 
-BL_FORT_PROC_DECL(CA_PRESSERROR,ca_presserror)
+  void ca_presserror
     (int* tag, const int* tag_lo, const int* tag_hi,
      const int* tagval, const int* clearval,
      BL_FORT_FAB_ARG_3D(press),
@@ -62,20 +65,18 @@ BL_FORT_PROC_DECL(CA_PRESSERROR,ca_presserror)
      const Real* dx, const Real* xlo, const Real* problo,
      const Real* time, const int* level);
 
-#ifdef PARTICLES
-BL_FORT_PROC_DECL(CA_PART_CNT_ERR,ca_part_cnt_err)
+  void ca_nucerror
     (int* tag, const int* tag_lo, const int* tag_hi,
      const int* tagval, const int* clearval,
-     BL_FORT_FAB_ARG_3D(ls),
+     BL_FORT_FAB_ARG_3D(state),
      const int* lo, const int* hi,
      const int* ncomp,
      const int* domlo, const int* domhi,
      const Real* dx, const Real* xlo, const Real* problo,
      const Real* time, const int* level);
-#endif
 
 #ifdef LEVELSET
-BL_FORT_PROC_DECL(CA_LSERROR,ca_lserror)
+  void ca_lserror
     (int* tag, const int* tag_lo, const int* tag_hi,
      const int* tagval, const int* clearval,
      BL_FORT_FAB_ARG_3D(ls),
@@ -86,7 +87,7 @@ BL_FORT_PROC_DECL(CA_LSERROR,ca_lserror)
      const Real* time, const int* level);
 #endif
 
-BL_FORT_PROC_DECL(CA_MFRACERROR,ca_mfracerror)
+  void ca_mfracerror
     (int* tag, const int* tag_lo, const int* tag_hi,
      const int* tagval, const int* clearval,
      BL_FORT_FAB_ARG_3D(press),
@@ -97,7 +98,7 @@ BL_FORT_PROC_DECL(CA_MFRACERROR,ca_mfracerror)
      const Real* time, const int* level);
 
 #ifdef NEUTRINO
-BL_FORT_PROC_DECL(CA_YEERROR,ca_yeerror)
+  void ca_yeerror
     (int* tag, const int* tag_lo, const int* tag_hi,
      const int* tagval, const int* clearval,
      BL_FORT_FAB_ARG_3D(Ye),
@@ -109,7 +110,7 @@ BL_FORT_PROC_DECL(CA_YEERROR,ca_yeerror)
 #endif
 
 #ifdef GRAVITY
-BL_FORT_PROC_DECL(CA_GRAVERROR,ca_graverror)
+  void ca_graverror
     (int* tag, const int* tag_lo, const int* tag_hi,
      const int* tagval, const int* clearval,
      BL_FORT_FAB_ARG_3D(grav),
@@ -120,7 +121,8 @@ BL_FORT_PROC_DECL(CA_GRAVERROR,ca_graverror)
      const Real* time, const int* level);
 #endif
 
-BL_FORT_PROC_DECL(CA_RADERROR,ca_raderror)
+#ifdef RADIATION
+  void ca_raderror
     (int* tag, const int* tag_lo, const int* tag_hi,
      const int* tagval, const int* clearval,
      BL_FORT_FAB_ARG_3D(rad),
@@ -129,8 +131,9 @@ BL_FORT_PROC_DECL(CA_RADERROR,ca_raderror)
      const int* domlo, const int* domhi,
      const Real* dx, const Real* xlo, const Real* problo,
      const Real* time, const int* level);
-
-BL_FORT_PROC_DECL(CA_ENTERROR,ca_enterror)
+#endif
+  
+  void ca_enterror
     (int* tag, const int* tag_lo, const int* tag_hi,
      const int* tagval, const int* clearval,
      BL_FORT_FAB_ARG_3D(den),
@@ -140,7 +143,7 @@ BL_FORT_PROC_DECL(CA_ENTERROR,ca_enterror)
      const Real* dx, const Real* xlo, const Real* problo,
      const Real* time, const int* level);
 
-BL_FORT_PROC_DECL(CA_STATE_ERROR,ca_state_error)
+  void ca_state_error
     (int* tag, const int* tag_lo, const int* tag_hi,
      const int* tagval, const int* clearval,
      BL_FORT_FAB_ARG_3D(state),
@@ -151,7 +154,7 @@ BL_FORT_PROC_DECL(CA_STATE_ERROR,ca_state_error)
      const Real* time, const int* level);
 
 #ifdef DIMENSION_AGNOSTIC
-BL_FORT_PROC_DECL(SET_PROBLEM_TAGS,set_problem_tags)
+  void set_problem_tags
     (int* tag, const int* tag_lo, const int* tag_hi,
      BL_FORT_FAB_ARG_3D(state),
      const int* tagval, const int* clearval,
@@ -159,7 +162,7 @@ BL_FORT_PROC_DECL(SET_PROBLEM_TAGS,set_problem_tags)
      const Real* dx, const Real* problo,
      const Real* time, const int* level);
 #else
-BL_FORT_PROC_DECL(SET_PROBLEM_TAGS,set_problem_tags)
+  void set_problem_tags
     (int* tag, ARLIM_P(tag_lo), ARLIM_P(tag_hi),
      BL_FORT_FAB_ARG(state),
      const int* tagval, const int* clearval,
@@ -167,4 +170,7 @@ BL_FORT_PROC_DECL(SET_PROBLEM_TAGS,set_problem_tags)
      const Real dx[], const Real problo[],
      const Real* time, const int* level);
 #endif
+
+}
+
 #endif

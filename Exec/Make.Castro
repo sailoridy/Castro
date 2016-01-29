@@ -158,6 +158,14 @@ include $(NETWORK_PATH)/Make.package
 EXTERN_CORE += $(NETWORK_HOME)
 EXTERN_CORE += $(NETWORK_PATH)
 
+# Note that this should be located after the include of the EOS and Network includes
+# since it has actions that depend on variables set there.
+
+ifdef MICROPHYSICS_DIR
+  include $(MICROPHYSICS_DIR)/eos/Make.package
+  include $(MICROPHYSICS_DIR)/networks/Make.package
+endif
+
 ifeq ($(USE_DIFFUSION), TRUE)
   include $(COND_PATH)/Make.package
   EXTERN_CORE += $(COND_PATH)
@@ -324,7 +332,7 @@ vpath %.cpp . $(VPATH_LOCATIONS)
 vpath %.h   . $(VPATH_LOCATIONS)
 vpath %.H   . $(VPATH_LOCATIONS)
 vpath %.F   . $(VPATH_LOCATIONS)
-vpath %.f90 . $(VPATH_LOCATIONS)
+vpath %.f90 . $(VPATH_LOCATIONS) 
 vpath %.F90 . $(VPATH_LOCATIONS)
 vpath %.f   . $(VPATH_LOCATIONS)
 vpath %.fi  . $(VPATH_LOCATIONS)

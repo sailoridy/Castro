@@ -5,8 +5,19 @@ module burner_module
   use network
   use eos_module
   use actual_burner_module
+  use meth_params_module, only: react_T_min, react_T_max
 
 contains
+
+  subroutine burner_init() bind(C)
+
+    implicit none
+
+    call actual_burner_init()
+
+  end subroutine burner_init
+
+
 
   subroutine burner(state_in, state_out, dt, time)
 
@@ -17,9 +28,9 @@ contains
     double precision, intent(in) :: dt, time
 
     ! Make sure the network has been initialized.
-    
+
     if (.NOT. network_initialized) then
-       call bl_error("ERROR in burner: must initialize network first.")
+!       call bl_error("ERROR in burner: must initialize network first.")
     endif
 
     ! We assume that the valid quantities coming in are (rho, e); do an EOS call
@@ -32,16 +43,15 @@ contains
     state_out = state_in
 
     ! Do the burning.
-    
-    call actual_burner(state_in, state_out, dt, time)
 
-    ! Normalize the mass fractions: they must be individually positive and less than one,
-    ! and they must all sum to unity.
+    if (state_in % T > react_T_min .and. state_in % T < react_T_max) then
+       call actual_burner(state_in, state_out, dt, time)
+    endif
 
-    state_out % xn(:) = max(smallx, min(ONE, state_out % xn(:)))
+    ! Normalize the mass fractions to unity.
 
-    state_out % xn(:) = state_out % xn(:) / sum(state_out % xn(:))
-       
+    call normalize_abundances(state_out)
+
     ! Now update the temperature to match the new internal energy.
 
     call eos(eos_input_re, state_out)

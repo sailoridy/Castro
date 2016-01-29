@@ -1,11 +1,11 @@
 module eos_type_module
-  
+
   use bl_types
   use network
   use eos_data_module
   use mempool_module
   use bl_constants_module
-  
+
   implicit none
 
   ! A generic structure holding thermodynamic quantities and their derivatives,
@@ -62,49 +62,50 @@ module eos_type_module
     double precision :: e           = init_num
     double precision :: h           = init_num
     double precision :: s           = init_num
-    double precision :: dpdT
-    double precision :: dpdr
-    double precision :: dedT
-    double precision :: dedr
-    double precision :: dhdT
-    double precision :: dhdr
-    double precision :: dsdT
-    double precision :: dsdr
-    double precision :: dpde
-    double precision :: dpdr_e
+    double precision :: dpdT        = init_num
+    double precision :: dpdr        = init_num
+    double precision :: dedT        = init_num
+    double precision :: dedr        = init_num
+    double precision :: dhdT        = init_num
+    double precision :: dhdr        = init_num
+    double precision :: dsdT        = init_num
+    double precision :: dsdr        = init_num
+    double precision :: dpde        = init_num
+    double precision :: dpdr_e      = init_num
 
     double precision :: xn(nspec)   = init_num
     double precision :: aux(naux)   = init_num
-    double precision :: cv
-    double precision :: cp
-    double precision :: xne
-    double precision :: xnp
-    double precision :: eta
-    double precision :: pele
-    double precision :: ppos
-    double precision :: mu
-    double precision :: mu_e
-    double precision :: y_e
-    double precision :: dedX(nspec)
-    double precision :: dpdX(nspec)
-    double precision :: dhdX(nspec)
-    double precision :: gam1
-    double precision :: cs
+    double precision :: cv          = init_num
+    double precision :: cp          = init_num
+    double precision :: xne         = init_num
+    double precision :: xnp         = init_num
+    double precision :: eta         = init_num
+    double precision :: pele        = init_num
+    double precision :: ppos        = init_num
+    double precision :: mu          = init_num
+    double precision :: mu_e        = init_num
+    double precision :: y_e         = init_num
+    double precision :: dedX(nspec) = init_num
+    double precision :: dpdX(nspec) = init_num
+    double precision :: dhdX(nspec) = init_num
+    double precision :: gam1        = init_num
+    double precision :: cs          = init_num
 
-    double precision :: abar
-    double precision :: zbar
-    double precision :: dpdA
+    double precision :: abar        = init_num
+    double precision :: zbar        = init_num
+    double precision :: dpdA        = init_num
 
-    double precision :: dpdZ
-    double precision :: dedA
-    double precision :: dedZ
+    double precision :: dpdZ        = init_num
+    double precision :: dedA        = init_num
+    double precision :: dedZ        = init_num
 
-    logical :: reset
-    
+    logical :: reset                = .false.
+    logical :: check_small          = .true.
+
   end type eos_t
 
 contains
-  
+
   ! Given a set of mass fractions, calculate quantities that depend
   ! on the composition like abar and zbar.
 
@@ -125,16 +126,14 @@ contains
     ! mu_e, the mean number of nucleons per electron, and
     ! y_e, the electron fraction.
 
-    state % mu_e = ONE / (sum(state % xn(:) * zion(:) / aion(:)))       
+    state % mu_e = ONE / (sum(state % xn(:) * zion(:) / aion(:)))
     state % y_e = ONE / state % mu_e
-    
+
     state % abar = ONE / (sum(state % xn(:) / aion(:)))
     state % zbar = state % abar / state % mu_e
 
   end subroutine composition
 
-  
-  
   ! Compute thermodynamic derivatives with respect to xn(:)
 
   subroutine composition_derivatives(state)
@@ -153,15 +152,43 @@ contains
                       + state % dpdZ * (state % abar/aion(:)) &
                       * (zion(:) - state % zbar)
 
-    state % dEdX(:) = state % dedA * (state % abar/aion(:)) &
-                      * (aion(:) - state % abar)             &
-                      + state % dedZ * (state % abar/aion(:)) &
-                      * (zion(:) - state % zbar)
+    state % dpdX(:) = state % dpdA * (state % abar/aion(:))   &
+                                   * (aion(:) - state % abar) &
+                    + state % dpdZ * (state % abar/aion(:))   &
+                                   * (zion(:) - state % zbar)
 
-    state % dhdX(:) = state % dedX(:) &
-                      + (state % p / state % rho**2 - state % dedr) &
-                      *  state % dPdX(:) / state % dPdr
+    state % dEdX(:) = state % dedA * (state % abar/aion(:))   &
+                                   * (aion(:) - state % abar) &
+                    + state % dedZ * (state % abar/aion(:))   &
+                                   * (zion(:) - state % zbar)
+
+    if (state % dPdr > ZERO) then
+
+       state % dhdX(:) = state % dedX(:) &
+                       + (state % p / state % rho**2 - state % dedr) &
+                       *  state % dPdX(:) / state % dPdr
+
+    endif
 
   end subroutine composition_derivatives
-  
+
+
+  ! Normalize the mass fractions: they must be individually positive
+  ! and less than one, and they must all sum to unity.
+
+  subroutine normalize_abundances(state)
+
+    use bl_constants_module
+    use network
+
+    implicit none
+
+    type (eos_t), intent(inout) :: state
+
+    state % xn(:) = max(smallx, min(ONE, state % xn(:)))
+
+    state % xn(:) = state % xn(:) / sum(state % xn(:))
+
+  end subroutine normalize_abundances
+
 end module eos_type_module

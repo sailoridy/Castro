@@ -1,5 +1,3 @@
-castro.deterministic = 1
-
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
 max_step = 50000
 stop_time = 0.01
@@ -37,7 +35,7 @@ castro.ppm_tau_in_tracing = 0
 castro.use_flattening = 1
 castro.ppm_flatten_before_integrals = 1
 
-castro.use_colglaz = 1
+castro.riemann_solver = 1
 
 
 

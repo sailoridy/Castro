@@ -8,10 +8,10 @@ module trace_ppm_module
 
 contains
 
-  subroutine tracexy_ppm(q,c,flatn,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                         Ip,Im,Ip_src,Im_src,Ip_gc,Im_gc, &
-                         qxm,qxp,qym,qyp,qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3, &
-                         gamc,gc_l1,gc_l2,gc_l3,gc_h1,gc_h2,gc_h3, &
+  subroutine tracexy_ppm(q,c,flatn,qd_lo,qd_hi, &
+                         Ip,Im,Ip_src,Im_src,Ip_gc,Im_gc,I_lo,I_hi, &
+                         qxm,qxp,qym,qyp,qpd_lo,qpd_hi, &
+                         gamc,gc_lo,gc_hi, &
                          ilo1,ilo2,ihi1,ihi2,dt,kc,k3d)
 
     !$acc routine vector
@@ -29,33 +29,34 @@ contains
 
     implicit none
 
-    integer qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3
-    integer qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3
-    integer gc_l1,gc_l2,gc_l3,gc_h1,gc_h2,gc_h3
-    integer ilo1,ilo2,ihi1,ihi2
-    integer kc,k3d
+    integer          :: qd_lo(3), qd_hi(3)
+    integer          :: qpd_lo(3),qpd_hi(3)
+    integer          :: gc_lo(3), gc_hi(3)
+    integer          :: I_lo(3), I_hi(3)
+    integer          :: ilo1, ilo2, ihi1, ihi2
+    integer          :: kc, k3d
 
-    double precision     q(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
-    double precision     c(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3)
-    double precision flatn(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3)
+    double precision ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
+    double precision ::     c(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
+    double precision :: flatn(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
 
-    double precision   Ip(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3,QVAR)
-    double precision   Im(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3,QVAR)
+    double precision ::    Ip(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:3,1:3,QVAR)
+    double precision ::    Im(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:3,1:3,QVAR)
 
-    double precision   Ip_src(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3,3)
-    double precision   Im_src(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3,3)
+    double precision ::   Ip_src(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:3,1:3,QVAR)
+    double precision ::   Im_src(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:3,1:3,QVAR)
 
-    double precision   Ip_gc(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3,1)
-    double precision   Im_gc(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3,1)
+    double precision ::   Ip_gc(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:3,1:3,1)
+    double precision ::   Im_gc(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:3,1:3,1)
 
-    double precision qxm(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QVAR)
-    double precision qxp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QVAR)
-    double precision qym(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QVAR)
-    double precision qyp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QVAR)
+    double precision :: qxm(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),QVAR)
+    double precision :: qxp(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),QVAR)
+    double precision :: qym(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),QVAR)
+    double precision :: qyp(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),QVAR)
 
-    double precision gamc(gc_l1:gc_h1,gc_l2:gc_h2,gc_l3:gc_h3)
+    double precision :: gamc(gc_lo(1):gc_hi(1),gc_lo(2):gc_hi(2),gc_lo(3):gc_hi(3))
 
-    double precision dt
+    double precision :: dt
 
     ! Local variables
     integer i, j
@@ -81,10 +82,6 @@ contains
 
     double precision xi, xi1
     double precision halfdt
-
-    integer, parameter :: isx = 1
-    integer, parameter :: isy = 2
-    integer, parameter :: isz = 3
 
     if (ppm_type .eq. 0) then
 !       print *,'Oops -- shouldnt be in tracexy_ppm with ppm_type = 0'
@@ -223,8 +220,8 @@ contains
              ! to the velocity here, otherwise we will deal with this
              ! in the trans_X routines
              if (ppm_trace_sources .eq. 1) then
-                dum = dum - halfdt*Im_src(i,j,kc,1,1,isx)
-                dup = dup - halfdt*Im_src(i,j,kc,1,3,isx)
+                dum = dum - halfdt*Im_src(i,j,kc,1,1,QU)
+                dup = dup - halfdt*Im_src(i,j,kc,1,3,QU)
              endif
    
              ! Optionally use the reference state in evaluating the
@@ -359,8 +356,8 @@ contains
              endif
 
              if (ppm_trace_sources .eq. 1) then
-                qxp(i,j,kc,QV) = qxp(i,j,kc,QV) + halfdt*Im_src(i,j,kc,1,2,isy)
-                qxp(i,j,kc,QW) = qxp(i,j,kc,QW) + halfdt*Im_src(i,j,kc,1,2,isz)
+                qxp(i,j,kc,QV) = qxp(i,j,kc,QV) + halfdt*Im_src(i,j,kc,1,2,QV)
+                qxp(i,j,kc,QW) = qxp(i,j,kc,QW) + halfdt*Im_src(i,j,kc,1,2,QW)
              endif
 
 
@@ -441,8 +438,8 @@ contains
              ! to the velocity here, otherwise we will deal with this
              ! in the trans_X routines
              if (ppm_trace_sources .eq. 1) then
-                dum = dum - halfdt*Ip_src(i,j,kc,1,1,isx)
-                dup = dup - halfdt*Ip_src(i,j,kc,1,3,isx)
+                dum = dum - halfdt*Ip_src(i,j,kc,1,1,QU)
+                dup = dup - halfdt*Ip_src(i,j,kc,1,3,QU)
              endif
 
 
@@ -572,8 +569,8 @@ contains
              endif
 
              if (ppm_trace_sources .eq. 1) then
-                qxm(i+1,j,kc,QV) = qxm(i+1,j,kc,QV) + halfdt*Ip_src(i,j,kc,1,2,isy)
-                qxm(i+1,j,kc,QW) = qxm(i+1,j,kc,QW) + halfdt*Ip_src(i,j,kc,1,2,isz)
+                qxm(i+1,j,kc,QV) = qxm(i+1,j,kc,QV) + halfdt*Ip_src(i,j,kc,1,2,QV)
+                qxm(i+1,j,kc,QW) = qxm(i+1,j,kc,QW) + halfdt*Ip_src(i,j,kc,1,2,QW)
              endif
 
 
@@ -761,8 +758,8 @@ contains
              ! to the velocity here, otherwise we will deal with this
              ! in the trans_X routines
              if (ppm_trace_sources .eq. 1) then
-                dvm = dvm - halfdt*Im_src(i,j,kc,2,1,isy)
-                dvp = dvp - halfdt*Im_src(i,j,kc,2,3,isy)
+                dvm = dvm - halfdt*Im_src(i,j,kc,2,1,QV)
+                dvp = dvp - halfdt*Im_src(i,j,kc,2,3,QV)
              endif
 
              ! Optionally use the reference state in evaluating the
@@ -891,8 +888,8 @@ contains
              endif
 
              if (ppm_trace_sources .eq. 1) then
-                qyp(i,j,kc,QU) = qyp(i,j,kc,QU) + halfdt*Im_src(i,j,kc,2,2,isx)
-                qyp(i,j,kc,QW) = qyp(i,j,kc,QW) + halfdt*Im_src(i,j,kc,2,2,isz)
+                qyp(i,j,kc,QU) = qyp(i,j,kc,QU) + halfdt*Im_src(i,j,kc,2,2,QU)
+                qyp(i,j,kc,QW) = qyp(i,j,kc,QW) + halfdt*Im_src(i,j,kc,2,2,QW)
              endif
 
 
@@ -974,8 +971,8 @@ contains
              ! to the velocity here, otherwise we will deal with this
              ! in the trans_X routines
              if (ppm_trace_sources .eq. 1) then
-                dvm = dvm - halfdt*Ip_src(i,j,kc,2,1,isy)
-                dvp = dvp - halfdt*Ip_src(i,j,kc,2,3,isy)
+                dvm = dvm - halfdt*Ip_src(i,j,kc,2,1,QV)
+                dvp = dvp - halfdt*Ip_src(i,j,kc,2,3,QV)
              endif
 
 
@@ -1104,8 +1101,8 @@ contains
              endif
 
              if (ppm_trace_sources .eq. 1) then
-                qym(i,j+1,kc,QU) = qym(i,j+1,kc,QU) + halfdt*Ip_src(i,j,kc,2,2,isx)
-                qym(i,j+1,kc,QW) = qym(i,j+1,kc,QW) + halfdt*Ip_src(i,j,kc,2,2,isz)
+                qym(i,j+1,kc,QU) = qym(i,j+1,kc,QU) + halfdt*Ip_src(i,j,kc,2,2,QU)
+                qym(i,j+1,kc,QW) = qym(i,j+1,kc,QW) + halfdt*Ip_src(i,j,kc,2,2,QW)
              endif
 
 
@@ -1188,10 +1185,12 @@ contains
 
   end subroutine tracexy_ppm
 
-  subroutine tracez_ppm(q,c,flatn,qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3, &
-                        Ip,Im,Ip_src,Im_src,Ip_gc,Im_gc, &
-                        qzm,qzp,qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3, &
-                        gamc,gc_l1,gc_l2,gc_l3,gc_h1,gc_h2,gc_h3, &
+
+  
+  subroutine tracez_ppm(q,c,flatn,qd_lo,qd_hi, &
+                        Ip,Im,Ip_src,Im_src,Ip_gc,Im_gc,I_lo,I_hi, &
+                        qzm,qzp,qpd_lo,qpd_hi, &
+                        gamc,gc_lo,gc_hi, &
                         ilo1,ilo2,ihi1,ihi2,dt,km,kc,k3d)
 
     !$acc routine vector
@@ -1209,31 +1208,32 @@ contains
 
     implicit none
 
-    integer qd_l1,qd_l2,qd_l3,qd_h1,qd_h2,qd_h3
-    integer qpd_l1,qpd_l2,qpd_l3,qpd_h1,qpd_h2,qpd_h3
-    integer gc_l1,gc_l2,gc_l3,gc_h1,gc_h2,gc_h3
-    integer ilo1,ilo2,ihi1,ihi2
-    integer km,kc,k3d
+    integer          :: qd_lo(3), qd_hi(3)
+    integer          :: qpd_lo(3),qpd_hi(3)
+    integer          :: gc_lo(3), gc_hi(3)
+    integer          :: I_lo(3), I_hi(3)
+    integer          :: ilo1, ilo2, ihi1, ihi2
+    integer          :: km, kc, k3d
 
-    double precision     q(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3,QVAR)
-    double precision     c(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3)
-    double precision flatn(qd_l1:qd_h1,qd_l2:qd_h2,qd_l3:qd_h3)
+    double precision ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
+    double precision ::     c(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
+    double precision :: flatn(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
 
-    double precision   Ip(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3,QVAR)
-    double precision   Im(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3,QVAR)
+    double precision ::   Ip(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:3,1:3,QVAR)
+    double precision ::   Im(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:3,1:3,QVAR)
 
-    double precision   Ip_src(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3,3)
-    double precision   Im_src(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3,3)
+    double precision ::   Ip_src(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:3,1:3,QVAR)
+    double precision ::   Im_src(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:3,1:3,QVAR)
 
-    double precision   Ip_gc(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3,1)
-    double precision   Im_gc(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3,1)
+    double precision ::   Ip_gc(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:3,1:3,1)
+    double precision ::   Im_gc(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:3,1:3,1)
 
-    double precision qzm(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QVAR)
-    double precision qzp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,qpd_l3:qpd_h3,QVAR)
+    double precision :: qzm(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),QVAR)
+    double precision :: qzp(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),QVAR)
 
-    double precision gamc(gc_l1:gc_h1,gc_l2:gc_h2,gc_l3:gc_h3)
+    double precision :: gamc(gc_lo(1):gc_hi(1),gc_lo(2):gc_hi(2),gc_lo(3):gc_hi(3))
 
-    double precision dt
+    double precision :: dt
 
     !     Local variables
     integer i, j
@@ -1259,10 +1259,6 @@ contains
 
     double precision xi, xi1
     double precision halfdt
-
-    integer, parameter :: isx = 1
-    integer, parameter :: isy = 2
-    integer, parameter :: isz = 3
 
     halfdt = HALF * dt
 
@@ -1368,8 +1364,8 @@ contains
           ! the velocity here, otherwise we will deal with this in the
           ! trans_X routines
           if (ppm_trace_sources .eq. 1) then
-             dwm = dwm - halfdt*Im_src(i,j,kc,3,1,isz)
-             dwp = dwp - halfdt*Im_src(i,j,kc,3,3,isz)
+             dwm = dwm - halfdt*Im_src(i,j,kc,3,1,QW)
+             dwp = dwp - halfdt*Im_src(i,j,kc,3,3,QW)
           endif
 
           ! Optionally use the reference state in evaluating the
@@ -1494,8 +1490,8 @@ contains
           endif
 
           if (ppm_trace_sources .eq. 1) then
-             qzp(i,j,kc,QU) = qzp(i,j,kc,QU) + halfdt*Im_src(i,j,kc,3,2,isx)
-             qzp(i,j,kc,QV) = qzp(i,j,kc,QV) + halfdt*Im_src(i,j,kc,3,2,isy)
+             qzp(i,j,kc,QU) = qzp(i,j,kc,QU) + halfdt*Im_src(i,j,kc,3,2,QU)
+             qzp(i,j,kc,QV) = qzp(i,j,kc,QV) + halfdt*Im_src(i,j,kc,3,2,QV)
           endif
 
 
@@ -1596,8 +1592,8 @@ contains
           ! the velocity here, otherwise we will deal with this in the
           ! trans_X routines
           if (ppm_trace_sources .eq. 1) then
-             dwm = dwm - halfdt*Ip_src(i,j,km,3,1,isz)
-             dwp = dwp - halfdt*Ip_src(i,j,km,3,3,isz)
+             dwm = dwm - halfdt*Ip_src(i,j,km,3,1,QW)
+             dwp = dwp - halfdt*Ip_src(i,j,km,3,3,QW)
           endif
 
           ! Optionally use the reference state in evaluating the
@@ -1723,8 +1719,8 @@ contains
           endif
 
           if (ppm_trace_sources .eq. 1) then
-             qzm(i,j,kc,QU) = qzm(i,j,kc,QU) + halfdt*Ip_src(i,j,km,3,2,isx)
-             qzm(i,j,kc,QV) = qzm(i,j,kc,QV) + halfdt*Ip_src(i,j,km,3,2,isy)
+             qzm(i,j,kc,QU) = qzm(i,j,kc,QU) + halfdt*Ip_src(i,j,km,3,2,QU)
+             qzm(i,j,kc,QV) = qzm(i,j,kc,QV) + halfdt*Ip_src(i,j,km,3,2,QV)
           endif
 
 
