@@ -92,8 +92,6 @@ contains
     ! gamc, csml, c, shk come in dimensioned as the full box, so we
     ! use k3d here to index it in z
     
-    type (eos_t) :: eos_state
-
     double precision, intent(inout) :: gamc(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
     double precision, intent(inout) ::    c(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
     double precision, intent(inout) :: csml(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
@@ -116,9 +114,6 @@ contains
     type (eos_t) :: eos_state
 
     double precision :: rhoInv
-
-
-    if(idir.eq.1) then
 
     gd_lo = (/ ilo, jlo /)
     gd_hi = (/ ihi, jhi /)
@@ -972,65 +967,6 @@ contains
 
   end subroutine riemanncg
 
-  subroutine wsqge(p,v,gam,gdot,gstar,pstar,wsq,csq,gmin,gmax)
-
-    !$acc routine seq
-
-    use bl_constants_module
-
-    implicit none
-
-    double precision p,v,gam,gdot,gstar,pstar,wsq,csq,gmin,gmax
-
-    double precision, parameter :: smlp1 = 1.d-10
-    double precision, parameter :: small = 1.d-7
-
-    double precision :: alpha, beta
-
-    ! First predict a value of game across the shock
-
-    ! CG Eq. 31
-    gstar=(pstar-p)*gdot/(pstar+p) + gam
-    gstar=max(gmin,min(gmax,gstar))
-
-    ! Now use that predicted value of game with the R-H jump conditions
-    ! to compute the wave speed.
-
-    ! CG Eq. 34
-    ! wsq = (HALF*(gstar-ONE)*(pstar+p)+pstar)
-    ! temp = ((gstar-gam)/(gam-ONE))
-
-    ! if (pstar-p == ZERO) then
-    !    divide=small
-    ! else
-    !    divide=pstar-p
-    ! endif
-
-    ! temp=temp/divide
-    ! wsq = wsq/(v - temp*p*v)
-
-    alpha = pstar-(gstar-ONE)*p/(gam-ONE)
-    if (alpha == ZERO) alpha = smlp1*(pstar + p)
-
-    beta = pstar + HALF*(gstar-ONE)*(pstar+p)
-
-    wsq = (pstar-p)*beta/(v*alpha)
-
-    if (abs(pstar - p) < smlp1*(pstar + p)) then
-       wsq = csq
-    endif
-    wsq=max(wsq,(HALF*(gam-ONE)/gam)*csq)
-
-    return
-  end subroutine wsqge
-
-=======
-    call bl_deallocate(pstar_hist)
-    call bl_deallocate(us1d)
-
-  end subroutine riemanncg
-
->>>>>>> development:Source/Src_3d/riemann_3d.F90
 ! :::
 ! ::: ------------------------------------------------------------------
 ! :::

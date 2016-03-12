@@ -45,8 +45,6 @@ contains
       double precision ::   df(MIN(ilo1,ilo2)-2:MAX(ihi1,ihi2)+2,MIN(ilo1,ilo2)-2:MAX(ihi1,ihi2)+2)
       double precision :: dcen(MIN(ilo1,ilo2)-2:MAX(ihi1,ihi2)+2,MIN(ilo1,ilo2)-2:MAX(ihi1,ihi2)+2)
 
-      double precision :: dsgn, dlim, df, dcen
-
 !      ilo = MIN(ilo1,ilo2)
 !      ihi = MAX(ihi1,ihi2)
 

@@ -8,6 +8,8 @@ module riemann_util_module
 contains
 
   pure function bc_test(idir, i, j, domlo, domhi) result (f)
+
+    !$acc routine seq
     
     use prob_params_module, only : physbc_lo, physbc_hi, Symmetry, SlipWall, NoSlipWall
 
@@ -53,6 +55,8 @@ contains
 
 
   pure subroutine wsqge(p,v,gam,gdot,gstar,pstar,wsq,csq,gmin,gmax)
+
+    !$acc routine seq
 
     double precision, intent(in) :: p,v,gam,gdot,pstar,csq,gmin,gmax
     double precision, intent(out) :: wsq, gstar

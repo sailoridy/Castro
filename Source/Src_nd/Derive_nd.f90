@@ -562,7 +562,6 @@ contains
     use meth_params_module, only: URHO, UEINT
 
     implicit none
->>>>>>> development
 
     integer          :: lo(3), hi(3)
     integer          :: e_lo(3), e_hi(3), ncomp_e
