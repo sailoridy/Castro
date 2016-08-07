@@ -24,8 +24,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   use meth_params_module, only : QVAR, QU, QV, QW, QPRES, NVAR, NHYP, NGDNV, &
                                  GDU, GDV, GDW, use_flattening
   use advection_module, only : umeth3d, consup
-  use advection_util_3d_module, only : divu
-  use advection_util_module, only : compute_cfl
+  use advection_util_module, only : compute_cfl, divu
   use bl_constants_module, only : ONE
   use flatten_module, only: uflaten
 
