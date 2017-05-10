@@ -79,18 +79,30 @@ contains
 
 
 
-  subroutine ca_enforce_consistent_e(lo,hi,state,s_lo,s_hi) &
-       bind(C, name="ca_enforce_consistent_e")
-
-    use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT
-    use bl_constants_module
+#ifdef CUDA
+  attributes(host) attributes(device) &
+#endif
+  subroutine enforce_consistent_e(lo,hi,state,s_lo,s_hi) bind(c, name='enforce_consistent_e')
 
     use amrex_fort_module, only : rt => amrex_real
+    use bl_constants_module, only : HALF, ONE
+#ifdef CUDA
+    use meth_params_module, only: NVAR => NVAR_d, URHO => URHO_d, UMX => UMX_d, &
+                                  UMY => UMY_d, UMZ => UMZ_d, UEDEN => UEDEN_d, UEINT => UEINT_d
+#else
+    use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT
+#endif
+
     implicit none
 
-    integer          :: lo(3), hi(3)
-    integer          :: s_lo(3), s_hi(3)
-    real(rt)         :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+    integer, intent(in)     :: lo(3), hi(3)
+    integer, intent(in)     :: s_lo(3), s_hi(3)
+    real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+
+#ifdef CUDA
+    attributes(device) :: lo, hi, s_lo, s_hi
+    attributes(managed) :: state
+#endif
 
     ! Local variables
     integer          :: i,j,k
@@ -115,7 +127,7 @@ contains
        end do
     end do
 
-  end subroutine ca_enforce_consistent_e
+  end subroutine enforce_consistent_e
 
 
 

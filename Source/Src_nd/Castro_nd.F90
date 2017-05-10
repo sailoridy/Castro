@@ -612,6 +612,16 @@ subroutine set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
 
   ! Update device variables
 
+#ifdef CUDA
+  NVAR_d = NVAR
+  URHO_d = URHO
+  UMX_d = UMX
+  UMY_d = UMY
+  UMZ_d = UMZ
+  UEINT_d = UEINT
+  UEDEN_d = UEDEN
+#endif
+
   !$acc update &
   !$acc device(NTHERM, NVAR) &
   !$acc device(NQ) &
@@ -716,6 +726,10 @@ subroutine set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
   if (coord_type == 1) then
      rot_axis = 2
   endif
+#endif
+
+#ifdef CUDA
+  dim_d = dim
 #endif
 
 end subroutine set_problem_params
