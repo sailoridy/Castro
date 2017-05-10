@@ -90,7 +90,7 @@
     numBlocks % y = (tile_size(2) + numThreads % y - 1) / numThreads % y
     numBlocks % z = (tile_size(3) + numThreads % z - 1) / numThreads % z
 
-    call cuda_enforce_consistent_e<<<numThreads, numBlocks>>>(lo_d, hi_d, state, s_lo_d, s_hi_d)
+    call cuda_enforce_consistent_e<<<numBlocks, numThreads>>>(lo_d, hi_d, state, s_lo_d, s_hi_d)
 
     cuda_result = cudaDeviceSynchronize()
 
