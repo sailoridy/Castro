@@ -626,6 +626,54 @@ subroutine set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
 #endif
   !$acc device(small_dens, small_temp)
 
+#ifdef CUDA
+  ! these return a status that we might want to check in an assert mode
+  cudaMemcpyAsync(NTHERM_d, NTHERM, 1)
+  cudaMemcpyAsync(NVAR_d, NVAR, 1)
+  cudaMemcpyAsync(NQ_d, NQ, 1)
+  cudaMemcpyAsync(URHO_d, URHO, 1)
+  cudaMemcpyAsync(UMX_d, UMX, 1)
+  cudaMemcpyAsync(UMY_d, UMY, 1)
+  cudaMemcpyAsync(UMZ_d, UMZ, 1)
+  cudaMemcpyAsync(UMR_d, UMR, 1)
+  cudaMemcpyAsync(UML_d, UML, 1)
+  cudaMemcpyAsync(UMP_d, UMP, 1)
+  cudaMemcpyAsync(UEDEN_d, UEDEN, 1)
+  cudaMemcpyAsync(UEINT_d, UEINT, 1)
+  cudaMemcpyAsync(UTEMP_d, UTEMP, 1)
+  cudaMemcpyAsync(UFA_d, UFA, 1)
+  cudaMemcpyAsync(UFS_d, UFS, 1)
+  cudaMemcpyAsync(UFX_d, UFX, 1)
+  cudaMemcpyAsync(USHK_d, USHK, 1)
+  cudaMemcpyAsync(QTHERM_d, QTHERM, 1)
+  cudaMemcpyAsync(QVAR_d, QVAR, 1)
+  cudaMemcpyAsync(QRHO_d, QRHO, 1)
+  cudaMemcpyAsync(QU_d, QU, 1)
+  cudaMemcpyAsync(QV_d, QV, 1)
+  cudaMemcpyAsync(QW_d, QW, 1)
+  cudaMemcpyAsync(QPRES_d, QPRES, 1)
+  cudaMemcpyAsync(QREINT_d, QREINT, 1)
+  cudaMemcpyAsync(QTEMP_d, QTEMP, 1)
+  cudaMemcpyAsync(QGAMC_d, QGAMC, 1)
+  cudaMemcpyAsync(QGAME_d, QGAME, 1)
+
+  cudaMemcpyAsync(QFA_d, QFA, 1)
+  cudaMemcpyAsync(QFS_d, QFS, 1)
+  cudaMemcpyAsync(QFX_d, QFX, 1)
+  cudaMemcpyAsync(NQAUX_d, NQAUX, 1)
+  cudaMemcpyAsync(QC_d, QC, 1)
+  cudaMemcpyAsync(QCSML_d, QCSML, 1)
+  cudaMemcpyAsync(QDPDR_d, QDPDR, 1)
+  cudaMemcpyAsync(QDPDE_d, QDPDE, 1)
+#ifdef RADIATION
+  cudaMemcpyAsync(QGAMCG_d, QGAMCG, 1)
+  cudaMemcpyAsync(QCG_d, QCG, 1)
+  cudaMemcpyAsync(QLAMS_d, QLAMS, 1)
+#endif
+  cudaMemcpyAsync(small_dens_d, small_dens, 1)
+  cudaMemcpyAsync(small_temp_d, small_temp, 1)
+#endif
+
 end subroutine set_method_params
 
 
@@ -716,6 +764,10 @@ subroutine set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
   if (coord_type == 1) then
      rot_axis = 2
   endif
+#endif
+
+#ifdef CUDA
+  cudaMemcpyAsync(dim_d, dim, 1)
 #endif
 
 end subroutine set_problem_params
