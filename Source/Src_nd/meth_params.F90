@@ -194,6 +194,78 @@ module meth_params_module
   real(rt), save :: const_grav
   integer         , save :: get_g_from_phi
 
+#ifdef CUDA
+  real(rt), device :: difmag_d
+  real(rt), device :: small_dens_d
+  real(rt), device :: small_temp_d
+  real(rt), device :: small_pres_d
+  real(rt), device :: small_ener_d
+  integer, device :: do_hydro_d
+  integer, device :: hybrid_hydro_d
+  integer, device :: ppm_type_d
+  integer, device :: ppm_trace_sources_d
+  integer, device :: ppm_temp_fix_d
+  integer, device :: ppm_predict_gammae_d
+  integer, device :: ppm_reference_eigenvectors_d
+  integer, device :: plm_iorder_d
+  integer, device :: hybrid_riemann_d
+  integer, device :: riemann_solver_d
+  integer, device :: cg_maxiter_d
+  real(rt), device :: cg_tol_d
+  integer, device :: cg_blend_d
+  integer, device :: use_flattening_d
+  integer, device :: transverse_use_eos_d
+  integer, device :: transverse_reset_density_d
+  integer, device :: transverse_reset_rhoe_d
+  integer, device :: dual_energy_update_E_from_e_d
+  real(rt), device :: dual_energy_eta1_d
+  real(rt), device :: dual_energy_eta2_d
+  real(rt), device :: dual_energy_eta3_d
+  integer, device :: use_pslope_d
+  integer, device :: fix_mass_flux_d
+  integer, device :: limit_fluxes_on_small_dens_d
+  integer, device :: density_reset_method_d
+  integer, device :: allow_negative_energy_d
+  integer, device :: allow_small_energy_d
+  integer, device :: do_sponge_d
+  integer, device :: sponge_implicit_d
+  integer, device :: first_order_hydro_d
+                    integer, device :: hse_zero_vels_d
+  integer, device :: hse_interp_temp_d
+  integer, device :: hse_reflect_vels_d
+  real(rt), device :: cfl_d
+  real(rt), device :: dtnuc_e_d
+  real(rt), device :: dtnuc_X_d
+  integer, device :: dtnuc_mode_d
+  real(rt), device :: dxnuc_d
+  integer, device :: do_react_d
+  real(rt), device :: react_T_min_d
+  real(rt), device :: react_T_max_d
+  real(rt), device :: react_rho_min_d
+  real(rt), device :: react_rho_max_d
+  integer, device :: disable_shock_burning_d
+  real(rt), device :: diffuse_cutoff_density_d
+  integer, device :: do_grav_d
+  integer, device :: grav_source_type_d
+  integer, device :: do_rotation_d
+  real(rt), device :: rot_period_d
+  real(rt), device :: rot_period_dot_d
+  integer, device :: rotation_include_centrifugal_d
+  integer, device :: rotation_include_coriolis_d
+  integer, device :: rotation_include_domegadt_d
+  integer, device :: state_in_rotating_frame_d
+  integer, device :: rot_source_type_d
+  integer, device :: implicit_rotation_update_d
+  integer, device :: rot_axis_d
+  real(rt), device :: point_mass_d
+  integer, device :: point_mass_fix_solution_d
+  integer, device :: do_acc_d
+  integer, device :: grown_factor_d
+  integer, device :: track_grid_losses_d
+  real(rt), device :: const_grav_d
+  integer, device :: get_g_from_phi_d
+#endif
+
   !$acc declare &
   !$acc create(difmag, small_dens, small_temp) &
   !$acc create(small_pres, small_ener, do_hydro) &
@@ -235,8 +307,10 @@ contains
 #endif    
     implicit none
 
+#ifdef CUDA
     integer :: istat
-    
+#endif
+
     type (amrex_parmparse) :: pp
 
     call amrex_parmparse_build(pp, "castro")
@@ -416,6 +490,84 @@ contains
     call pp%query("track_grid_losses", track_grid_losses)
     call pp%query("const_grav", const_grav)
     call pp%query("get_g_from_phi", get_g_from_phi)
+
+#ifdef CUDA
+  istat = cudaMemcpyAsync(difmag_d, difmag, 1)
+  istat = cudaMemcpyAsync(small_dens_d, small_dens, 1)
+  istat = cudaMemcpyAsync(small_temp_d, small_temp, 1)
+  istat = cudaMemcpyAsync(small_pres_d, small_pres, 1)
+  istat = cudaMemcpyAsync(small_ener_d, small_ener, 1)
+  istat = cudaMemcpyAsync(do_hydro_d, do_hydro, 1)
+  istat = cudaMemcpyAsync(hybrid_hydro_d, hybrid_hydro, 1)
+  istat = cudaMemcpyAsync(ppm_type_d, ppm_type, 1)
+  istat = cudaMemcpyAsync(ppm_trace_sources_d, ppm_trace_sources, 1)
+  istat = cudaMemcpyAsync(ppm_temp_fix_d, ppm_temp_fix, 1)
+  istat = cudaMemcpyAsync(ppm_predict_gammae_d, ppm_predict_gammae, 1)
+  istat = cudaMemcpyAsync(ppm_reference_eigenvectors_d, ppm_reference_eigenvectors, 1)
+  istat = cudaMemcpyAsync(plm_iorder_d, plm_iorder, 1)
+  istat = cudaMemcpyAsync(hybrid_riemann_d, hybrid_riemann, 1)
+  istat = cudaMemcpyAsync(riemann_solver_d, riemann_solver, 1)
+  istat = cudaMemcpyAsync(cg_maxiter_d, cg_maxiter, 1)
+  istat = cudaMemcpyAsync(cg_tol_d, cg_tol, 1)
+  istat = cudaMemcpyAsync(cg_blend_d, cg_blend, 1)
+  istat = cudaMemcpyAsync(use_flattening_d, use_flattening, 1)
+  istat = cudaMemcpyAsync(transverse_use_eos_d, transverse_use_eos, 1)
+  istat = cudaMemcpyAsync(transverse_reset_density_d, transverse_reset_density, 1)
+  istat = cudaMemcpyAsync(transverse_reset_rhoe_d, transverse_reset_rhoe, 1)
+  istat = cudaMemcpyAsync(dual_energy_update_E_from_e_d, dual_energy_update_E_from_e, 1)
+  istat = cudaMemcpyAsync(dual_energy_eta1_d, dual_energy_eta1, 1)
+  istat = cudaMemcpyAsync(dual_energy_eta2_d, dual_energy_eta2, 1)
+  istat = cudaMemcpyAsync(dual_energy_eta3_d, dual_energy_eta3, 1)
+  istat = cudaMemcpyAsync(use_pslope_d, use_pslope, 1)
+  istat = cudaMemcpyAsync(fix_mass_flux_d, fix_mass_flux, 1)
+  istat = cudaMemcpyAsync(limit_fluxes_on_small_dens_d, limit_fluxes_on_small_dens, 1)
+  istat = cudaMemcpyAsync(density_reset_method_d, density_reset_method, 1)
+  istat = cudaMemcpyAsync(allow_negative_energy_d, allow_negative_energy, 1)
+  istat = cudaMemcpyAsync(allow_small_energy_d, allow_small_energy, 1)
+  istat = cudaMemcpyAsync(do_sponge_d, do_sponge, 1)
+  istat = cudaMemcpyAsync(sponge_implicit_d, sponge_implicit, 1)
+  istat = cudaMemcpyAsync(first_order_hydro_d, first_order_hydro, 1)
+  
+  
+  
+  
+  
+  
+  istat = cudaMemcpyAsync(hse_zero_vels_d, hse_zero_vels, 1)
+  istat = cudaMemcpyAsync(hse_interp_temp_d, hse_interp_temp, 1)
+  istat = cudaMemcpyAsync(hse_reflect_vels_d, hse_reflect_vels, 1)
+  istat = cudaMemcpyAsync(cfl_d, cfl, 1)
+  istat = cudaMemcpyAsync(dtnuc_e_d, dtnuc_e, 1)
+  istat = cudaMemcpyAsync(dtnuc_X_d, dtnuc_X, 1)
+  istat = cudaMemcpyAsync(dtnuc_mode_d, dtnuc_mode, 1)
+  istat = cudaMemcpyAsync(dxnuc_d, dxnuc, 1)
+  istat = cudaMemcpyAsync(do_react_d, do_react, 1)
+  istat = cudaMemcpyAsync(react_T_min_d, react_T_min, 1)
+  istat = cudaMemcpyAsync(react_T_max_d, react_T_max, 1)
+  istat = cudaMemcpyAsync(react_rho_min_d, react_rho_min, 1)
+  istat = cudaMemcpyAsync(react_rho_max_d, react_rho_max, 1)
+  istat = cudaMemcpyAsync(disable_shock_burning_d, disable_shock_burning, 1)
+  istat = cudaMemcpyAsync(diffuse_cutoff_density_d, diffuse_cutoff_density, 1)
+  istat = cudaMemcpyAsync(do_grav_d, do_grav, 1)
+  istat = cudaMemcpyAsync(grav_source_type_d, grav_source_type, 1)
+  istat = cudaMemcpyAsync(do_rotation_d, do_rotation, 1)
+  istat = cudaMemcpyAsync(rot_period_d, rot_period, 1)
+  istat = cudaMemcpyAsync(rot_period_dot_d, rot_period_dot, 1)
+  istat = cudaMemcpyAsync(rotation_include_centrifugal_d, rotation_include_centrifugal, 1)
+  istat = cudaMemcpyAsync(rotation_include_coriolis_d, rotation_include_coriolis, 1)
+  istat = cudaMemcpyAsync(rotation_include_domegadt_d, rotation_include_domegadt, 1)
+  istat = cudaMemcpyAsync(state_in_rotating_frame_d, state_in_rotating_frame, 1)
+  istat = cudaMemcpyAsync(rot_source_type_d, rot_source_type, 1)
+  istat = cudaMemcpyAsync(implicit_rotation_update_d, implicit_rotation_update, 1)
+  istat = cudaMemcpyAsync(rot_axis_d, rot_axis, 1)
+  istat = cudaMemcpyAsync(point_mass_d, point_mass, 1)
+  istat = cudaMemcpyAsync(point_mass_fix_solution_d, point_mass_fix_solution, 1)
+  istat = cudaMemcpyAsync(do_acc_d, do_acc, 1)
+  istat = cudaMemcpyAsync(grown_factor_d, grown_factor, 1)
+  istat = cudaMemcpyAsync(track_grid_losses_d, track_grid_losses, 1)
+  istat = cudaMemcpyAsync(const_grav_d, const_grav, 1)
+  istat = cudaMemcpyAsync(get_g_from_phi_d, get_g_from_phi, 1)
+#endif
 
     !$acc update &
     !$acc device(difmag, small_dens, small_temp) &

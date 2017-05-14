@@ -131,8 +131,10 @@ contains
 #endif    
     implicit none
 
+#ifdef CUDA
     integer :: istat
-    
+#endif
+
     type (amrex_parmparse) :: pp
 
     call amrex_parmparse_build(pp, "castro")
