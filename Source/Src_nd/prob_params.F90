@@ -32,5 +32,9 @@ module prob_params_module
   integer         , save, allocatable :: ref_ratio(:,:)
   integer         , save, allocatable :: n_error_buf(:)
   integer         , save, allocatable :: blocking_factor(:)
+
+#ifdef CUDA
+  integer, device :: dim_d
+#endif
   
 end module prob_params_module
