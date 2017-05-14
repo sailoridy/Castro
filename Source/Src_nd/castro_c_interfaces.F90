@@ -16,19 +16,17 @@
     attributes(managed) :: state
     attributes(device) :: lo, hi, s_lo, s_hi
 
-    integer :: my_lo(3), my_hi(3)
+    integer :: idx(3)
 
     ! Get our spatial index based on the CUDA thread index
 
-    my_lo(1) = lo(1) + (threadIdx%x - 1) + blockDim%x * (blockIdx%x - 1)
-    my_lo(2) = lo(2) + (threadIdx%y - 1) + blockDim%y * (blockIdx%y - 1)
-    my_lo(3) = lo(3) + (threadIdx%z - 1) + blockDim%z * (blockIdx%z - 1)
+    idx(1) = lo(1) + (threadIdx%x - 1) + blockDim%x * (blockIdx%x - 1)
+    idx(2) = lo(2) + (threadIdx%y - 1) + blockDim%y * (blockIdx%y - 1)
+    idx(3) = lo(3) + (threadIdx%z - 1) + blockDim%z * (blockIdx%z - 1)
 
-    my_hi = my_lo
+    if (idx(1) .gt. hi(1) .or. idx(2) .gt. hi(2) .or. idx(3) .gt. hi(3)) return
 
-    if (my_hi(1) .gt. hi(1) .or. my_hi(2) .gt. hi(2) .or. my_hi(3) .gt. hi(3)) return
-
-    call enforce_consistent_e(my_lo, my_hi, state, s_lo, s_hi)
+    call enforce_consistent_e(idx, idx, state, s_lo, s_hi)
 
   end subroutine cuda_enforce_consistent_e
 #endif
