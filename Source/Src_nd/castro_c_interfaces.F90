@@ -40,8 +40,8 @@
     use amrex_fort_module, only: rt => amrex_real
     use meth_params_module, only: NVAR
 #ifdef CUDA
-    use prob_params_module, only: dim => dim_d
     use cudafor, only: cudaMemcpyAsync, cudaMemcpyHostToDevice, cudaDeviceSynchronize, dim3
+    use cuda_module, only: threads_and_blocks
 #else
     use castro_util_module, only: enforce_consistent_e
 #endif
@@ -61,10 +61,6 @@
 
     integer :: cuda_result
     type(dim3) :: numThreads, numBlocks
-    integer :: dimTx, dimTy, dimTz
-    integer :: dimBx, dimBy, dimBz
-    integer :: d
-    integer :: tile_size(3)
 
     cuda_result = cudaMemcpyAsync(lo_d, lo, 3, cudaMemcpyHostToDevice)
     cuda_result = cudaMemcpyAsync(hi_d, hi, 3, cudaMemcpyHostToDevice)
@@ -72,25 +68,7 @@
     cuda_result = cudaMemcpyAsync(s_lo_d, s_lo, 3, cudaMemcpyHostToDevice)
     cuda_result = cudaMemcpyAsync(s_hi_d, s_hi, 3, cudaMemcpyHostToDevice)
 
-    if (dim .eq. 1) then
-       numThreads % x = 256
-       numThreads % y = 1
-       numThreads % z = 1
-    else if (dim .eq. 2) then
-       numThreads % x = 16
-       numThreads % y = 16
-       numThreads % z = 1
-    else
-       numThreads % x = 8
-       numThreads % y = 8
-       numThreads % z = 8
-    endif
-
-    tile_size = hi - lo + 1
-
-    numBlocks % x = (tile_size(1) + numThreads % x - 1) / numThreads % x
-    numBlocks % y = (tile_size(2) + numThreads % y - 1) / numThreads % y
-    numBlocks % z = (tile_size(3) + numThreads % z - 1) / numThreads % z
+    call threads_and_blocks(lo, hi, numBlocks, numThreads)
 
     call cuda_enforce_consistent_e<<<numBlocks, numThreads>>>(lo_d, hi_d, state, s_lo_d, s_hi_d)
 
