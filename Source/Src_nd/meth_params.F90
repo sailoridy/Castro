@@ -230,6 +230,9 @@ contains
     use amrex_parmparse_module, only: amrex_parmparse_build, amrex_parmparse_destroy, amrex_parmparse
 
     use amrex_fort_module, only : rt => amrex_real
+#ifdef CUDA
+    use cudafor
+#endif    
     implicit none
 
     integer :: istat
@@ -528,6 +531,10 @@ contains
     use rad_params_module, only : ngroups
 
     use amrex_fort_module, only : rt => amrex_real
+#ifdef CUDA
+    use cudafor
+#endif
+    
     integer, intent(in) :: fsp_type_in, do_is_in, com_in
     real(rt)        , intent(in) :: fppt
     integer :: istat
