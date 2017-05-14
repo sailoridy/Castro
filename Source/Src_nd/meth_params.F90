@@ -81,18 +81,22 @@ module meth_params_module
   ! the device update is then done in Castro_nd.f90
 
 #ifdef CUDA
-  integer, device :: NTHERM_d, NVAR_d
-  integer, device :: URHO_d, UMX_d, UMY_d, UMZ_d, UMR_d, UML_d, UMP_d, UEDEN_d, UEINT_d, UTEMP_d, UFA_d, UFS_d, UFX_d
+  integer, device :: NTHERM_d, NVAR_d, NQ_d, NQAUX_d
+  integer, device :: URHO_d, UMX_d, UMY_d, UMZ_d, UMR_d, UML_d, UMP_d
+  integer, device :: UEDEN_d, UEINT_d, UTEMP_d, UFA_d, UFS_d, UFX_d
   integer, device :: USHK_d
   integer, device :: QTHERM_d, QVAR_d
-  integer, device :: QRHO_d, QU_d, QV_d, QW_d, QPRES_d, QREINT_d, QTEMP_d, QGAME_d
-  integer, device :: NQAUX_d, QGAMC_d, QC_d, QCSML_d, QDPDR_d, QDPDE_d
+  integer, device :: QRHO_d, QU_d, QV_d, QW_d, QPRES_d, QREINT_d, QTEMP_d
+  integer, device :: QGAMC_d, QGAME_d, QC_d, QCSML_d, QDPDR_d, QDPDE_d
 #ifdef RADIATION
   integer, device :: QGAMCG_d, QCG_d, QLAMS_d
+  integer, device :: QRADVAR_d, QRAD_d, QRADHI_d, QPTOT_d, QREITOT_d
+  integer, device :: fspace_type_d, do_inelastic_scattering_d, comoving_d
+  real(rt), device :: flatten_pp_threshold
+  real(rt), device :: small_dens_d, small_temp_d
 #endif
   integer, device :: QFA_d, QFS_d, QFX_d
-  integer, device :: NQ_d
-  real(rt), device :: small_dens_d, small_temp_d
+  integer, device :: xl_ext_d, yl_ext_d, zl_ext_d, xr_ext_d, yr_ext_d, zr_ext_d
 #endif
 
   !$acc declare &
@@ -101,14 +105,15 @@ module meth_params_module
   !$acc create(USHK) &
   !$acc create(QTHERM, QVAR) &
   !$acc create(QRHO, QU, QV, QW, QPRES, QREINT, QTEMP) &
-  !$acc create(QGAMC, QGAME) &
+  !$acc create(QGAMC, QGAME, QC, QCSML, QDPDR, QDPDE) &
   !$acc create(NQ) &
 #ifdef RADIATION
   !$acc create(QGAMCG, QCG, QLAMS) &
   !$acc create(QRADVAR, QRAD, QRADHI, QPTOT, QREITOT) &
   !$acc create(fspace_type, do_inelastic_scattering, comoving) &
+  !$acc create(flatten_pp_threshold) &
 #endif
-  !$acc create(QFA, QFS, QFX) &
+  !$acc create(QFA, QFS, QFX, NQAUX) &
   !$acc create(xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext)
 
   ! Begin the declarations of the ParmParse parameters
@@ -490,6 +495,15 @@ contains
 
     !$acc update device(xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext)
 
+#ifdef CUDA
+  cudaMemcpyAsync(xl_ext_d, xl_ext, 1)
+  cudaMemcpyAsync(xr_ext_d, xr_ext, 1)
+  cudaMemcpyAsync(yl_ext_d, yl_ext, 1)
+  cudaMemcpyAsync(yr_ext_d, yr_ext, 1)
+  cudaMemcpyAsync(zl_ext_d, zl_ext, 1)
+  cudaMemcpyAsync(zr_ext_d, zr_ext, 1)
+#endif
+
     call amrex_parmparse_destroy(pp)
 
   end subroutine set_castro_method_params
@@ -558,6 +572,19 @@ contains
     !$acc device(do_inelastic_scattering) &
     !$acc device(comoving)
     !$acc device(flatten_pp_threshold = -1.e0_rt)
+
+#ifdef CUDA
+    cudaMemcpyAsync(NQ_d, NQ, 1)
+    cudaMemcpyAsync(NQAUX_d, NQAUX, 1)
+    cudaMemcpyAsync(QRADVAR_d, QRADVAR, 1)
+    cudaMemcpyAsync(QRAD_d, QRAD, 1)
+    cudaMemcpyAsync(QRADHI_d, QRADHI, 1)
+    cudaMemcpyAsync(QPTOT_d, QPTOT, 1)
+    cudaMemcpyAsync(QREITOT_d, QREITOT, 1)
+    cudaMemcpyAsync(do_inelastic_scattering_d, do_inelastic_scattering, 1)
+    cudaMemcpyAsync(comoving_d, comoving, 1)
+    cudaMemcpyAsync(flatten_pp_threshold_d, flatten_pp_threshold, 1)
+#endif
 
   end subroutine ca_init_radhydro_pars
 #endif
