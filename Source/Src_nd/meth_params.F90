@@ -80,6 +80,21 @@ module meth_params_module
   ! Create versions of these variables on the GPU
   ! the device update is then done in Castro_nd.f90
 
+#ifdef CUDA
+  integer, device :: NTHERM_d, NVAR_d
+  integer, device :: URHO_d, UMX_d, UMY_d, UMZ_d, UMR_d, UML_d, UMP_d, UEDEN_d, UEINT_d, UTEMP_d, UFA_d, UFS_d, UFX_d
+  integer, device :: USHK_d
+  integer, device :: QTHERM_d, QVAR_d
+  integer, device :: QRHO_d, QU_d, QV_d, QW_d, QPRES_d, QREINT_d, QTEMP_d, QGAME_d
+  integer, device :: NQAUX_d, QGAMC_d, QC_d, QCSML_d, QDPDR_d, QDPDE_d
+#ifdef RADIATION
+  integer, device :: QGAMCG_d, QCG_d, QLAMS_d
+#endif
+  integer, device :: QFA_d, QFS_d, QFX_d
+  integer, device :: NQ_d
+  real(rt), device :: small_dens_d, small_temp_d
+#endif
+
   !$acc declare &
   !$acc create(NTHERM, NVAR) &
   !$acc create(URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS,UFX) &
