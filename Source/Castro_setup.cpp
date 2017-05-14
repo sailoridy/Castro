@@ -334,6 +334,8 @@ Castro::variableSetUp ()
 			 StateDescriptor::Point,ngrow_state,NUM_STATE,
 			 interp,state_data_extrap,store_in_checkpoint);
 
+  desc_lst.setDeviceCopy(State_Type, true);
+
 #ifdef SELF_GRAVITY
   store_in_checkpoint = true;
   desc_lst.addDescriptor(PhiGrav_Type, IndexType::TheCellType(),
@@ -376,6 +378,8 @@ Castro::variableSetUp ()
   desc_lst.addDescriptor(Reactions_Type,IndexType::TheCellType(),
 			 StateDescriptor::Point,0,NumSpec+2,
 			 &cell_cons_interp,state_data_extrap,store_in_checkpoint);
+
+  desc_lst.setDeviceCopy(Reactions_Type, true);
 #endif
 
 #ifdef SDC
