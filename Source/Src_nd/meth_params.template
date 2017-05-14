@@ -128,6 +128,8 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
+    integer :: istat
+    
     type (amrex_parmparse) :: pp
 
     call amrex_parmparse_build(pp, "castro")
@@ -193,12 +195,12 @@ contains
     !$acc update device(xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext)
 
 #ifdef CUDA
-  cudaMemcpyAsync(xl_ext_d, xl_ext, 1)
-  cudaMemcpyAsync(xr_ext_d, xr_ext, 1)
-  cudaMemcpyAsync(yl_ext_d, yl_ext, 1)
-  cudaMemcpyAsync(yr_ext_d, yr_ext, 1)
-  cudaMemcpyAsync(zl_ext_d, zl_ext, 1)
-  cudaMemcpyAsync(zr_ext_d, zr_ext, 1)
+    istat = cudaMemcpyAsync(xl_ext_d, xl_ext, 1)
+    istat = cudaMemcpyAsync(xr_ext_d, xr_ext, 1)
+    istat = cudaMemcpyAsync(yl_ext_d, yl_ext, 1)
+    istat = cudaMemcpyAsync(yr_ext_d, yr_ext, 1)
+    istat = cudaMemcpyAsync(zl_ext_d, zl_ext, 1)
+    istat = cudaMemcpyAsync(zr_ext_d, zr_ext, 1)
 #endif
 
     call amrex_parmparse_destroy(pp)
@@ -225,7 +227,8 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     integer, intent(in) :: fsp_type_in, do_is_in, com_in
     real(rt)        , intent(in) :: fppt
-
+    integer :: istat
+    
     QPTOT  = QVAR+1
     QREITOT = QVAR+2
     QRAD = QVAR+3
@@ -271,16 +274,16 @@ contains
     !$acc device(flatten_pp_threshold = -1.e0_rt)
 
 #ifdef CUDA
-    cudaMemcpyAsync(NQ_d, NQ, 1)
-    cudaMemcpyAsync(NQAUX_d, NQAUX, 1)
-    cudaMemcpyAsync(QRADVAR_d, QRADVAR, 1)
-    cudaMemcpyAsync(QRAD_d, QRAD, 1)
-    cudaMemcpyAsync(QRADHI_d, QRADHI, 1)
-    cudaMemcpyAsync(QPTOT_d, QPTOT, 1)
-    cudaMemcpyAsync(QREITOT_d, QREITOT, 1)
-    cudaMemcpyAsync(do_inelastic_scattering_d, do_inelastic_scattering, 1)
-    cudaMemcpyAsync(comoving_d, comoving, 1)
-    cudaMemcpyAsync(flatten_pp_threshold_d, flatten_pp_threshold, 1)
+    istat = cudaMemcpyAsync(NQ_d, NQ, 1)
+    istat = cudaMemcpyAsync(NQAUX_d, NQAUX, 1)
+    istat = cudaMemcpyAsync(QRADVAR_d, QRADVAR, 1)
+    istat = cudaMemcpyAsync(QRAD_d, QRAD, 1)
+    istat = cudaMemcpyAsync(QRADHI_d, QRADHI, 1)
+    istat = cudaMemcpyAsync(QPTOT_d, QPTOT, 1)
+    istat = cudaMemcpyAsync(QREITOT_d, QREITOT, 1)
+    istat = cudaMemcpyAsync(do_inelastic_scattering_d, do_inelastic_scattering, 1)
+    istat = cudaMemcpyAsync(comoving_d, comoving, 1)
+    istat = cudaMemcpyAsync(flatten_pp_threshold_d, flatten_pp_threshold, 1)
 #endif
 
   end subroutine ca_init_radhydro_pars
