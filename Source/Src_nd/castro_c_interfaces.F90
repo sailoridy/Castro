@@ -1,5 +1,5 @@
 
-#ifdef CUDA
+#if (defined(CUDA) && defined(CUDA_UM))
   attributes(global) &
   subroutine cuda_enforce_consistent_e(lo,hi,state,s_lo,s_hi)
 
@@ -37,11 +37,10 @@
 
     use amrex_fort_module, only: rt => amrex_real
     use meth_params_module, only: NVAR
+    use castro_util_module, only: enforce_consistent_e
 #ifdef CUDA
     use cudafor, only: cudaMemcpyAsync, cudaMemcpyHostToDevice, cudaDeviceSynchronize, dim3
     use cuda_module, only: threads_and_blocks
-#else
-    use castro_util_module, only: enforce_consistent_e
 #endif
 
     implicit none
@@ -50,7 +49,7 @@
     integer, intent(in)     :: s_lo(3), s_hi(3)
     real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
 
-#ifdef CUDA
+#if (defined(CUDA) && defined(CUDA_UM))
 
     attributes(managed) :: state
 
