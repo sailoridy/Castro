@@ -1,6 +1,11 @@
 module cuda_module
 
+  use cudafor, only: cuda_stream_kind
+
   implicit none
+
+  integer, parameter :: max_cuda_streams = 100
+  integer(kind=cuda_stream_kind) :: cuda_streams(max_cuda_streams)
 
 contains
 

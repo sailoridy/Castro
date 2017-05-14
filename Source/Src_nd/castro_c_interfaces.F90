@@ -32,14 +32,14 @@
 
 
 
-  subroutine ca_enforce_consistent_e(lo,hi,state,s_lo,s_hi) bind(c, name='ca_enforce_consistent_e')
+  subroutine ca_enforce_consistent_e(lo,hi,state,s_lo,s_hi,idx) bind(c, name='ca_enforce_consistent_e')
 
     use amrex_fort_module, only: rt => amrex_real
     use meth_params_module, only: NVAR
     use castro_util_module, only: enforce_consistent_e
 #ifdef CUDA
-    use cudafor, only: cudaMemcpyAsync, cudaMemcpyHostToDevice, cudaDeviceSynchronize, dim3
-    use cuda_module, only: threads_and_blocks
+    use cudafor, only: cudaMemcpyAsync, cudaMemcpyHostToDevice, cudaDeviceSynchronize, dim3, cuda_stream_kind
+    use cuda_module, only: threads_and_blocks, cuda_streams, max_cuda_streams
 #endif
 
     implicit none
@@ -47,6 +47,7 @@
     integer, intent(in)     :: lo(3), hi(3)
     integer, intent(in)     :: s_lo(3), s_hi(3)
     real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+    integer, intent(in)     :: idx
 
 #ifdef CUDA
 
@@ -56,6 +57,7 @@
     integer, device :: s_lo_d(3), s_hi_d(3)
 
     integer :: cuda_result
+    integer(kind=cuda_stream_kind) :: stream
     type(dim3) :: numThreads, numBlocks
 
     cuda_result = cudaMemcpyAsync(lo_d, lo, 3, cudaMemcpyHostToDevice)
@@ -66,9 +68,9 @@
 
     call threads_and_blocks(lo, hi, numBlocks, numThreads)
 
-    call cuda_enforce_consistent_e<<<numBlocks, numThreads>>>(lo_d, hi_d, state, s_lo_d, s_hi_d)
+    stream = cuda_streams(mod(idx, max_cuda_streams) + 1)
 
-    cuda_result = cudaDeviceSynchronize()
+    call cuda_enforce_consistent_e<<<numBlocks, numThreads, 0, stream>>>(lo_d, hi_d, state, s_lo_d, s_hi_d)
 
 #else
 

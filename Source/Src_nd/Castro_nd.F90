@@ -363,7 +363,8 @@ subroutine set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
 #endif
   use amrex_fort_module, only : rt => amrex_real
 #ifdef CUDA
-  use cudafor, only: cudaMemcpyAsync
+  use cudafor, only: cudaMemcpyAsync, cudaStreamCreate
+  use cuda_module, only: cuda_streams, max_cuda_streams
 #endif
 
   implicit none
@@ -679,6 +680,12 @@ subroutine set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
 #endif
   cudaResult = cudaMemcpyAsync(small_dens_d, small_dens, 1)
   cudaResult = cudaMemcpyAsync(small_temp_d, small_temp, 1)
+#endif
+
+#ifdef CUDA
+  do i = 1, max_cuda_streams
+     cudaResult = cudaStreamCreate(cuda_streams(i))
+  enddo
 #endif
 
 end subroutine set_method_params

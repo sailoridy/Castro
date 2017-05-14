@@ -2505,8 +2505,9 @@ Device::beginDeviceLaunchRegion();
         const Box& box     = mfi.tilebox();
         const int* lo      = box.loVect();
         const int* hi      = box.hiVect();
+	const int  idx     = mfi.LocalTileIndex() + mfi.numLocalTiles() * mfi.LocalIndex();
 
-        ca_enforce_consistent_e(ARLIM_3D(lo), ARLIM_3D(hi), BL_TO_FORTRAN_3D(S[mfi]));
+        ca_enforce_consistent_e(ARLIM_3D(lo), ARLIM_3D(hi), BL_TO_FORTRAN_3D(S[mfi]), &idx);
     }
 
 Device::endDeviceLaunchRegion();
