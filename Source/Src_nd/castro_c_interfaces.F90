@@ -60,15 +60,15 @@
     integer(kind=cuda_stream_kind) :: stream
     type(dim3) :: numThreads, numBlocks
 
-    cuda_result = cudaMemcpyAsync(lo_d, lo, 3, cudaMemcpyHostToDevice)
-    cuda_result = cudaMemcpyAsync(hi_d, hi, 3, cudaMemcpyHostToDevice)
+    stream = cuda_streams(mod(idx, max_cuda_streams) + 1)
 
-    cuda_result = cudaMemcpyAsync(s_lo_d, s_lo, 3, cudaMemcpyHostToDevice)
-    cuda_result = cudaMemcpyAsync(s_hi_d, s_hi, 3, cudaMemcpyHostToDevice)
+    cuda_result = cudaMemcpyAsync(lo_d, lo, 3, cudaMemcpyHostToDevice, stream)
+    cuda_result = cudaMemcpyAsync(hi_d, hi, 3, cudaMemcpyHostToDevice, stream)
+
+    cuda_result = cudaMemcpyAsync(s_lo_d, s_lo, 3, cudaMemcpyHostToDevice, stream)
+    cuda_result = cudaMemcpyAsync(s_hi_d, s_hi, 3, cudaMemcpyHostToDevice, stream)
 
     call threads_and_blocks(lo, hi, numBlocks, numThreads)
-
-    stream = cuda_streams(mod(idx, max_cuda_streams) + 1)
 
     call cuda_enforce_consistent_e<<<numBlocks, numThreads, 0, stream>>>(lo_d, hi_d, state, s_lo_d, s_hi_d)
 
