@@ -79,14 +79,14 @@ contains
 
 
 
-#if (defined(CUDA) && defined(CUDA_UM))
+#ifdef CUDA
   attributes(host) attributes(device) &
 #endif
   subroutine enforce_consistent_e(lo,hi,state,s_lo,s_hi) bind(c, name='enforce_consistent_e')
 
     use amrex_fort_module, only : rt => amrex_real
     use bl_constants_module, only : HALF, ONE
-#if (defined(CUDA) && defined(CUDA_UM))
+#ifdef CUDA
     use meth_params_module, only: NVAR => NVAR_d, URHO => URHO_d, UMX => UMX_d, &
                                   UMY => UMY_d, UMZ => UMZ_d, UEDEN => UEDEN_d, UEINT => UEINT_d
 #else
@@ -99,9 +99,8 @@ contains
     integer, intent(in)     :: s_lo(3), s_hi(3)
     real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
 
-#if (defined(CUDA) && defined(CUDA_UM))
-    attributes(device) :: lo, hi, s_lo, s_hi
-    attributes(managed) :: state
+#ifdef CUDA
+    attributes(device) :: lo, hi, s_lo, s_hi, state
 #endif
 
     ! Local variables

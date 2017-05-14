@@ -1,5 +1,5 @@
 
-#if (defined(CUDA) && defined(CUDA_UM))
+#ifdef CUDA
   attributes(global) &
   subroutine cuda_enforce_consistent_e(lo,hi,state,s_lo,s_hi)
 
@@ -13,8 +13,7 @@
     integer, intent(in)     :: s_lo(3), s_hi(3)
     real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
 
-    attributes(managed) :: state
-    attributes(device) :: lo, hi, s_lo, s_hi
+    attributes(device) :: lo, hi, s_lo, s_hi, state
 
     integer :: idx(3)
 
@@ -49,9 +48,9 @@
     integer, intent(in)     :: s_lo(3), s_hi(3)
     real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
 
-#if (defined(CUDA) && defined(CUDA_UM))
+#ifdef CUDA
 
-    attributes(managed) :: state
+    attributes(device) :: state
 
     integer, device :: lo_d(3), hi_d(3)
     integer, device :: s_lo_d(3), s_hi_d(3)
