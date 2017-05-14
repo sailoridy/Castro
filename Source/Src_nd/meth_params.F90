@@ -93,8 +93,8 @@ module meth_params_module
   integer, device :: QRADVAR_d, QRAD_d, QRADHI_d, QPTOT_d, QREITOT_d
   integer, device :: fspace_type_d, do_inelastic_scattering_d, comoving_d
   real(rt), device :: flatten_pp_threshold
-  real(rt), device :: small_dens_d, small_temp_d
 #endif
+  real(rt), device :: small_dens_d, small_temp_d
   integer, device :: QFA_d, QFS_d, QFX_d
   integer, device :: xl_ext_d, yl_ext_d, zl_ext_d, xr_ext_d, yr_ext_d, zr_ext_d
 #endif
