@@ -361,8 +361,11 @@ subroutine set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
 #ifdef RADIATION
   use rad_params_module, only : ngroups
 #endif
-
   use amrex_fort_module, only : rt => amrex_real
+#ifdef CUDA
+  use cudafor, only: cudaMemcpyAsync
+#endif
+
   implicit none
 
   integer, intent(in) :: dm
@@ -380,6 +383,10 @@ subroutine set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
 
   integer :: i
   integer :: ioproc
+
+#ifdef CUDA
+  integer :: cudaResult
+#endif
 
   call parallel_initialize()
 
@@ -612,16 +619,6 @@ subroutine set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
 
   ! Update device variables
 
-#ifdef CUDA
-  NVAR_d = NVAR
-  URHO_d = URHO
-  UMX_d = UMX
-  UMY_d = UMY
-  UMZ_d = UMZ
-  UEINT_d = UEINT
-  UEDEN_d = UEDEN
-#endif
-
   !$acc update &
   !$acc device(NTHERM, NVAR) &
   !$acc device(NQ) &
@@ -635,6 +632,54 @@ subroutine set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
   !$acc device(QGAMCG, QCG, QLAMS) &
 #endif
   !$acc device(small_dens, small_temp)
+
+#ifdef CUDA
+  ! these return a status that we might want to check in an assert mode
+  cudaResult = cudaMemcpyAsync(NTHERM_d, NTHERM, 1)
+  cudaResult = cudaMemcpyAsync(NVAR_d, NVAR, 1)
+  cudaResult = cudaMemcpyAsync(NQ_d, NQ, 1)
+  cudaResult = cudaMemcpyAsync(URHO_d, URHO, 1)
+  cudaResult = cudaMemcpyAsync(UMX_d, UMX, 1)
+  cudaResult = cudaMemcpyAsync(UMY_d, UMY, 1)
+  cudaResult = cudaMemcpyAsync(UMZ_d, UMZ, 1)
+  cudaResult = cudaMemcpyAsync(UMR_d, UMR, 1)
+  cudaResult = cudaMemcpyAsync(UML_d, UML, 1)
+  cudaResult = cudaMemcpyAsync(UMP_d, UMP, 1)
+  cudaResult = cudaMemcpyAsync(UEDEN_d, UEDEN, 1)
+  cudaResult = cudaMemcpyAsync(UEINT_d, UEINT, 1)
+  cudaResult = cudaMemcpyAsync(UTEMP_d, UTEMP, 1)
+  cudaResult = cudaMemcpyAsync(UFA_d, UFA, 1)
+  cudaResult = cudaMemcpyAsync(UFS_d, UFS, 1)
+  cudaResult = cudaMemcpyAsync(UFX_d, UFX, 1)
+  cudaResult = cudaMemcpyAsync(USHK_d, USHK, 1)
+  cudaResult = cudaMemcpyAsync(QTHERM_d, QTHERM, 1)
+  cudaResult = cudaMemcpyAsync(QVAR_d, QVAR, 1)
+  cudaResult = cudaMemcpyAsync(QRHO_d, QRHO, 1)
+  cudaResult = cudaMemcpyAsync(QU_d, QU, 1)
+  cudaResult = cudaMemcpyAsync(QV_d, QV, 1)
+  cudaResult = cudaMemcpyAsync(QW_d, QW, 1)
+  cudaResult = cudaMemcpyAsync(QPRES_d, QPRES, 1)
+  cudaResult = cudaMemcpyAsync(QREINT_d, QREINT, 1)
+  cudaResult = cudaMemcpyAsync(QTEMP_d, QTEMP, 1)
+  cudaResult = cudaMemcpyAsync(QGAMC_d, QGAMC, 1)
+  cudaResult = cudaMemcpyAsync(QGAME_d, QGAME, 1)
+
+  cudaResult = cudaMemcpyAsync(QFA_d, QFA, 1)
+  cudaResult = cudaMemcpyAsync(QFS_d, QFS, 1)
+  cudaResult = cudaMemcpyAsync(QFX_d, QFX, 1)
+  cudaResult = cudaMemcpyAsync(NQAUX_d, NQAUX, 1)
+  cudaResult = cudaMemcpyAsync(QC_d, QC, 1)
+  cudaResult = cudaMemcpyAsync(QCSML_d, QCSML, 1)
+  cudaResult = cudaMemcpyAsync(QDPDR_d, QDPDR, 1)
+  cudaResult = cudaMemcpyAsync(QDPDE_d, QDPDE, 1)
+#ifdef RADIATION
+  cudaResult = cudaMemcpyAsync(QGAMCG_d, QGAMCG, 1)
+  cudaResult = cudaMemcpyAsync(QCG_d, QCG, 1)
+  cudaResult = cudaMemcpyAsync(QLAMS_d, QLAMS, 1)
+#endif
+  cudaResult = cudaMemcpyAsync(small_dens_d, small_dens, 1)
+  cudaResult = cudaMemcpyAsync(small_temp_d, small_temp, 1)
+#endif
 
 end subroutine set_method_params
 
@@ -680,8 +725,11 @@ subroutine set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
 #ifdef ROTATION
   use meth_params_module, only: rot_axis
 #endif
-
   use amrex_fort_module, only : rt => amrex_real
+#ifdef CUDA
+  use cudafor, only: cudaMemcpyAsync
+#endif
+
   implicit none
 
   integer, intent(in) :: dm
@@ -689,6 +737,10 @@ subroutine set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
   integer, intent(in) :: Interior_in, Inflow_in, Outflow_in, Symmetry_in, SlipWall_in, NoSlipWall_in
   integer, intent(in) :: coord_type_in
   real(rt)        , intent(in) :: problo_in(dm), probhi_in(dm), center_in(dm)
+
+#ifdef CUDA
+  integer :: cudaResult
+#endif
 
   dim = dm
 
@@ -729,7 +781,7 @@ subroutine set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
 #endif
 
 #ifdef CUDA
-  dim_d = dim
+  cudaResult = cudaMemcpyAsync(dim_d, dim, 1)
 #endif
 
 end subroutine set_problem_params
