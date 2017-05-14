@@ -346,12 +346,12 @@ end subroutine swap_outflow_data
 ! :::
 
 subroutine set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
-     FirstAdv,FirstSpec,FirstAux,numadv, &
+                             FirstAdv,FirstSpec,FirstAux,numadv, &
 #ifdef SHOCK_VAR
-     Shock, &
+                             Shock, &
 #endif
-     gravity_type_in, gravity_type_len) &
-     bind(C, name="set_method_params")
+                             gravity_type_in, gravity_type_len) &
+                             bind(C, name="set_method_params")
 
   use meth_params_module
   use network, only : nspec, naux
