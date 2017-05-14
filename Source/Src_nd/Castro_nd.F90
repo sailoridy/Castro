@@ -353,6 +353,9 @@ subroutine set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
      gravity_type_in, gravity_type_len) &
      bind(C, name="set_method_params")
 
+#ifdef CUDA
+  use cudafor
+#endif
   use meth_params_module
   use network, only : nspec, naux
   use parallel, only : parallel_initialize
