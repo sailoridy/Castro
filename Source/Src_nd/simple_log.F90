@@ -23,6 +23,8 @@ module simple_log_module
 
   interface log
      module procedure sd_log
+     module procedure sd2_log
+     module procedure si3_log
      module procedure si_log
      module procedure s_log
   end interface log
@@ -47,6 +49,29 @@ contains
     write (dstr,'(g20.10)') d
     call s_log(str // dstr)
   end subroutine sd_log
+
+  subroutine sd2_log(str, d, d2)
+    character (len=*), intent(in) :: str
+    real (kind=dp_t), intent(in) :: d, d2
+
+    character (len=20) :: dstr, dstr2
+
+    write (dstr,'(g20.10)') d
+    write (dstr2,'(g20.10)') d2
+    call s_log(str // dstr// dstr2)
+  end subroutine sd2_log
+
+  subroutine si3_log(str, i, i2, i3)
+    character (len=*), intent(in) :: str
+    integer, intent(in) :: i, i2, i3
+
+    character (len=20) :: istr, istr2, istr3
+
+    write (istr,'(i8)') i
+    write (istr2,'(i8)') i2
+    write (istr3, '(i8)') i3
+    call s_log(str // istr//istr2//istr3)
+  end subroutine si3_log
 
   subroutine si_log(str, i)
     character (len=*), intent(in) :: str    

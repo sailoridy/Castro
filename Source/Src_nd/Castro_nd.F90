@@ -330,7 +330,7 @@ subroutine swap_outflow_data() bind(C, name="swap_outflow_data")
   end if
 
   if (size(outflow_data_old,dim=2) .ne. size(outflow_data_new,dim=2)) then
-     print *,'size of old and new dont match in swap_outflow_data '
+     call log('size of old and new dont match in swap_outflow_data ')
      call log_error("Error:: Castro_nd.f90 :: swap_outflow_data")
   end if
 

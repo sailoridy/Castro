@@ -277,7 +277,10 @@ contains
           gb = (1.e0_rt + fourpi * rc**3 * P / (mass_encl*sqvc))
           gc = 1.e0_rt / (1.e0_rt - 2.e0_rt * Gconst * mass_encl / (rc*sqvc))
 
-          print *, i, grav(i), ga, gb, gc
+          !print *, i, grav(i), ga, gb, gc
+          call log('',i)
+          call log('',grav(i),ga)
+          call log('',gb,gc)
 
           grav(i) = grav(i)*ga*gb*gc
        end if

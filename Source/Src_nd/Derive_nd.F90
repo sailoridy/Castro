@@ -35,7 +35,7 @@ contains
     integer          :: i, j, k
 
     if (nv .ne. 3) then
-       print *,'... confusion in derstate ... nv should be 3 but is ',nv
+       call log('... confusion in derstate ... nv should be 3 but is ',nv)
        call log_error('Error:: Derive_nd.f90 :: ca_derstate')
     end if
 

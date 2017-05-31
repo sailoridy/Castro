@@ -292,11 +292,13 @@ contains
                       eint_new = eos_state % e
 
                       if (verbose .gt. 0) then
-                         print *,'   '
-                         print *,'>>> Warning: Castro_util.F90::reset_internal_energy  ',i,j,k
-                         print *,'>>> ... resetting neg. e from EOS using small_temp'
-                         print *,'>>> ... from ',u(i,j,k,UEINT)/u(i,j,k,URHO),' to ', eint_new
-                         print *,'    '
+                         call log('   ')
+                         call log('>>> Warning: Castro_util.F90::reset_internal_energy  ',i,j,k)
+                         call log('>>> ... resetting neg. e from EOS using small_temp')
+                         !print *,'>>> ... from ',u(i,j,k,UEINT)/u(i,j,k,URHO),' to ', eint_new
+                         call log('>>> ... from ',u(i,j,k,UEINT)/u(i,j,k,URHO))
+                         call log(' to ', eint_new)
+                         call log('    ')
                       end if
 
                       if (dual_energy_update_E_from_e == 1) then
@@ -366,18 +368,18 @@ contains
           do i = lo(1),hi(1)
 
              if (state(i,j,k,URHO) <= ZERO) then
-                print *,'   '
-                print *,'>>> Error: Castro_util.F90::compute_temp ',i,j,k
-                print *,'>>> ... negative density ',state(i,j,k,URHO)
-                print *,'    '
+                call log('   ')
+                call log('>>> Error: Castro_util.F90::compute_temp ',i,j,k)
+                call log('>>> ... negative density ',state(i,j,k,URHO))
+                call log('    ')
                 call log_error("Error:: compute_temp_nd.f90")
              end if
 
              if (allow_negative_energy .eq. 0 .and. state(i,j,k,UEINT) <= ZERO) then
-                print *,'   '
-                print *,'>>> Warning: Castro_util.F90::compute_temp ',i,j,k
-                print *,'>>> ... negative (rho e) ',state(i,j,k,UEINT)
-                print *,'   '
+                call log('   ')
+                call log('>>> Warning: Castro_util.F90::compute_temp ',i,j,k)
+                call log('>>> ... negative (rho e) ',state(i,j,k,UEINT))
+                call log('   ')
                 call log_error("Error:: compute_temp_nd.f90")
              end if
 
@@ -443,8 +445,9 @@ contains
              spec_sum = sum(state(i,j,k,UFS:UFS+nspec-1))
 
              if (abs(state(i,j,k,URHO)-spec_sum) .gt. 1.e-8_rt * state(i,j,k,URHO)) then
-                !print *,'Sum of (rho X)_i vs rho at (i,j,k): ',i,j,k,spec_sum,state(i,j,k,URHO)
-                call log('Sum of .... blah blah....')
+                !print *,'Sum of (rho X)_i vs rho at (i,j,k): ',i,j,k,spec_sum, state(i,j,k,URHO)
+                call log('Sum of (rho X)_i vs rho at (i,j,k): ',i,j,k) 
+                call log('',spec_sum,state(i,j,k,URHO))
                 call log_error("Error:: Failed check of initial species summing to 1")
                 call simple_log_finalize()
              end if
@@ -874,9 +877,10 @@ contains
              r = sqrt(x**2 + y**2 + z**2)
              index = int(r/dr)
              if (index .gt. numpts_1d-1) then
-                print *,'COMPUTE_AVGSTATE: INDEX TOO BIG ',index,' > ',numpts_1d-1
-                print *,'AT (i,j,k) ',i,j,k
-                print *,'R / DR ',r,dr
+                call log('COMPUTE_AVGSTATE: INDEX TOO BIG ',index)
+                call log(' > ',numpts_1d-1)
+                call log('AT (i,j,k) ',i,j,k)
+                call log('R / DR ',r,dr)
                 call log_error("Error:: Castro_util.F90 :: ca_compute_avgstate")
              end if
              radial_state(URHO,index) = radial_state(URHO,index) &

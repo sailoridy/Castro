@@ -71,8 +71,9 @@ contains
 
              if (uout(i,j,k,URHO) .eq. ZERO) then
 
-                print *,'DENSITY EXACTLY ZERO AT CELL ',i,j,k
-                print *,'  in grid ',lo(1),lo(2),lo(3),hi(1),hi(2),hi(3)
+                call log('DENSITY EXACTLY ZERO AT CELL ',i,j,k)
+                call log('  in grid ',lo(1),lo(2),lo(3))
+                call log('',hi(1),hi(2),hi(3))
                 call log_error("Error:: advection_util_nd.f90 :: enforce_minimum_density")
 
              else if (uout(i,j,k,URHO) < small_dens) then
@@ -229,16 +230,18 @@ contains
     ! though any choice here would be arbitrary.
 
     if (verbose .gt. 0) then
-       print *,'   '
+       call log('   ')
        if (new_state(URHO) < ZERO) then
-          print *,'>>> RESETTING NEG.  DENSITY AT ',idx(1),idx(2),idx(3)
+          call log('>>> RESETTING NEG.  DENSITY AT ',idx(1),idx(2),idx(3))
        else
-          print *,'>>> RESETTING SMALL DENSITY AT ',idx(1),idx(2),idx(3)
+          call log('>>> RESETTING SMALL DENSITY AT ',idx(1),idx(2),idx(3))
        endif
-       print *,'>>> FROM ',new_state(URHO),' TO ',small_dens
-       print *,'>>> IN GRID ',lo(1),lo(2),lo(3),hi(1),hi(2),hi(3)
-       print *,'>>> ORIGINAL DENSITY FOR OLD STATE WAS ',old_state(URHO)
-       print *,'   '
+       call log('>>> FROM ',new_state(URHO))
+       call log(' TO ',small_dens)
+       call log('>>> IN GRID ',lo(1),lo(2),lo(3))
+       call log('',hi(1),hi(2),hi(3))
+       call log('>>> ORIGINAL DENSITY FOR OLD STATE WAS ',old_state(URHO))
+       call log('   ')
     end if
 
     do ipassive = 1, npassive
@@ -285,19 +288,23 @@ contains
 
     if (verbose .gt. 0) then
        if (new_state(URHO) < ZERO) then
-          print *,'   '
-          print *,'>>> RESETTING NEG.  DENSITY AT ',idx(1),idx(2),idx(3)
-          print *,'>>> FROM ',new_state(URHO),' TO ',input_state(URHO)
-          print *,'>>> IN GRID ',lo(1),lo(2),lo(3),hi(1),hi(2),hi(3)
-          print *,'>>> ORIGINAL DENSITY FOR OLD STATE WAS ',old_state(URHO)
-          print *,'   '
+          call log('   ')
+          call log('>>> RESETTING NEG.  DENSITY AT ',idx(1),idx(2),idx(3))
+          call log('>>> FROM ',new_state(URHO))
+          call log(' TO ',input_state(URHO))
+          call log('>>> IN GRID ',lo(1),lo(2),lo(3))
+          call log('',hi(1),hi(2),hi(3))
+          call log('>>> ORIGINAL DENSITY FOR OLD STATE WAS ',old_state(URHO))
+          call log('   ')
        else
-          print *,'   '
-          print *,'>>> RESETTING SMALL DENSITY AT ',idx(1),idx(2),idx(3)
-          print *,'>>> FROM ',new_state(URHO),' TO ',input_state(URHO)
-          print *,'>>> IN GRID ',lo(1),lo(2),lo(3),hi(1),hi(2),hi(3)
-          print *,'>>> ORIGINAL DENSITY FOR OLD STATE WAS ',old_state(URHO)
-          print *,'   '
+          call log('   ')
+          call log('>>> RESETTING SMALL DENSITY AT ',idx(1),idx(2),idx(3))
+          call log('>>> FROM ',new_state(URHO))
+          call log(' TO ',input_state(URHO))
+          call log('>>> IN GRID ',lo(1),lo(2),lo(3))
+          call log('',hi(1),hi(2),hi(3))
+          call log('>>> ORIGINAL DENSITY FOR OLD STATE WAS ',old_state(URHO))
+          call log('   ')
        end if
     end if
 
@@ -363,30 +370,30 @@ contains
              courmz = max( courmz, courz )
 
              if (courx .gt. ONE) then
-                print *,'   '
+                call log('   ')
                 call log_warning("Warning:: advection_util_nd.F90 :: CFL violation in compute_cfl")
-                print *,'>>> ... (u+c) * dt / dx > 1 ', courx
-                print *,'>>> ... at cell (i,j,k)   : ', i, j, k
-                print *,'>>> ... u, c                ', q(i,j,k,QU), qaux(i,j,k,QC)
-                print *,'>>> ... density             ', q(i,j,k,QRHO)
+                call log('>>> ... (u+c) * dt / dx > 1 ', courx)
+                call log('>>> ... at cell (i,j,k)   : ', i, j, k)
+                call log('>>> ... u, c                ', q(i,j,k,QU), qaux(i,j,k,QC))
+                call log('>>> ... density             ', q(i,j,k,QRHO))
              end if
 
              if (coury .gt. ONE) then
-                print *,'   '
+                call log('   ')
                 call log_warning("Warning:: advection_util_nd.F90 :: CFL violation in compute_cfl")
-                print *,'>>> ... (v+c) * dt / dx > 1 ', coury
-                print *,'>>> ... at cell (i,j,k)   : ', i,j,k
-                print *,'>>> ... v, c                ', q(i,j,k,QV), qaux(i,j,k,QC)
-                print *,'>>> ... density             ', q(i,j,k,QRHO)
+                call log('>>> ... (v+c) * dt / dx > 1 ', coury)
+                call log('>>> ... at cell (i,j,k)   : ', i,j,k)
+                call log('>>> ... v, c                ', q(i,j,k,QV), qaux(i,j,k,QC))
+                call log('>>> ... density             ', q(i,j,k,QRHO))
              end if
 
              if (courz .gt. ONE) then
-                print *,'   '
+                call log('   ')
                 call log_warning("Warning:: advection_util_nd.F90 :: CFL violation in compute_cfl")
-                print *,'>>> ... (w+c) * dt / dx > 1 ', courz
-                print *,'>>> ... at cell (i,j,k)   : ', i, j, k
-                print *,'>>> ... w, c                ', q(i,j,k,QW), qaux(i,j,k,QC)
-                print *,'>>> ... density             ', q(i,j,k,QRHO)
+                call log('>>> ... (w+c) * dt / dx > 1 ', courz)
+                call log('>>> ... at cell (i,j,k)   : ', i, j, k)
+                call log('>>> ... w, c                ', q(i,j,k,QW), qaux(i,j,k,QC))
+                call log('>>> ... density             ', q(i,j,k,QRHO))
              end if
 
           enddo
@@ -474,14 +481,14 @@ contains
 
           do i = lo(1), hi(1)
              if (uin(i,j,k,URHO) .le. ZERO) then
-                print *,'   '
-                print *,'>>> Error: advection_util_nd.F90::ctoprim ',i, j, k
-                print *,'>>> ... negative density ', uin(i,j,k,URHO)
+                call log('   ')
+                call log('>>> Error: advection_util_nd.F90::ctoprim ',i, j, k)
+                call log('>>> ... negative density ', uin(i,j,k,URHO))
                 call log_error("Error:: advection_util_nd.f90 :: ctoprim")
              else if (uin(i,j,k,URHO) .lt. small_dens) then
-                print *,'   '
-                print *,'>>> Error: advection_util_nd.F90::ctoprim ',i, j, k
-                print *,'>>> ... small density ', uin(i,j,k,URHO)
+                call log('   ')
+                call log('>>> Error: advection_util_nd.F90::ctoprim ',i, j, k)
+                call log('>>> ... small density ', uin(i,j,k,URHO))
                 call log_error("Error:: advection_util_nd.f90 :: ctoprim")
              endif
           end do
