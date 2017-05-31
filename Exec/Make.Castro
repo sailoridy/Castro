@@ -247,7 +247,7 @@ Bpack	+= $(foreach dir, $(Pdirs), $(AMREX_HOME)/Src/$(dir)/Make.package)
 
 # Castro directories
 Bdirs 	:= Source Source/param_includes Source/Src_$(DIM)d Source/Src_nd \
-           constants Util/model_parser Util/simple_log
+           constants Util/model_parser  
 
 ifeq ($(USE_RAD), TRUE)
 Bdirs +=   Source/Radiation Source/Radiation/_interpbndry \
