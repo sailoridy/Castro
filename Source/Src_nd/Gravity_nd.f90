@@ -460,7 +460,7 @@ contains
     endif
 
     if (lnum > lnum_max) then
-       call bl_error("Error: ca_compute_multipole_moments: requested more multipole moments than we allocated data for.")
+       call log_error("Error: ca_compute_multipole_moments: requested more multipole moments than we allocated data for.")
     endif
 
     do k = lo(3), hi(3)
@@ -617,7 +617,7 @@ contains
     ! Sanity check
 
     if (lnum > lnum_max) then
-       call bl_error("Error: ca_compute_multipole_moments: requested more multipole moments than we allocated data for.")
+       call log_error("Error: ca_compute_multipole_moments: requested more multipole moments than we allocated data for.")
     endif
 
     do k = lo(3), hi(3)

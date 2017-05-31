@@ -1,12 +1,14 @@
 module advection_util_module
 
   use amrex_fort_module, only : rt => amrex_real
+  use simple_log_module
   implicit none
 
   private
 
   public enforce_minimum_density, compute_cfl, ctoprim, srctoprim, dflux, &
          limit_hydro_fluxes_on_small_dens
+
 
 contains
 
@@ -71,7 +73,7 @@ contains
 
                 print *,'DENSITY EXACTLY ZERO AT CELL ',i,j,k
                 print *,'  in grid ',lo(1),lo(2),lo(3),hi(1),hi(2),hi(3)
-                call bl_error("Error:: advection_util_nd.f90 :: enforce_minimum_density")
+                call log_error("Error:: advection_util_nd.f90 :: enforce_minimum_density")
 
              else if (uout(i,j,k,URHO) < small_dens) then
 
@@ -177,7 +179,7 @@ contains
 
                 else
 
-                   call bl_error("Unknown density_reset_method in subroutine enforce_minimum_density.")
+                   call log_error("Unknown density_reset_method in subroutine enforce_minimum_density.")
 
                 endif
 
@@ -362,7 +364,7 @@ contains
 
              if (courx .gt. ONE) then
                 print *,'   '
-                call bl_warning("Warning:: advection_util_nd.F90 :: CFL violation in compute_cfl")
+                call log_warning("Warning:: advection_util_nd.F90 :: CFL violation in compute_cfl")
                 print *,'>>> ... (u+c) * dt / dx > 1 ', courx
                 print *,'>>> ... at cell (i,j,k)   : ', i, j, k
                 print *,'>>> ... u, c                ', q(i,j,k,QU), qaux(i,j,k,QC)
@@ -371,7 +373,7 @@ contains
 
              if (coury .gt. ONE) then
                 print *,'   '
-                call bl_warning("Warning:: advection_util_nd.F90 :: CFL violation in compute_cfl")
+                call log_warning("Warning:: advection_util_nd.F90 :: CFL violation in compute_cfl")
                 print *,'>>> ... (v+c) * dt / dx > 1 ', coury
                 print *,'>>> ... at cell (i,j,k)   : ', i,j,k
                 print *,'>>> ... v, c                ', q(i,j,k,QV), qaux(i,j,k,QC)
@@ -380,7 +382,7 @@ contains
 
              if (courz .gt. ONE) then
                 print *,'   '
-                call bl_warning("Warning:: advection_util_nd.F90 :: CFL violation in compute_cfl")
+                call log_warning("Warning:: advection_util_nd.F90 :: CFL violation in compute_cfl")
                 print *,'>>> ... (w+c) * dt / dx > 1 ', courz
                 print *,'>>> ... at cell (i,j,k)   : ', i, j, k
                 print *,'>>> ... w, c                ', q(i,j,k,QW), qaux(i,j,k,QC)
@@ -475,12 +477,12 @@ contains
                 print *,'   '
                 print *,'>>> Error: advection_util_nd.F90::ctoprim ',i, j, k
                 print *,'>>> ... negative density ', uin(i,j,k,URHO)
-                call bl_error("Error:: advection_util_nd.f90 :: ctoprim")
+                call log_error("Error:: advection_util_nd.f90 :: ctoprim")
              else if (uin(i,j,k,URHO) .lt. small_dens) then
                 print *,'   '
                 print *,'>>> Error: advection_util_nd.F90::ctoprim ',i, j, k
                 print *,'>>> ... small density ', uin(i,j,k,URHO)
-                call bl_error("Error:: advection_util_nd.f90 :: ctoprim")
+                call log_error("Error:: advection_util_nd.f90 :: ctoprim")
              endif
           end do
 

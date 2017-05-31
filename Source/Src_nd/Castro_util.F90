@@ -1,6 +1,7 @@
 module castro_util_module
 
   use amrex_fort_module, only : rt => amrex_real
+  use simple_log_module
   implicit none
 
 contains
@@ -369,7 +370,7 @@ contains
                 print *,'>>> Error: Castro_util.F90::compute_temp ',i,j,k
                 print *,'>>> ... negative density ',state(i,j,k,URHO)
                 print *,'    '
-                call bl_error("Error:: compute_temp_nd.f90")
+                call log_error("Error:: compute_temp_nd.f90")
              end if
 
              if (allow_negative_energy .eq. 0 .and. state(i,j,k,UEINT) <= ZERO) then
@@ -377,7 +378,7 @@ contains
                 print *,'>>> Warning: Castro_util.F90::compute_temp ',i,j,k
                 print *,'>>> ... negative (rho e) ',state(i,j,k,UEINT)
                 print *,'   '
-                call bl_error("Error:: compute_temp_nd.f90")
+                call log_error("Error:: compute_temp_nd.f90")
              end if
 
           enddo
@@ -424,6 +425,7 @@ contains
     use bl_constants_module
 
     use amrex_fort_module, only : rt => amrex_real
+    !use simple_log_module
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -441,10 +443,10 @@ contains
              spec_sum = sum(state(i,j,k,UFS:UFS+nspec-1))
 
              if (abs(state(i,j,k,URHO)-spec_sum) .gt. 1.e-8_rt * state(i,j,k,URHO)) then
-
-                print *,'Sum of (rho X)_i vs rho at (i,j,k): ',i,j,k,spec_sum,state(i,j,k,URHO)
-                call bl_error("Error:: Failed check of initial species summing to 1")
-
+                !print *,'Sum of (rho X)_i vs rho at (i,j,k): ',i,j,k,spec_sum,state(i,j,k,URHO)
+                call log('Sum of .... blah blah....')
+                call log_error("Error:: Failed check of initial species summing to 1")
+                call simple_log_finalize()
              end if
 
           enddo
@@ -610,7 +612,7 @@ contains
 
        else
 
-          call bl_error("Cylindrical coordinates only supported in 2D.")
+          call log_error("Cylindrical coordinates only supported in 2D.")
 
        endif
 
@@ -635,7 +637,7 @@ contains
 
        else
 
-          call bl_error("Spherical coordinates only supported in 1D.")
+          call log_error("Spherical coordinates only supported in 1D.")
 
        endif
 
@@ -700,7 +702,7 @@ contains
 
        else
 
-          call bl_error("Cylindrical coordinates only supported in 2D.")
+          call log_error("Cylindrical coordinates only supported in 2D.")
 
        endif
 
@@ -719,7 +721,7 @@ contains
 
        else
 
-          call bl_error("Spherical coordinates only supported in 1D.")
+          call log_error("Spherical coordinates only supported in 1D.")
 
        endif
 
@@ -858,7 +860,7 @@ contains
     real(rt)         :: x,y,z,r
     real(rt)         :: x_mom,y_mom,z_mom,radial_mom
 
-    if (dim .eq. 1) call bl_error("Error: cannot do ca_compute_avgstate in 1D.")
+    if (dim .eq. 1) call log_error("Error: cannot do ca_compute_avgstate in 1D.")
 
     !
     ! Do not OMP this.
@@ -875,7 +877,7 @@ contains
                 print *,'COMPUTE_AVGSTATE: INDEX TOO BIG ',index,' > ',numpts_1d-1
                 print *,'AT (i,j,k) ',i,j,k
                 print *,'R / DR ',r,dr
-                call bl_error("Error:: Castro_util.F90 :: ca_compute_avgstate")
+                call log_error("Error:: Castro_util.F90 :: ca_compute_avgstate")
              end if
              radial_state(URHO,index) = radial_state(URHO,index) &
                                       + vol(i,j,k)*state(i,j,k,URHO)

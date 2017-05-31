@@ -45,7 +45,7 @@ contains
 
     else
 
-       call bl_error("Error:: rotation_nd.f90 :: invalid coord_type")
+       call log_error("Error:: rotation_nd.f90 :: invalid coord_type")
 
     endif
 
@@ -85,7 +85,7 @@ contains
 
     else
 
-       call bl_error("Error:: rotation_nd.f90 :: unknown coord_type")
+       call log_error("Error:: rotation_nd.f90 :: unknown coord_type")
 
     endif
 

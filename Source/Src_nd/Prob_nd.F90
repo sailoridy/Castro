@@ -35,7 +35,8 @@ subroutine ca_initdata(level,time,lo,hi,nvar, &
                        state,state_lo,state_hi, &
                        dx,xlo,xhi)
 
-  use bl_error_module
+  !use bl_error_module
+  use simple_log_module
 
   use amrex_fort_module, only : rt => amrex_real
   implicit none
@@ -51,7 +52,7 @@ subroutine ca_initdata(level,time,lo,hi,nvar, &
   ! Remove this call if you're defining your own problem; it is here to 
   ! ensure that you cannot run CASTRO if you haven't got your own copy of this function.
 
-  call bl_error("Prob_nd.f90 has not been defined for this problem!")
+  call log_error("Prob_nd.f90 has not been defined for this problem!")
 
 end subroutine ca_initdata
 

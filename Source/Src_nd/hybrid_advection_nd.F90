@@ -190,7 +190,8 @@ contains
   subroutine compute_hybrid_flux(state, flux, idir, idx, cell_centered)
 
     use meth_params_module, only: NVAR, NGDNV, GDRHO, GDU, GDV, GDW, GDPRES, UMR, UML, UMP
-    use bl_error_module, only: bl_error
+    !use bl_error_module, only: bl_error
+    use simple_log_module
     use prob_params_module, only: center
     use castro_util_module, only: position
 
@@ -226,7 +227,7 @@ contains
        loc = position(idx(1),idx(2),idx(3),ccz=cc) - center
        u_adv = state(GDW)
     else
-       call bl_error("Error: unknown direction in compute_hybrid_flux.")
+       call log_error("Error: unknown direction in compute_hybrid_flux.")
     endif
 
     R = sqrt(loc(1)**2 + loc(2)**2)
@@ -255,7 +256,7 @@ contains
 
     else
 
-       call bl_error("Error: unknown direction in compute_hybrid_flux.")
+       call log_error("Error: unknown direction in compute_hybrid_flux.")
 
     endif
 

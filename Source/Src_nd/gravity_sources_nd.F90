@@ -140,7 +140,7 @@ contains
 
              else
 
-                call bl_error("Error:: gravity_sources_nd.F90 :: invalid grav_source_type")
+                call log_error("Error:: gravity_sources_nd.F90 :: invalid grav_source_type")
 
              end if
 
@@ -521,7 +521,7 @@ contains
 #endif
 
              else
-                call bl_error("Error:: gravity_sources_nd.F90 :: invalid grav_source_type")
+                call log_error("Error:: gravity_sources_nd.F90 :: invalid grav_source_type")
              end if
 
              src(UEDEN) = SrEcorr

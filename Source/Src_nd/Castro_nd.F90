@@ -315,6 +315,7 @@ subroutine swap_outflow_data() bind(C, name="swap_outflow_data")
        outflow_data_old, outflow_data_old_time
 
   use amrex_fort_module, only : rt => amrex_real
+  use simple_log_module
   implicit none
 
   integer                       :: np,nc
@@ -330,7 +331,7 @@ subroutine swap_outflow_data() bind(C, name="swap_outflow_data")
 
   if (size(outflow_data_old,dim=2) .ne. size(outflow_data_new,dim=2)) then
      print *,'size of old and new dont match in swap_outflow_data '
-     call bl_error("Error:: Castro_nd.f90 :: swap_outflow_data")
+     call log_error("Error:: Castro_nd.f90 :: swap_outflow_data")
   end if
 
   outflow_data_old(1:nc,1:np) = outflow_data_new(1:nc,1:np)
@@ -366,6 +367,7 @@ subroutine set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
   use cudafor, only: cudaMemcpyAsync
 #endif
 
+  use simple_log_module
   implicit none
 
   integer, intent(in) :: dm
@@ -591,14 +593,15 @@ subroutine set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
 
   if (small_dens <= 0.e0_rt) then
      if (ioproc == 1) then
-        call bl_warning("Warning:: small_dens has not been set, defaulting to 1.e-200_rt.")
+        !call bl_warning("Warning:: small_dens has not been set, defaulting to 1.e-200_rt.")
+        call log_warning("Warning:: small_dens has not been set, defaulting to 1.e-200_rt.")
      endif
      small_dens = 1.e-200_rt
   endif
 
   if (small_temp <= 0.e0_rt) then
      if (ioproc == 1) then
-        call bl_warning("Warning:: small_temp has not been set, defaulting to 1.e-200_rt.")
+        call log_warning("Warning:: small_temp has not been set, defaulting to 1.e-200_rt.")
      endif
      small_temp = 1.e-200_rt
   endif
@@ -690,6 +693,7 @@ subroutine init_godunov_indices() bind(C, name="init_godunov_indices")
        QU, QV, QW
 
   use amrex_fort_module, only : rt => amrex_real
+  use simple_log_module
   implicit none
 
   NGDNV = 6
@@ -702,7 +706,7 @@ subroutine init_godunov_indices() bind(C, name="init_godunov_indices")
 
   ! sanity check
   if ((QU /= GDU) .or. (QV /= GDV) .or. (QW /= GDW)) then
-     call bl_error("ERROR: velocity components for godunov and primitive state are not aligned")
+     call log_error("ERROR: velocity components for godunov and primitive state are not aligned")
   endif
 
 end subroutine init_godunov_indices
@@ -876,6 +880,7 @@ subroutine get_tagging_params(name, namlen) &
   ! Initialize the tagging parameters
 
   use amrex_fort_module, only : rt => amrex_real
+  use simple_log_module
   integer :: namlen
   integer :: name(namlen)
 
@@ -925,7 +930,7 @@ subroutine get_tagging_params(name, namlen) &
 
   ! create the filename
   if (namlen > maxlen) then
-     call bl_error('probin file name too long')
+     call log_error('probin file name too long')
   endif
 
   do i = 1, namlen
@@ -943,7 +948,7 @@ subroutine get_tagging_params(name, namlen) &
 
   else if (status > 0) then
      ! some problem in the namelist
-     call bl_error('ERROR: problem in the tagging namelist')
+     call log_error('ERROR: problem in the tagging namelist')
   endif
 
   close (unit=un)
@@ -962,6 +967,7 @@ subroutine get_sponge_params(name, namlen) bind(C, name="get_sponge_params")
   ! Initialize the sponge parameters
 
   use amrex_fort_module, only : rt => amrex_real
+  use simple_log_module
   integer :: namlen
   integer :: name(namlen)
 
@@ -991,7 +997,7 @@ subroutine get_sponge_params(name, namlen) bind(C, name="get_sponge_params")
 
   ! create the filename
   if (namlen > maxlen) then
-     call bl_error('probin file name too long')
+     call log_error('probin file name too long')
   endif
 
   do i = 1, namlen
@@ -1009,7 +1015,7 @@ subroutine get_sponge_params(name, namlen) bind(C, name="get_sponge_params")
 
   else if (status > 0) then
      ! some problem in the namelist
-     call bl_error('ERROR: problem in the sponge namelist')
+     call log_error('ERROR: problem in the sponge namelist')
   endif
 
   close (unit=un)
@@ -1017,11 +1023,11 @@ subroutine get_sponge_params(name, namlen) bind(C, name="get_sponge_params")
   ! Sanity check
 
   if (sponge_lower_factor < 0.e0_rt .or. sponge_lower_factor > 1.e0_rt) then
-     call bl_error('ERROR: sponge_lower_factor cannot be outside of [0, 1].')
+     call log_error('ERROR: sponge_lower_factor cannot be outside of [0, 1].')
   endif
 
   if (sponge_upper_factor < 0.e0_rt .or. sponge_upper_factor > 1.e0_rt) then
-     call bl_error('ERROR: sponge_upper_factor cannot be outside of [0, 1].')
+     call log_error('ERROR: sponge_upper_factor cannot be outside of [0, 1].')
   endif
 
 end subroutine get_sponge_params

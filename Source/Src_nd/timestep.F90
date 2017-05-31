@@ -217,7 +217,7 @@ contains
 
              else
 
-                call bl_error("Error: unrecognized burning timestep limiter mode in timestep.F90.")
+                call log_error("Error: unrecognized burning timestep limiter mode in timestep.F90.")
 
              endif
 

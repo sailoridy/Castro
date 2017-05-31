@@ -1,6 +1,7 @@
 module derive_module
 
   use amrex_fort_module, only : rt => amrex_real
+  use simple_log_module
   implicit none
 
   public
@@ -35,7 +36,7 @@ contains
 
     if (nv .ne. 3) then
        print *,'... confusion in derstate ... nv should be 3 but is ',nv
-       call bl_error('Error:: Derive_nd.f90 :: ca_derstate')
+       call log_error('Error:: Derive_nd.f90 :: ca_derstate')
     end if
 
     do k = lo(3), hi(3)

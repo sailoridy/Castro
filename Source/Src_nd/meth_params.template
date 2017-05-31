@@ -7,8 +7,8 @@
 
 module meth_params_module
 
-  use bl_error_module
-
+  !use bl_error_module
+  use simple_log_module 
   use amrex_fort_module, only : rt => amrex_real
   implicit none
 

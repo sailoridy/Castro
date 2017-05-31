@@ -85,7 +85,8 @@ module interpolate_module
                                model_x, model_y, model_z, model_var, &
                                interp_var, derivs, error)
 
-      use bl_error_module
+      !use bl_error_module
+      use simple_log_module
       use bl_constants_module, only: ONE
 
       ! tri-linear interpolation; useful for EOS tables

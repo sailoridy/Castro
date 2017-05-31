@@ -107,7 +107,7 @@ contains
                 SrE = dot_product(uold(i,j,k,UMX:UMZ) * rhoInv, Sr)
 
              else
-                call bl_error("Error:: rotation_sources_nd.F90 :: invalid rot_source_type")
+                call log_error("Error:: rotation_sources_nd.F90 :: invalid rot_source_type")
              end if
 
              src(UEDEN) = src(UEDEN) + SrE
@@ -455,7 +455,7 @@ contains
                 SrEcorr = SrEcorr + HALF * (dot_product(vold, Sr_old) + dot_product(vnew, Sr_new))
 
              else
-                call bl_error("Error:: rotation_sources_nd.F90 :: invalid rot_source_type")
+                call log_error("Error:: rotation_sources_nd.F90 :: invalid rot_source_type")
              end if
 
              src(UEDEN) = SrEcorr
