@@ -254,6 +254,20 @@ contains
 
     type (sdc_t) :: burn_state_in, burn_state_out
 
+    integer :: lun
+    character (len=5) :: szone
+
+    if (i == 250.0 .or. &
+        i == 300.0 .or. &
+        i == 350.0 .or. &
+        i == 400.0) then
+
+       write(szone, "(i0.5)") i
+       open(newunit=lun, file="zone_info.sdc." // szone, status="unknown", position="append")
+       write(lun, *) " "
+       close(lun)
+    endif
+
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
