@@ -87,7 +87,7 @@ contains
                   i == 400) .and. strang_half == 1) then
                 
                 write(szone, "(i0.5)") i
-                open(newunit=lun, file="zone_info.sdc." // szone, status="unknown", position="append")
+                open(newunit=lun, file="zone_info." // szone, status="unknown", position="append")
                 write(lun, *) "# "
                 close(lun)
              endif
