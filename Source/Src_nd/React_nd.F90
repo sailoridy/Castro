@@ -57,6 +57,9 @@ contains
     type (burn_t) :: burn_state_in, burn_state_out
     type (eos_t) :: eos_state_in, eos_state_out
 
+    character (len=5) :: szone
+    integer :: lun
+
     ! Minimum zone width
 
     dx_min = minval(dx_level(1:dim, amr_level))
@@ -73,9 +76,21 @@ contains
     !$acc private(eos_state_in, eos_state_out, burn_state_in, burn_state_out) &
     !$acc private(i,j,k)
 
+
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
+
+             if ((i == 250 .or. &
+                  i == 300 .or. &
+                  i == 350 .or. &
+                  i == 400) .and. strang_half == 1) then
+                
+                write(szone, "(i0.5)") i
+                open(newunit=lun, file="zone_info.sdc." // szone, status="unknown", position="append")
+                write(lun, *) "# "
+                close(lun)
+             endif
 
              ! Don't burn on zones that we are intentionally masking out.
 
@@ -257,21 +272,21 @@ contains
     integer :: lun
     character (len=5) :: szone
 
-    if (i == 250.0 .or. &
-        i == 300.0 .or. &
-        i == 350.0 .or. &
-        i == 400.0) then
-
-       write(szone, "(i0.5)") i
-       open(newunit=lun, file="zone_info.sdc." // szone, status="unknown", position="append")
-       write(lun, *) " "
-       close(lun)
-    endif
-
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
+
+             if (i == 250 .or. &
+                 i == 300 .or. &
+                 i == 350 .or. &
+                 i == 400) then
+
+                write(szone, "(i0.5)") i
+                open(newunit=lun, file="zone_info.sdc." // szone, status="unknown", position="append")
+                write(lun, *) "# "
+                close(lun)
+             endif
 
              ! Don't burn on zones that we are intentionally masking out.
 
