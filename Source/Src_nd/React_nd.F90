@@ -277,10 +277,10 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-             if (i == 250 .or. &
-                 i == 300 .or. &
-                 i == 350 .or. &
-                 i == 400) then
+             if ((i == 250 .or. &
+                  i == 300 .or. &
+                  i == 350 .or. &
+                  i == 400) .and. sdc_iter == 0) then
 
                 write(szone, "(i0.5)") i
                 open(newunit=lun, file="zone_info.sdc." // szone, status="unknown", position="append")
