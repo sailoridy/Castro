@@ -306,6 +306,10 @@ public:
     void construct_new_gravity_source(amrex::Real time, amrex::Real dt);
 #endif
 
+#if (defined(GRAVITY) && defined(ROTATION))
+    void scf_relaxation();
+#endif
+    
     //
     // Estimate time step.
     //

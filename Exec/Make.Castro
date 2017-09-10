@@ -63,6 +63,10 @@ ifeq ($(USE_GRAV), TRUE)
   DEFINES += -DGRAVITY
   USE_MG = TRUE
 
+  ifeq ($(USE_ROTATION), TRUE)
+    Bdirs += Source/driver/scf_relaxation
+  endif
+
   ifndef USE_SELF_GRAV
     USE_SELF_GRAV = TRUE
   endif

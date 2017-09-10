@@ -237,6 +237,9 @@ hse_interp_temp              int           0                  y
 # reflect? or outflow?
 hse_reflect_vels             int           0                  y
 
+# should we do a post-initialization relaxation step?
+do_scf_relaxation            int           0                  y
+
 #-----------------------------------------------------------------------------
 # category: timestep control
 #-----------------------------------------------------------------------------

@@ -1,0 +1,3 @@
+f90EXE_sources += scf_relaxation.f90
+CEXE_sources += scf_relax.cpp
+FEXE_headers += scf_relax_F.H

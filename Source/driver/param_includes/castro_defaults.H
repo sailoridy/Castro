@@ -61,6 +61,7 @@ std::string Castro::zr_ext_bc_type = "";
 int         Castro::hse_zero_vels = 0;
 int         Castro::hse_interp_temp = 0;
 int         Castro::hse_reflect_vels = 0;
+int         Castro::do_scf_relaxation = 0;
 amrex::Real Castro::fixed_dt = -1.0;
 amrex::Real Castro::initial_dt = -1.0;
 amrex::Real Castro::dt_cutoff = 0.0;

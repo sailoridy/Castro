@@ -1938,6 +1938,21 @@ Castro::post_init (Real stop_time)
     }
 #endif
 
+#if (defined(GRAVITY) && defined(ROTATION))
+    // Perform a relaxation step. Requires self-gravity and rotation.
+
+    if (do_scf_relaxation) {
+
+      if (gravity->NoComposite() == 1) {
+	std::cerr << "Construction of SCF initial models requires the use of multilevel gravity solves. Set gravity.no_composite = 0." << std::endl;
+	BoxLib::Error();
+      }
+
+      scf_relaxation();
+
+    }
+#endif
+
 // Allow the user to define their own post_init functions.
 
 #ifdef DO_PROBLEM_POST_INIT

@@ -144,6 +144,7 @@ module meth_params_module
   integer         , save :: hse_zero_vels
   integer         , save :: hse_interp_temp
   integer         , save :: hse_reflect_vels
+  integer         , save :: do_scf_relaxation
   real(rt), save :: cfl
   real(rt), save :: dtnuc_e
   real(rt), save :: dtnuc_X
@@ -192,18 +193,18 @@ module meth_params_module
   !$acc create(limit_fluxes_on_small_dens, density_reset_method, allow_negative_energy) &
   !$acc create(allow_small_energy, do_sponge, sponge_implicit) &
   !$acc create(first_order_hydro, hse_zero_vels, hse_interp_temp) &
-  !$acc create(hse_reflect_vels, cfl, dtnuc_e) &
-  !$acc create(dtnuc_X, dtnuc_X_threshold, dtnuc_mode) &
-  !$acc create(dxnuc, do_react, react_T_min) &
-  !$acc create(react_T_max, react_rho_min, react_rho_max) &
-  !$acc create(disable_shock_burning, diffuse_cutoff_density, diffuse_cond_scale_fac) &
-  !$acc create(do_grav, grav_source_type, do_rotation) &
-  !$acc create(rot_period, rot_period_dot, rotation_include_centrifugal) &
-  !$acc create(rotation_include_coriolis, rotation_include_domegadt, state_in_rotating_frame) &
-  !$acc create(rot_source_type, implicit_rotation_update, rot_axis) &
-  !$acc create(point_mass, point_mass_fix_solution, do_acc) &
-  !$acc create(grown_factor, track_grid_losses, const_grav) &
-  !$acc create(get_g_from_phi)
+  !$acc create(hse_reflect_vels, do_scf_relaxation, cfl) &
+  !$acc create(dtnuc_e, dtnuc_X, dtnuc_X_threshold) &
+  !$acc create(dtnuc_mode, dxnuc, do_react) &
+  !$acc create(react_T_min, react_T_max, react_rho_min) &
+  !$acc create(react_rho_max, disable_shock_burning, diffuse_cutoff_density) &
+  !$acc create(diffuse_cond_scale_fac, do_grav, grav_source_type) &
+  !$acc create(do_rotation, rot_period, rot_period_dot) &
+  !$acc create(rotation_include_centrifugal, rotation_include_coriolis, rotation_include_domegadt) &
+  !$acc create(state_in_rotating_frame, rot_source_type, implicit_rotation_update) &
+  !$acc create(rot_axis, point_mass, point_mass_fix_solution) &
+  !$acc create(do_acc, grown_factor, track_grid_losses) &
+  !$acc create(const_grav, get_g_from_phi)
 
   ! End the declarations of the ParmParse parameters
 
@@ -282,6 +283,7 @@ contains
     hse_zero_vels = 0;
     hse_interp_temp = 0;
     hse_reflect_vels = 0;
+    do_scf_relaxation = 0;
     cfl = 0.8d0;
     dtnuc_e = 1.d200;
     dtnuc_X = 1.d200;
@@ -361,6 +363,7 @@ contains
     call pp%query("hse_zero_vels", hse_zero_vels)
     call pp%query("hse_interp_temp", hse_interp_temp)
     call pp%query("hse_reflect_vels", hse_reflect_vels)
+    call pp%query("do_scf_relaxation", do_scf_relaxation)
     call pp%query("cfl", cfl)
     call pp%query("dtnuc_e", dtnuc_e)
     call pp%query("dtnuc_X", dtnuc_X)
@@ -436,18 +439,18 @@ contains
     !$acc device(limit_fluxes_on_small_dens, density_reset_method, allow_negative_energy) &
     !$acc device(allow_small_energy, do_sponge, sponge_implicit) &
     !$acc device(first_order_hydro, hse_zero_vels, hse_interp_temp) &
-    !$acc device(hse_reflect_vels, cfl, dtnuc_e) &
-    !$acc device(dtnuc_X, dtnuc_X_threshold, dtnuc_mode) &
-    !$acc device(dxnuc, do_react, react_T_min) &
-    !$acc device(react_T_max, react_rho_min, react_rho_max) &
-    !$acc device(disable_shock_burning, diffuse_cutoff_density, diffuse_cond_scale_fac) &
-    !$acc device(do_grav, grav_source_type, do_rotation) &
-    !$acc device(rot_period, rot_period_dot, rotation_include_centrifugal) &
-    !$acc device(rotation_include_coriolis, rotation_include_domegadt, state_in_rotating_frame) &
-    !$acc device(rot_source_type, implicit_rotation_update, rot_axis) &
-    !$acc device(point_mass, point_mass_fix_solution, do_acc) &
-    !$acc device(grown_factor, track_grid_losses, const_grav) &
-    !$acc device(get_g_from_phi)
+    !$acc device(hse_reflect_vels, do_scf_relaxation, cfl) &
+    !$acc device(dtnuc_e, dtnuc_X, dtnuc_X_threshold) &
+    !$acc device(dtnuc_mode, dxnuc, do_react) &
+    !$acc device(react_T_min, react_T_max, react_rho_min) &
+    !$acc device(react_rho_max, disable_shock_burning, diffuse_cutoff_density) &
+    !$acc device(diffuse_cond_scale_fac, do_grav, grav_source_type) &
+    !$acc device(do_rotation, rot_period, rot_period_dot) &
+    !$acc device(rotation_include_centrifugal, rotation_include_coriolis, rotation_include_domegadt) &
+    !$acc device(state_in_rotating_frame, rot_source_type, implicit_rotation_update) &
+    !$acc device(rot_axis, point_mass, point_mass_fix_solution) &
+    !$acc device(do_acc, grown_factor, track_grid_losses) &
+    !$acc device(const_grav, get_g_from_phi)
 
 
     ! now set the external BC flags
