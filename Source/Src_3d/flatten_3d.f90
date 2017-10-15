@@ -46,7 +46,7 @@ contains
     allocate(chi(0:nmax-1,lo(2):hi(2),lo(3):hi(3)))
     do k = lo(3),hi(3)
        do j = lo(2),hi(2) 
-          do i = lo(1)-1,hi(1)+1
+          do i = lo(1),hi(1)
              idx = i-lo(1)+1
              dp(idx,j,k) = p(i+1,j,k) - p(i-1,j,k)
              denom = max(small_pres,abs(p(i+2,j,k)-p(i-2,j,k)))
@@ -85,7 +85,7 @@ contains
     allocate(chi(lo(1):hi(1),0:nmax-1,lo(3):hi(3)))
     do k = lo(3),hi(3)
        do i = lo(1),hi(1)
-          do j = lo(2)-1,hi(2)+1
+          do j = lo(2),hi(2)
              idx = j-lo(2)+1
              dp(i,idx,k) = p(i,j+1,k) - p(i,j-1,k)
              denom = max(small_pres,abs(p(i,j+2,k)-p(i,j-2,k)))
@@ -125,7 +125,7 @@ contains
     allocate(chi(lo(1):hi(1),lo(2):hi(2),0:nmax-1))
     do j = lo(2),hi(2) 
        do i = lo(1),hi(1)
-          do k = lo(3)-1,hi(3)+1
+          do k = lo(3),hi(3)
              idx = k-lo(3)+1
              dp(i,j,idx) = p(i,j,k+1) - p(i,j,k-1)
              denom = max(small_pres,abs(p(i,j,k+2)-p(i,j,k-2)))

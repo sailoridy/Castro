@@ -250,6 +250,22 @@ BL_FORT_PROC_DECL(CA_ESTDT_BURNING,ca_estdt_burning)
      Real* dt_hydro, Real* dt_nuc, 
      int* initial_step);
 
+extern "C" {
+    void ctoprim(const int* glo, const int* ghi,
+                 const int* lo, const int* hi,
+                 const int* flo, const int* fhi,
+                 Real* Sborder, const int* Sb_lo, const int* Sb_hi,
+                 Real* q,
+                 Real* c,
+                 Real* gamc,
+                 Real* csml,
+                 Real* flatn,
+                 const int* q_lo, const int* q_hi,
+                 Real* ext_src_old, const int*, const int*,
+                 Real* srcQ, const int*, const int*,
+                 Real* courno, const Real* dx, const Real* dt);
+}
+
 BL_FORT_PROC_DECL(CA_UMDRV,ca_umdrv)
     (const int* is_finest_level,
      const Real* time, 
@@ -264,6 +280,13 @@ BL_FORT_PROC_DECL(CA_UMDRV,ca_umdrv)
 #if (BL_SPACEDIM == 3)
      BL_FORT_FAB_ARG(ugdnvz),
 #endif
+     Real* q,
+     Real* c,
+     Real* gamc,
+     Real* csml,
+     Real* flatn,
+     Real* srcQ,
+     const int* q_lo, const int* q_hi,
      const BL_FORT_FAB_ARG(src),
      const BL_FORT_FAB_ARG(grav),
      const Real dx[], const Real* dt,

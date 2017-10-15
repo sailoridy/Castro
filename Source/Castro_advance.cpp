@@ -584,7 +584,42 @@ Castro::advance_hydro (Real time,
 	    Real ymom_added_sponge = 0.;
 	    Real zmom_added_sponge = 0.;
 
+            const int QVAR = 9;
+
+            MultiFab q(grids, QVAR, NUM_GROW);
+            MultiFab c(grids, 1, NUM_GROW);
+            MultiFab gamc(grids, 1, NUM_GROW);
+            MultiFab csml(grids, 1, NUM_GROW);
+            MultiFab flatn(grids, 1, NUM_GROW);
+            MultiFab srcQ(grids, QVAR, 1);
+
 	    BL_PROFILE_VAR("Castro::advance_hydro_ca_umdrv()", CA_UMDRV);
+
+#ifdef _OPENMP
+#pragma omp parallel reduction(max:courno)
+#endif
+            for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
+
+                const Box& bx = mfi.tilebox();
+                const Box& gbx = mfi.growntilebox(NUM_GROW);
+                const Box& fbx = mfi.growntilebox(1);
+
+                ctoprim(gbx.loVect(), gbx.hiVect(),
+                        bx.loVect(), bx.hiVect(),
+                        fbx.loVect(), fbx.hiVect(),
+                        Sborder[mfi].dataPtr(), Sborder[mfi].loVect(), Sborder[mfi].hiVect(),
+                        q[mfi].dataPtr(),
+                        c[mfi].dataPtr(),
+                        gamc[mfi].dataPtr(),
+                        csml[mfi].dataPtr(),
+                        flatn[mfi].dataPtr(),
+                        q[mfi].loVect(), q[mfi].hiVect(),
+                        ext_src_old[mfi].dataPtr(), ext_src_old[mfi].loVect(), ext_src_old[mfi].hiVect(),
+                        srcQ[mfi].dataPtr(), srcQ[mfi].loVect(), srcQ[mfi].hiVect(),
+                        &courno, dx, &dt);
+
+            }
+
 	    
 #ifdef _OPENMP
 #ifdef POINTMASS
@@ -607,10 +642,11 @@ Castro::advance_hydro (Real time,
 	    {
 		FArrayBox flux[BL_SPACEDIM], ugdn[BL_SPACEDIM];
 		
-		Real cflLoc = -1.0e+200;
 		int is_finest_level = (level == finest_level) ? 1 : 0;
 		const int*  domain_lo = geom.Domain().loVect();
 		const int*  domain_hi = geom.Domain().hiVect();
+
+                Real cflLoc = 1.e200;
 		
 		for (MFIter mfi(S_new,hydro_tile_size); mfi.isValid(); ++mfi)
 		{
@@ -633,10 +669,17 @@ Castro::advance_hydro (Real time,
 			 BL_TO_FORTRAN(state), BL_TO_FORTRAN(stateout),
 			 D_DECL(BL_TO_FORTRAN(ugdn[0]), 
 				BL_TO_FORTRAN(ugdn[1]), 
-				BL_TO_FORTRAN(ugdn[2])), 
-			 BL_TO_FORTRAN(ext_src_old[mfi]),
-			 BL_TO_FORTRAN(grav_vector[mfi]), 
-			 dx, &dt,
+				BL_TO_FORTRAN(ugdn[2])),
+                         q[mfi].dataPtr(),
+                         c[mfi].dataPtr(),
+                         gamc[mfi].dataPtr(),
+                         csml[mfi].dataPtr(),
+                         flatn[mfi].dataPtr(),
+                         srcQ[mfi].dataPtr(),
+                         q[mfi].loVect(), q[mfi].hiVect(),
+                         BL_TO_FORTRAN(ext_src_old[mfi]),
+                         BL_TO_FORTRAN(grav_vector[mfi]),
+                         dx, &dt,
 			 D_DECL(BL_TO_FORTRAN(flux[0]), 
 				BL_TO_FORTRAN(flux[1]), 
 				BL_TO_FORTRAN(flux[2])), 
@@ -705,12 +748,6 @@ Castro::advance_hydro (Real time,
 #endif
 		}
 		
-#ifdef _OPENMP
-#pragma omp critical (hydro_courno)
-#endif
-		{
-		    courno = std::max(courno,cflLoc);
-		}	  
 	    }  // end of omp parallel region
 
 	    BL_PROFILE_VAR_STOP(CA_UMDRV);

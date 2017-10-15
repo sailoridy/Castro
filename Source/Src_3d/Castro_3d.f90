@@ -8,6 +8,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                     ugdnvx_out,ugdnvx_l1,ugdnvx_l2,ugdnvx_l3,ugdnvx_h1,ugdnvx_h2,ugdnvx_h3, &
                     ugdnvy_out,ugdnvy_l1,ugdnvy_l2,ugdnvy_l3,ugdnvy_h1,ugdnvy_h2,ugdnvy_h3, &
                     ugdnvz_out,ugdnvz_l1,ugdnvz_l2,ugdnvz_l3,ugdnvz_h1,ugdnvz_h2,ugdnvz_h3, &
+                    q, c, gamc, csml, flatn, srcQ, q_lo, q_hi, &
                     src ,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
                     grav,gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3, &
                     delta,dt, &
@@ -50,6 +51,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   integer area2_l1,area2_l2,area2_l3,area2_h1,area2_h2,area2_h3
   integer area3_l1,area3_l2,area3_l3,area3_h1,area3_h2,area3_h3
   integer vol_l1,vol_l2,vol_l3,vol_h1,vol_h2,vol_h3
+  integer q_lo(3), q_hi(3)
   integer src_l1,src_l2,src_l3,src_h1,src_h2,src_h3
   integer gv_l1,gv_l2,gv_l3,gv_h1,gv_h2,gv_h3
   double precision   uin(  uin_l1:uin_h1,    uin_l2:uin_h2,     uin_l3:uin_h3,  NVAR)
@@ -57,6 +59,12 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   double precision ugdnvx_out(ugdnvx_l1:ugdnvx_h1,ugdnvx_l2:ugdnvx_h2,ugdnvx_l3:ugdnvx_h3)
   double precision ugdnvy_out(ugdnvy_l1:ugdnvy_h1,ugdnvy_l2:ugdnvy_h2,ugdnvy_l3:ugdnvy_h3)
   double precision ugdnvz_out(ugdnvz_l1:ugdnvz_h1,ugdnvz_l2:ugdnvz_h2,ugdnvz_l3:ugdnvz_h3)
+  double precision q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),QVAR)
+  double precision c(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
+  double precision gamc(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
+  double precision csml(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
+  double precision flatn(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
+  double precision srcQ(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),QVAR)
   double precision   src(  src_l1:src_h1,    src_l2:src_h2,     src_l3:src_h3,  NVAR)
   double precision  grav( gv_l1:gv_h1,  gv_l2:gv_h2,   gv_l3:gv_h3,    3)
   double precision flux1(flux1_l1:flux1_h1,flux1_l2:flux1_h2, flux1_l3:flux1_h3,NVAR)
@@ -74,14 +82,8 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   double precision xmom_added_sponge,ymom_added_sponge,zmom_added_sponge
 
   ! Automatic arrays for workspace
-  double precision, allocatable:: q(:,:,:,:)
-  double precision, allocatable:: gamc(:,:,:)
-  double precision, allocatable:: flatn(:,:,:)
-  double precision, allocatable:: c(:,:,:)
-  double precision, allocatable:: csml(:,:,:)
   double precision, allocatable:: div(:,:,:)
   double precision, allocatable:: pdivu(:,:,:)
-  double precision, allocatable:: srcQ(:,:,:,:)
   double precision, allocatable:: rot(:,:,:,:)
   
   double precision dx,dy,dz
@@ -100,34 +102,15 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   flo = lo    ! for variables on the face
   fhi = hi+1
   
-  allocate(     q(qlo(1):qhi(1),qlo(2):qhi(2),qlo(3):qhi(3),QVAR))
-  allocate(  gamc(qlo(1):qhi(1),qlo(2):qhi(2),qlo(3):qhi(3)))
-  allocate( flatn(qlo(1):qhi(1),qlo(2):qhi(2),qlo(3):qhi(3)))
-  allocate(     c(qlo(1):qhi(1),qlo(2):qhi(2),qlo(3):qhi(3)))
-  allocate(  csml(qlo(1):qhi(1),qlo(2):qhi(2),qlo(3):qhi(3)))
   allocate(   rot(qlo(1):ghi(1),qlo(2):ghi(2),qlo(3):ghi(3),3))
 
   allocate(   div(flo(1):fhi(1),flo(2):fhi(2),flo(3):fhi(3)))
   
   allocate( pdivu(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)))
   
-  allocate(  srcQ(glo(1):ghi(1),glo(2):ghi(2),glo(3):ghi(3),QVAR))
-  
   dx = delta(1)
   dy = delta(2)
   dz = delta(3)
-
-  ! 1) Translate conserved variables (u) to primitive variables (q).
-  ! 2) Compute sound speeds (c) and gamma (gamc).
-  !    Note that (q,c,gamc,csml,flatn) are all dimensioned the same
-  !    and set to correspond to coordinates of (lo:hi)
-  ! 3) Translate source terms
-  call ctoprim(lo,hi, &
-               uin, (/uin_l1,uin_l2,uin_l3/), (/uin_h1,uin_h2,uin_h3/), &
-               q,c,gamc,csml,flatn, qlo,qhi, &
-               src, (/src_l1,src_l2,src_l3/), (/src_h1,src_h2,src_h3/), &
-               srcQ, glo, ghi, &
-               courno,dx,dy,dz,dt,ngq,ngf)
 
   ! Compute the rotation field, which depends on position and velocity
 
@@ -217,7 +200,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                  E_added_sponge,xmom_added_sponge,ymom_added_sponge,zmom_added_sponge)
   end if
 
-  deallocate(q,gamc,flatn,c,csml,div,srcQ,pdivu,rot)
+  deallocate(div,pdivu,rot)
 
 end subroutine ca_umdrv
 

@@ -714,12 +714,12 @@ contains
 ! ::: ------------------------------------------------------------------
 ! ::: 
 
-  subroutine ctoprim(lo,hi, &
+  subroutine ctoprim(glo,ghi,lo,hi,flo,fhi, &
                      uin, ulo, uhi, &
                      q,c,gamc,csml,flatn, qlo, qhi, &
                      src, srclo, srchi, &
                      srcQ, slo, shi, &
-                     courno,dx,dy,dz,dt,ngp,ngf)
+                     courno,dx,dt) bind(c,name='ctoprim')
     !
     !     Will give primitive variables on lo-ngp:hi+ngp, and flatn on lo-ngf:hi+ngf
     !     if use_flattening=1.  Declared dimensions of q,c,gamc,csml,flatn are given
@@ -744,7 +744,8 @@ contains
 
     double precision, parameter:: small = 1.d-8
 
-    integer, intent(in) :: lo(3), hi(3), ulo(3), uhi(3), qlo(3), qhi(3), srclo(3), srchi(3), slo(3), shi(3)
+    integer, intent(in) :: glo(3), ghi(3), lo(3), hi(3), flo(3), fhi(3)
+    integer, intent(in) :: ulo(3), uhi(3), qlo(3), qhi(3), srclo(3), srchi(3), slo(3), shi(3)
     double precision, intent(in ) :: uin  (ulo(1):uhi(1),ulo(2):uhi(2),ulo(3):uhi(3),NVAR)
     double precision, intent(out) :: q    (qlo(1):qhi(1),qlo(2):qhi(2),qlo(3):qhi(3),QVAR)
     double precision, intent(out) :: c    (qlo(1):qhi(1),qlo(2):qhi(2),qlo(3):qhi(3))
@@ -753,9 +754,8 @@ contains
     double precision, intent(out) :: flatn(qlo(1):qhi(1),qlo(2):qhi(2),qlo(3):qhi(3))
     double precision, intent(in ) :: src  (srclo(1):srchi(1),srclo(2):srchi(2),srclo(3):srchi(3),NVAR)
     double precision, intent(out) :: srcQ (slo(1):shi(1),slo(2):shi(2),slo(3):shi(3),QVAR)
-    double precision, intent(in   ) :: dx, dy, dz, dt
+    double precision, intent(in   ) :: dx(3), dt
     double precision, intent(inout) :: courno
-    integer         , intent(in   ) :: ngp, ngf
 
     double precision, allocatable:: dpdrho(:,:,:)
     double precision, allocatable:: dpde(:,:,:)
@@ -780,9 +780,9 @@ contains
     ! Make q (all but p), except put e in slot for rho.e, fix after eos call.
     ! The temperature is used as an initial guess for the eos call and will be overwritten.
     !
-    do       k = qlo(3), qhi(3)
-       do    j = qlo(2), qhi(2)
-          do i = qlo(1), qhi(1)
+    do       k = glo(3), ghi(3)
+       do    j = glo(2), ghi(2)
+          do i = glo(1), ghi(1)
              
              if (uin(i,j,k,URHO) .le. ZERO) then
                 print *,'   '
@@ -825,9 +825,9 @@ contains
     do ipassive = 1, npassive
        n = upass_map(ipassive)
        nq = qpass_map(ipassive)
-       do       k = qlo(3), qhi(3)
-          do    j = qlo(2), qhi(2)
-             do i = qlo(1), qhi(1)
+       do       k = glo(3), ghi(3)
+          do    j = glo(2), ghi(2)
+             do i = glo(1), ghi(1)
                 q(i,j,k,nq) = uin(i,j,k,n)/q(i,j,k,QRHO)
              enddo
           enddo
@@ -835,9 +835,9 @@ contains
     enddo
 
     ! Get gamc, p, T, c, csml using q state
-    do       k = qlo(3), qhi(3)
-       do    j = qlo(2), qhi(2)
-          do i = qlo(1), qhi(1)
+    do       k = glo(3), ghi(3)
+       do    j = glo(2), ghi(2)
+          do i = glo(1), ghi(1)
              
              pt_index(:) = (/i, j, k/)
 
@@ -939,9 +939,9 @@ contains
        do j = lo(2),hi(2)
           do i = lo(1),hi(1)
              
-             courx = ( c(i,j,k)+abs(q(i,j,k,QU)) ) * dt/dx
-             coury = ( c(i,j,k)+abs(q(i,j,k,QV)) ) * dt/dy
-             courz = ( c(i,j,k)+abs(q(i,j,k,QW)) ) * dt/dz
+             courx = ( c(i,j,k)+abs(q(i,j,k,QU)) ) * dt/dx(1)
+             coury = ( c(i,j,k)+abs(q(i,j,k,QV)) ) * dt/dx(2)
+             courz = ( c(i,j,k)+abs(q(i,j,k,QW)) ) * dt/dx(3)
              
              courmx = max( courmx, courx )
              courmy = max( courmy, coury )
@@ -982,7 +982,7 @@ contains
 
     ! Compute flattening coef for slope calculations
     if (use_flattening == 1) then
-       call uflaten(lo-ngf,hi+ngf, &
+       call uflaten(flo,fhi, &
                     q(:,:,:,QPRES), &
                     q(:,:,:,QU), &
                     q(:,:,:,QV), &
@@ -993,7 +993,7 @@ contains
     endif
 
     deallocate(dpdrho,dpde)
-    
+
   end subroutine ctoprim
 
 ! ::: 
