@@ -24,6 +24,12 @@ Castro::construct_hydro_source(Real time, Real dt)
     // in case we have already started with some source
     // terms (e.g. the source term predictor, or the SDC source).
 
+    MultiFab& old_sources = get_old_data(Source_Type);
+    MultiFab& new_sources = get_new_data(Source_Type);
+
+    old_sources.setVal(0.0, NUM_GROW);
+    new_sources.setVal(0.0, NUM_GROW);
+
     AmrLevel::FillPatchAdd(*this, sources_for_hydro, NUM_GROW, time, Source_Type, 0, NUM_STATE);
 
     int finest_level = parent->finestLevel();
