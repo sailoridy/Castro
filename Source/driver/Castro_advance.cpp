@@ -72,11 +72,6 @@ Castro::advance (Real time,
 
 	    clean_state(S_new);
 
-	    // Compute the reactive source term for use in the next iteration.
-
-	    MultiFab& SDC_react_new = get_new_data(SDC_React_Type);
-	    get_react_source_prim(SDC_react_new, dt);
-
 	    // Check for NaN's.
 
 	    check_for_nan(S_new);
@@ -198,7 +193,9 @@ Castro::do_advance (Real time,
 #endif
 
       // Initialize the new-time data. This copy needs to come after the
-      // reactions.
+      // reactions. It must also come after the initialize_do_advance
+      // call to ensure that the SDC reactive source term is calculated
+      // correctly.
 
       MultiFab::Copy(S_new, Sborder, 0, 0, NUM_STATE, S_new.nGrow());
 
@@ -416,6 +413,15 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
 
       }
     }
+
+#ifdef SDC
+#ifdef REACTIONS
+    // Compute the reactive source term for use in this iteration.
+
+    get_react_source_prim(SDC_react_new, dt);
+#endif
+#endif
+
 }
 
 
@@ -595,6 +601,12 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
     }
 
+#ifdef SDC
+#ifdef REACTIONS
+    SDC_react_source.define(grids,dmap,NUM_STATE,NUM_GROW);
+#endif
+#endif
+
 #ifdef SELF_GRAVITY
     if (do_grav)
 	gravity->swapTimeLevels(level);
@@ -698,6 +710,12 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 	FluxRegCrseInit();
 	FluxRegFineAdd();
     }
+    
+#ifdef SDC
+#ifdef REACTIONS
+    SDC_react_source.clear();
+#endif
+#endif
 
     Real cur_time = state[State_Type].curTime();
 

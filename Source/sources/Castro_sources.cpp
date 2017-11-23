@@ -409,14 +409,20 @@ Castro::sum_of_sources(MultiFab& source)
 void
 Castro::get_react_source_prim(MultiFab& react_src, Real dt)
 {
-    MultiFab& S_old = get_old_data(State_Type);
-    MultiFab& S_new = get_new_data(State_Type);
+    // Note that we are calling this routine from initialize_advance.
+    // This means that S_old and S_new still have data from the last
+    // iteration. Since we are calling it after Sborder has been filled,
+    // we can take advantage of that to get ghost zone data for the
+    // old time. All we need is to temporarily do the same for the new
+    // time data.
 
-    int ng = 0;
+    MultiFab Sborder_new(grids, dmap, NUM_STATE, NUM_GROW);
+    Real time = get_state_data(State_Type).curTime();
+    AmrLevel::FillPatch(*this, Sborder_new, NUM_GROW, time, State_Type, 0, NUM_STATE);
 
     // Carries the contribution of all non-reacting source terms.
 
-    MultiFab A(grids, dmap, NUM_STATE, ng);
+    MultiFab A(grids, dmap, NUM_STATE, NUM_GROW);
 
     sum_of_sources(A);
 
@@ -475,8 +481,8 @@ Castro::get_react_source_prim(MultiFab& react_src, Real dt)
     MultiFab::Saxpy(react_src, -1.0, A_prim, 0, 0, QVAR, ng);
 
     // Now fill all of the ghost zones.
-    Real time = get_state_data(SDC_React_Type).curTime();
-    AmrLevel::FillPatch(*this, react_src, react_src.nGrow(), time, SDC_React_Type, 0, NUM_STATE);
+
+
 
 }
 #endif
