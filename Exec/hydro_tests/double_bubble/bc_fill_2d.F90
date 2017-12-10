@@ -20,9 +20,9 @@ contains
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
-    
+
     include 'AMReX_bc_types.fi'
-    
+
     integer adv_l1,adv_l2,adv_h1,adv_h2
     integer bc(2,2,*)
     integer domlo(2), domhi(2)
@@ -194,9 +194,9 @@ contains
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
-    
+
     include 'AMReX_bc_types.fi'
-    
+
     integer adv_l1,adv_l2,adv_h1,adv_h2
     integer bc(2,2,*)
     integer domlo(2), domhi(2)
@@ -309,10 +309,10 @@ contains
                           domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_gravyfill")
 
     use probdata_module
-    
+
     use amrex_fort_module, only : rt => amrex_real
     implicit none
-    
+
     include 'AMReX_bc_types.fi'
 
     integer :: grav_l1,grav_l2,grav_h1,grav_h2
@@ -331,10 +331,10 @@ contains
                           domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_gravzfill")
 
     use probdata_module
-    
+
     use amrex_fort_module, only : rt => amrex_real
     implicit none
-    
+
     include 'AMReX_bc_types.fi'
 
     integer :: grav_l1,grav_l2,grav_h1,grav_h2

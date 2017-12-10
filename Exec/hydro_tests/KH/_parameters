@@ -1,0 +1,5 @@
+rho1                   real              1.0
+rho2                   real              2.0
+pressure               real              2.5
+problem                integer           2
+bulk_velocity          real              0.0

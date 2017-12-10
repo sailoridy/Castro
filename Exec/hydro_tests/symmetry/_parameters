@@ -1,0 +1,4 @@
+rho_ambient    real   1.e0
+rho_peak       real   2.e0
+t_ambient      real   1.e0
+sigma          real   0.1e0

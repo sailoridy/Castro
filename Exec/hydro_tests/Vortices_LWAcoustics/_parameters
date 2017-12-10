@@ -1,0 +1,13 @@
+# reference pressure
+p_ref     real     1.0e0
+
+r_0       real     0.25e0
+
+# rotating mach
+mach      real     0.0796e0
+
+# ratio_c = r_c/r_0
+ratio_c   real     0.15e0
+
+# r_circ = circ/r_0*c_0
+r_circ    real     1.0e0_rt

@@ -15,7 +15,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   integer :: name(namlen)
   real(rt)         :: problo(3), probhi(3)
   
-  namelist /fortin/ inner_radius, outer_radius, density_maximum_radius, ambient_density
+  namelist /fortin/ inner_radius, outer_radius, ambient_density
 
   ! Build "probin" filename -- the name of file containing fortin namelist.
   integer, parameter :: maxlen = 127

@@ -1,0 +1,10 @@
+model_name          character     model.hse
+apply_vel_field     logical       .false.
+velpert_scale       real          1.0e2
+velpert_amplitude   real          1.0e2
+velpert_height_loc  real          6.5e3
+num_vortices        integer       1
+H_min               real          1.e-4
+cutoff_density      real          50.e0
+interp_BC           logical       .false.
+zero_vels           logical       .false.

@@ -1,0 +1,6 @@
+p_ambient              real        1.0
+dens_ambient           real        1.0
+dens_pert_factor       real        1.01
+vel_pert               real        20.0
+
+

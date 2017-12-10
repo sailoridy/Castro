@@ -1,0 +1,13 @@
+rho_l             real                1.0
+u_l               real                1.0
+p_l               real                1.0
+re_l              real                1.0
+gc_l              real                1.33333
+rho_r             real                1.0
+u_r               real                1.0
+p_r               real                1.0
+re_r              real                1.0
+gc_r              real                1.3333
+cav_s             real                1.0
+smallc_s          real                1.e-10
+idir              integer             1

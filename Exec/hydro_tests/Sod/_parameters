@@ -1,0 +1,11 @@
+p_l           real            1.0
+u_l           real            0.0
+rho_l         real            1.0
+T_l           real            1.0
+p_r           real            0.1
+u_r           real            0.0
+rho_r         real            0.125
+T_r           real            1.0
+frac          real            0.5
+idir          integer         1
+use_Tinit     logical         .false.

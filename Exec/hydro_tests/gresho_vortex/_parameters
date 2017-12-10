@@ -1,0 +1,4 @@
+p0           real                1.0
+rho0         real                1.0
+t_r          real                1.0
+nsub         integer             4

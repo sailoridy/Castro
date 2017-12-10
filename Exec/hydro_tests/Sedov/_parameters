@@ -1,0 +1,6 @@
+p_ambient               real             1.e-5
+dens_ambient            real             1.e-4
+exp_energy              real             1.0
+r_init                  real             0.05
+nsub                    integer          4
+temp_ambient            real             -100.0

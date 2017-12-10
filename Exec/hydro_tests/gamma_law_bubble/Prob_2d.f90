@@ -13,8 +13,8 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   integer untin,i
 
-  namelist /fortin/ pert_factor,dens_base,pres_base,y_pert_center, &
-       pert_width,do_isentropic,boundary_type, &
+  namelist /fortin/ pert_factor, dens_base, pres_base, y_pert_center, &
+       pert_width, do_isentropic, boundary_type, &
        frac
 
   !

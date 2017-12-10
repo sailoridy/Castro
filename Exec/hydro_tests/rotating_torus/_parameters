@@ -1,0 +1,3 @@
+inner_radius              real      
+outer_radius              real
+ambient_density           real
