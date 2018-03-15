@@ -1,0 +1,4 @@
+This branch is a refactoring of how we do the slabbing in the hydro.
+
+The idea is to first eliminate the slabbing and then reimplement it
+by passing in lo(3) = hi(3)
