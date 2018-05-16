@@ -12,16 +12,19 @@
 
   roche_radius_factor = 2.0d0
 
-  collision_separation = 4.0
-  collision_impact_parameter = 0.0
+  collision_separation = 4.0d0
+  collision_impact_parameter = 0.0d0
+
+  tde_separation = 8.0d0
+  tde_beta = 6.0d0
+  tde_initial_velocity = 1
 
   interp_temp = T
 
-  relaxation_damping_timescale = -1.0d0
+  relaxation_damping_factor = 1.0d-1
   relaxation_density_cutoff = 1.0d3
-  relaxation_implicit = F
 
-  radial_damping_factor = -1.0d2
+  radial_damping_factor = 1.0d3
   initial_radial_velocity_factor = -1.0d-3
 
   ambient_density = 1.0d-4
@@ -61,8 +64,6 @@
 
   gw_dist = 10.0
 
-  fill_ambient_bc = F
-
   max_he_wd_mass = 0.45d0
   max_hybrid_wd_mass = 0.6d0
   hybrid_wd_he_shell_mass = 0.1d0
@@ -87,9 +88,11 @@
 
 &sponge
 
-  sponge_lower_radius = 3.840d9
-  sponge_upper_radius = 4.352d9
-  sponge_timescale    = 0.01d0
+  sponge_lower_radius  = 0.0d0
+  sponge_upper_radius  = 0.0d0
+  sponge_lower_density = 0.0d0
+  sponge_upper_density = 0.0d0
+  sponge_timescale     = 0.01d0
 
 /
 
@@ -114,8 +117,8 @@
   do_constant_volume_burn = T
   call_eos_in_rhs = T
 
-  rtol_spec = 1.d-10
-  atol_spec = 1.d-10
+  rtol_spec = 1.d-6
+  atol_spec = 1.d-6
 
   rtol_temp = 1.d-6
   atol_temp = 1.d-6
@@ -127,13 +130,11 @@
 
   renormalize_abundances = T
 
-  scaling_method = 2
+  MAX_TEMP = 1.d10
 
-  ode_max_steps = 1000000
-
-  ! Note that use_tables is a network
-  ! specific parameter that will not apply
-  ! to every network.
+  ! Note that not every network has tabular
+  ! rates enabled, so for some networks the
+  ! following option will have no effect.
 
   use_tables = T
 

@@ -1,7 +1,7 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
 
 max_step = 10000
-stop_time =  1.0
+stop_time =  0.5
 
 # PROBLEM SIZE & GEOMETRY
 geometry.is_periodic = 1       0
@@ -17,6 +17,9 @@ amr.n_cell           = 128     128
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 castro.lo_bc       =  0   1
 castro.hi_bc       =  0   1
+
+# this is here just for test suite coverage
+castro.state_nghost = 1
 
 # WHICH PHYSICS
 castro.do_hydro = 1

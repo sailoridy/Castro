@@ -1,5 +1,6 @@
 #include "Castro.H"
 #include "Castro_F.H"
+#include "Castro_prob_err_F.H"
 
 #include "Gravity.H"
 #include <Gravity_F.H>
@@ -14,6 +15,9 @@ using namespace amrex;
 int Castro::relaxation_is_done = 0;
 int Castro::problem = -1;
 int Castro::use_stopping_criterion = 1;
+int Castro::use_energy_stopping_criterion = 0;
+Real Castro::ts_te_stopping_criterion = 1.e200;
+Real Castro::T_stopping_criterion = 1.e200;
 
 Real Castro::mass_p = 0.0;
 Real Castro::mass_s = 0.0;
@@ -141,7 +145,7 @@ Castro::wd_update (Real time, Real dt)
 
     for (int lev = 0; lev <= parent->finestLevel(); lev++) {
 
-      set_amr_info(lev, -1, -1, -1.0, -1.0);
+      ca_set_amr_info(lev, -1, -1, -1.0, -1.0);
 
       Castro& c_lev = getLevel(lev);
 
@@ -214,7 +218,7 @@ Castro::wd_update (Real time, Real dt)
 
     }
 
-    set_amr_info(level, -1, -1, -1.0, -1.0);
+    ca_set_amr_info(level, -1, -1, -1.0, -1.0);
 
     com_p[0] = com_p_x;
     com_p[1] = com_p_y;
@@ -358,7 +362,7 @@ void Castro::volInBoundary (Real time, Real& vol_p, Real& vol_s, Real rho_cutoff
 
     for (int lev = 0; lev <= parent->finestLevel(); lev++) {
 
-      set_amr_info(lev, -1, -1, -1.0, -1.0);
+      ca_set_amr_info(lev, -1, -1, -1.0, -1.0);
 
       Castro& c_lev = getLevel(lev);
 
@@ -416,19 +420,10 @@ void Castro::volInBoundary (Real time, Real& vol_p, Real& vol_s, Real rho_cutoff
 
     }
 
-    if (!local) {
+    if (!local)
+      amrex::ParallelDescriptor::ReduceRealSum({vol_p, vol_s});
 
-      const int nfoo = 2;
-      Real foo[nfoo] = {vol_p, vol_s};
-
-      amrex::ParallelDescriptor::ReduceRealSum(foo, nfoo);
-
-      vol_p = foo[0];
-      vol_s = foo[1];
-
-    }
-
-    set_amr_info(level, -1, -1, -1.0, -1.0);
+    ca_set_amr_info(level, -1, -1, -1.0, -1.0);
 
 }
 
@@ -495,7 +490,7 @@ Castro::gwstrain (Real time,
 
 #ifdef _OPENMP
     int nthreads = omp_get_max_threads();
-    Array< std::unique_ptr<FArrayBox> > priv_Qtt(nthreads);
+    Vector< std::unique_ptr<FArrayBox> > priv_Qtt(nthreads);
     for (int i=0; i<nthreads; i++) {
 	priv_Qtt[i].reset(new FArrayBox(bx));
     }
@@ -611,6 +606,9 @@ void Castro::problem_post_init() {
   ParmParse pp("castro");
 
   pp.query("use_stopping_criterion", use_stopping_criterion);
+  pp.query("use_energy_stopping_criterion", use_energy_stopping_criterion);
+  pp.query("ts_te_stopping_criterion", ts_te_stopping_criterion);
+  pp.query("T_stopping_criterion", T_stopping_criterion);
 
   // Get the problem number fom Fortran.
 
@@ -622,13 +620,8 @@ void Castro::problem_post_init() {
 
   // If we're doing an initial relaxation step, ensure that we are not subcycling.
 
-  if (problem == 3 && !relaxation_is_done && parent->subCycle())
-    amrex::Abort("Error: cannot perform relaxation step if we are sub-cycling in the AMR.");
-
-  // If we're doing an initial relaxation step, ensure that we retain source terms.
-
-  if (problem == 3 && !relaxation_is_done && !keep_sources_until_end)
-    amrex::Abort("Error: cannot perform relaxation step if we are not retaining source terms.");
+  if (problem == 3 && !relaxation_is_done && parent->subCycle() && parent->finestLevel() > 0)
+      amrex::Abort("Error: cannot perform relaxation step if we are sub-cycling in the AMR.");
 
   // Update the rotational period; some problems change this from what's in the inputs parameters.
 
@@ -663,6 +656,9 @@ void Castro::problem_post_restart() {
   ParmParse pp("castro");
 
   pp.query("use_stopping_criterion", use_stopping_criterion);
+  pp.query("use_energy_stopping_criterion", use_energy_stopping_criterion);
+  pp.query("ts_te_stopping_criterion", ts_te_stopping_criterion);
+  pp.query("T_stopping_criterion", T_stopping_criterion);
 
   // Get the problem number from Fortran.
 
@@ -679,6 +675,42 @@ void Castro::problem_post_restart() {
   // Get the energy data from Fortran.
 
   get_total_ener_array(total_ener_array);
+
+  // Get the extrema.
+
+  get_extrema(&T_global_max, &rho_global_max, &ts_te_global_max);
+
+  T_curr_max = T_global_max;
+  rho_curr_max = rho_global_max;
+  ts_te_curr_max = ts_te_global_max;
+
+  // If we're restarting from a checkpoint at t = 0 but don't yet
+  // have diagnostics, we want to generate the headers and the t = 0
+  // data at this time so that future timestep diagnostics make sense.
+
+  Real time = state[State_Type].curTime();
+
+  if (time == 0.0) {
+
+      if (parent->NumDataLogs() > 0) {
+
+          bool do_sums = false;
+
+          const std::string datalogname = parent->DataLogName(0);
+
+          std::ifstream log;
+          log.open(datalogname, std::ios::ate);
+
+          if (log.tellg() == 0)
+              do_sums = true;
+          log.close();
+
+          if (do_sums)
+              sum_integrated_quantities();
+
+      }
+
+  }
 
 }
 
@@ -708,89 +740,120 @@ void Castro::check_to_stop(Real time) {
 
     get_job_status(&jobDoneStatus);
 
-#if (BL_SPACEDIM > 1)
     if (use_stopping_criterion) {
 
       if (problem == 0) {
 
-	// For the collision problem, we know we are done when the total energy
-	// is positive (indicating that we have become unbound due to nuclear
-	// energy release) and when it is decreasing in magnitude (indicating
-	// all of the excitement is done and fluid is now just streaming off
-	// the grid). We don't need to be super accurate for this, so let's check
-	// on the coarse grid only. It is possible that a collision could not
-	// generate enough energy to become unbound, so possibly this criterion
-	// should be expanded in the future to cover that case.
+          // Note that we don't want to use the following in 1D
+          // since we're not simulating gravitationally bound systems.
 
-	Real rho_E = 0.0;
-	Real rho_phi = 0.0;
+#if BL_SPACEDIM > 1
+          if (use_energy_stopping_criterion) {
 
-	// Note that we'll define the total energy using only
-	// gas energy + gravitational. Rotation is never on
-	// for the collision problem so we can ignore it.
+              // For the collision problem, we know we are done when the total energy
+              // is positive (indicating that we have become unbound due to nuclear
+              // energy release) and when it is decreasing in magnitude (indicating
+              // all of the excitement is done and fluid is now just streaming off
+              // the grid). We don't need to be super accurate for this, so let's check
+              // on the coarse grid only. It is possible that a collision could not
+              // generate enough energy to become unbound, so possibly this criterion
+              // should be expanded in the future to cover that case.
 
-	Real E_tot = 0.0;
+              Real rho_E = 0.0;
+              Real rho_phi = 0.0;
 
-	Real curTime   = state[State_Type].curTime();
+              // Note that we'll define the total energy using only
+              // gas energy + gravitational. Rotation is never on
+              // for the collision problem so we can ignore it.
 
-	bool local_flag = true;
-	bool fine_mask = false;
+              Real E_tot = 0.0;
 
-	rho_E += volWgtSum("rho_E", curTime,  local_flag, fine_mask);
+              Real curTime   = state[State_Type].curTime();
+
+              bool local_flag = true;
+              bool fine_mask = false;
+
+              rho_E += volWgtSum("rho_E", curTime,  local_flag, fine_mask);
 
 #ifdef GRAVITY
-	if (do_grav) {
-	  rho_phi += volWgtSum("rho_phiGrav", curTime,  local_flag, fine_mask);
-	}
+              if (do_grav) {
+                  rho_phi += volWgtSum("rho_phiGrav", curTime,  local_flag, fine_mask);
+              }
 #endif
 
-	E_tot = rho_E + 0.5 * rho_phi;
+              E_tot = rho_E + 0.5 * rho_phi;
 
-	amrex::ParallelDescriptor::ReduceRealSum(E_tot);
+              amrex::ParallelDescriptor::ReduceRealSum(E_tot);
 
-	// Put this on the end of the energy array.
+              // Put this on the end of the energy array.
 
-	for (int i = num_previous_ener_timesteps - 1; i > 0; --i)
-	  total_ener_array[i] = total_ener_array[i - 1];
+              for (int i = num_previous_ener_timesteps - 1; i > 0; --i)
+                  total_ener_array[i] = total_ener_array[i - 1];
 
-	total_ener_array[0] = E_tot;
+              total_ener_array[0] = E_tot;
 
-	// Send the data to Fortran.
+              // Send the data to Fortran.
 
-	set_total_ener_array(total_ener_array);
+              set_total_ener_array(total_ener_array);
 
-	bool stop_flag = false;
+              bool stop_flag = false;
 
-	int i = 0;
+              int i = 0;
 
-	// Check if energy is positive and has been decreasing for at least the last few steps.
+              // Check if energy is positive and has been decreasing for at least the last few steps.
 
-	while (i < num_previous_ener_timesteps - 1) {
+              while (i < num_previous_ener_timesteps - 1) {
 
-	  if (total_ener_array[i] < 0.0)
-	    break;
-	  else if (total_ener_array[i] > total_ener_array[i + 1])
-	    break;
+                  if (total_ener_array[i] < 0.0)
+                      break;
+                  else if (total_ener_array[i] > total_ener_array[i + 1])
+                      break;
 
-	  ++i;
+                  ++i;
 
-	}
+              }
 
-	if (i == num_previous_ener_timesteps - 1)
-	  stop_flag = true;
+              if (i == num_previous_ener_timesteps - 1)
+                  stop_flag = true;
 
-	if (stop_flag) {
+              if (stop_flag) {
 
-	  jobDoneStatus = 1;
+                  jobDoneStatus = 1;
 
-	  set_job_status(&jobDoneStatus);
+                  set_job_status(&jobDoneStatus);
 
-	  if (amrex::ParallelDescriptor::IOProcessor())
-	    std::cout << std::endl 
-		      << "Ending simulation because total energy is positive and decreasing." 
-		      << std::endl;
+                  amrex::Print() << std::endl 
+                                 << "Ending simulation because total energy is positive and decreasing." 
+                                 << std::endl;
 
-	}
+              }
+
+          }
+#endif
+
+          if (ts_te_curr_max >= ts_te_stopping_criterion) {
+
+              jobDoneStatus = 1;
+
+              set_job_status(&jobDoneStatus);
+
+              amrex::Print() << std::endl
+                             << "Ending simulation because we are above the threshold for unstable burning."
+                             << std::endl;
+
+          }
+
+          if (T_curr_max >= T_stopping_criterion) {
+
+              jobDoneStatus = 1;
+
+              set_job_status(&jobDoneStatus);
+
+              amrex::Print() << std::endl
+                             << "Ending simulation because we are above the temperature threshold."
+                             << std::endl;
+
+          }
 
       } else if (problem == 4) {
 
@@ -813,7 +876,6 @@ void Castro::check_to_stop(Real time) {
       }
 
     }
-#endif
 
     // Is the job done? If so, signal this to AMReX.
 
@@ -826,13 +888,9 @@ void Castro::check_to_stop(Real time) {
 
       if (amrex::ParallelDescriptor::IOProcessor()) {
 	std::ofstream dump_file;
-	dump_file.open("dump_and_continue", std::ofstream::out);
-	dump_file.close();
-	dump_file.open("plot_and_continue", std::ofstream::out);
+	dump_file.open("dump_and_stop", std::ofstream::out);
 	dump_file.close();
       }
-
-      stopJob();
 
     }
 
@@ -902,38 +960,70 @@ void
 Castro::update_relaxation(Real time, Real dt) {
 
     // Check to make sure whether we should be doing the relaxation here.
+    // Update the relaxation conditions if we are not stopping.
 
     if (problem != 3 || relaxation_is_done || mass_p <= 0.0 || mass_s <= 0.0 || dt <= 0.0) return;
 
-    Real old_time = state[State_Type].prevTime();
-    Real new_time = state[State_Type].curTime();
+    // Reconstruct the rotation force at the old and new times.
+    // For the old time we can simply use the old state data; for
+    // the new time, we need to reconstruct the state as it was
+    // before the new-time sources were applied, so we'll temporarily
+    // subtract off all the new-time sources before doing so.
 
-    int ng = 0;
+    // This process is technically incorrect if reactions are
+    // enabled. We reconstruct the new-time rotation force by
+    // subtracting the new-time sources, but ignore the fact that
+    // a Strang-split burn happened in between. We will not worry
+    // about this for two reasons: first, reactions are generally
+    // not going to be enabled during the relaxation step, and if
+    // they are enabled, they will contribute negligibly anyway
+    // since the relaxation step happens prior to the merger;
+    // second, the reactions do not directly affect the gravity
+    // or rotation source terms, so even if there were substantial
+    // reactions occurring, the error introduced by not accounting
+    // for them here would be small.
 
-    // Construct the desired rotation force data.
+    // Note that this process only really makes sense if we are
+    // not subcycling.
 
+    int coarse_level = 0;
     int finest_level = parent->finestLevel();
     int n_levs = finest_level + 1;
 
-    Array< std::unique_ptr<MultiFab> > rot_force(n_levs);
+    Vector< std::unique_ptr<MultiFab> > rot_force(n_levs);
 
-    for (int lev = 0; lev <= finest_level; ++lev) {
+    for (int lev = coarse_level; lev <= finest_level; ++lev) {
 
-	rot_force[lev].reset(new MultiFab(getLevel(lev).grids, getLevel(lev).dmap, NUM_STATE, ng));
+        const Real old_time = getLevel(lev).state[State_Type].prevTime();
+        const Real new_time = getLevel(lev).state[State_Type].curTime();
 
-	rot_force[lev]->setVal(0.0);
+        const Real dt = new_time - old_time;
 
-	MultiFab::Add(*rot_force[lev], *(getLevel(lev).old_sources[grav_src]), 0, 0, NUM_STATE, ng);
-        MultiFab::Add(*rot_force[lev], *(getLevel(lev).new_sources[grav_src]), 0, 0, NUM_STATE, ng);
+        rot_force[lev].reset(new MultiFab(getLevel(lev).grids, getLevel(lev).dmap, NUM_STATE, 0));
+        rot_force[lev]->setVal(0.0);
 
-	MultiFab::Add(*rot_force[lev], getLevel(lev).hydro_source, 0, 0, NUM_STATE, ng);
+        MultiFab& S_old = getLevel(lev).get_old_data(State_Type);
+        MultiFab& S_new = getLevel(lev).get_new_data(State_Type);
 
-	// Mask out regions covered by fine grids.
+        // Use the rot_force MultiFab as temporary data to hold the
+        // non-rotation forces that were applied during the step. The inspiration
+        // for this approach is the method of Rosswog, Speith & Wynn (2004)
+        // (which was in the context of neutron star mergers; it was extended
+        // to white dwarf mergers by Dan et al. (2011)). In that paper, the rotation
+        // force is calculated by exactly balancing against the gravitational and hydrodynamic
+        // forces. We will just use the gravitational force, since the desired equilibrium
+        // state is for the hydrodynamic forces to be zero.
 
-	if (lev < finest_level) {
-	    const MultiFab& mask = getLevel(lev+1).build_fine_mask();
-	    MultiFab::Multiply(*rot_force[lev], mask, 0, 0, NUM_STATE, 0);
-	}
+        getLevel(lev).construct_old_gravity_source(*rot_force[lev], S_old, old_time, dt);
+        getLevel(lev).construct_new_gravity_source(*rot_force[lev], S_old, S_new, new_time, dt);
+
+        // Mask out regions covered by fine grids.
+
+        if (lev < parent->finestLevel()) {
+            const MultiFab& mask = getLevel(lev+1).build_fine_mask();
+            for (int n = 0; n < NUM_STATE; ++n)
+                MultiFab::Multiply(*rot_force[lev], mask, 0, n, 1, 0);
+        }
 
     }
 
@@ -942,74 +1032,55 @@ Castro::update_relaxation(Real time, Real dt) {
     Real force_p[3] = { 0.0 };
     Real force_s[3] = { 0.0 };
 
-    for (int lev = 0; lev <= finest_level; ++lev) {
+    for (int lev = coarse_level; lev <= finest_level; ++lev) {
 
-	MultiFab& S_new = getLevel(lev).get_new_data(State_Type);
+        MultiFab& S_new = getLevel(lev).get_new_data(State_Type);
 
-	auto pmask = getLevel(lev).derive("primarymask", time, 0);
-	auto smask = getLevel(lev).derive("secondarymask", time, 0);
+        auto pmask = getLevel(lev).derive("primarymask", time, 0);
+        auto smask = getLevel(lev).derive("secondarymask", time, 0);
 
-	MultiFab& vol = getLevel(lev).Volume();
+        MultiFab& vol = getLevel(lev).Volume();
 
-	Real fpx = 0.0;
-	Real fpy = 0.0;
-	Real fpz = 0.0;
-	Real fsx = 0.0;
-	Real fsy = 0.0;
-	Real fsz = 0.0;
+        Real fpx = 0.0;
+        Real fpy = 0.0;
+        Real fpz = 0.0;
+        Real fsx = 0.0;
+        Real fsy = 0.0;
+        Real fsz = 0.0;
 
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:fpx, fpy, fpz, fsx, fsy, fsz)
 #endif
-	for (MFIter mfi(S_new, true); mfi.isValid(); ++mfi) {
+        for (MFIter mfi(S_new, true); mfi.isValid(); ++mfi) {
 
-	    const Box& box = mfi.tilebox();
+            const Box& box = mfi.tilebox();
 
-	    const int* lo  = box.loVect();
-	    const int* hi  = box.hiVect();
+            const int* lo  = box.loVect();
+            const int* hi  = box.hiVect();
 
-	    sum_force_on_stars(lo, hi,
-			       BL_TO_FORTRAN_3D((*rot_force[lev])[mfi]),
-			       BL_TO_FORTRAN_3D(S_new[mfi]),
-			       BL_TO_FORTRAN_3D(vol[mfi]),
-			       BL_TO_FORTRAN_3D((*pmask)[mfi]),
+            sum_force_on_stars(lo, hi,
+                               BL_TO_FORTRAN_3D((*rot_force[lev])[mfi]),
+                               BL_TO_FORTRAN_3D(S_new[mfi]),
+                               BL_TO_FORTRAN_3D(vol[mfi]),
+                               BL_TO_FORTRAN_3D((*pmask)[mfi]),
                                BL_TO_FORTRAN_3D((*smask)[mfi]),
-			       &fpx, &fpy, &fpz, &fsx, &fsy, &fsz);
+                               &fpx, &fpy, &fpz, &fsx, &fsy, &fsz);
 
-	}
+        }
 
-	force_p[0] += fpx;
-	force_p[1] += fpy;
-	force_p[2] += fpz;
+        force_p[0] += fpx;
+        force_p[1] += fpy;
+        force_p[2] += fpz;
 
-	force_s[0] += fsx;
-	force_s[1] += fsy;
-	force_s[2] += fsz;
+        force_s[0] += fsx;
+        force_s[1] += fsy;
+        force_s[2] += fsz;
 
     }
 
-    Real foo[6];
+    // Do the reduction over processors.
 
-    // Do the reduction over processors, and then
-    // normalize by the masses of the stars.
-
-    foo[0] = force_p[0];
-    foo[1] = force_p[1];
-    foo[2] = force_p[2];
-
-    foo[3] = force_s[0];
-    foo[4] = force_s[1];
-    foo[5] = force_s[2];
-
-    amrex::ParallelDescriptor::ReduceRealSum(foo, 6);
-
-    force_p[0] = foo[0];
-    force_p[1] = foo[1];
-    force_p[2] = foo[2];
-
-    force_s[0] = foo[3];
-    force_s[1] = foo[4];
-    force_s[2] = foo[5];
+    amrex::ParallelDescriptor::ReduceRealSum({force_p[0], force_p[1], force_p[2], force_s[0], force_s[1], force_s[2]});
 
     // Divide by the mass of the stars to obtain the acceleration, and then get the new rotation frequency.
 
@@ -1031,38 +1102,6 @@ Castro::update_relaxation(Real time, Real dt) {
 
     rotational_period = period;
     set_period(&period);
-
-    // Update the force applied to the state using the new rotation vector.
-    // To do this we'll need to copy the old state into Sborder since that
-    // is what the source term constructors rely on for the old time.
-
-    for (int lev = 0; lev <= finest_level; ++lev) {
-
-	MultiFab& S_old = getLevel(lev).get_old_data(State_Type);
-	MultiFab& S_new = getLevel(lev).get_new_data(State_Type);
-
-	MultiFab& Sb = getLevel(lev).Sborder;
-
-	// Note that we'll do this exactly the same way as it occurs in the advance
-	// since the construction of Sborder includes more than just a FillPatch.
-	// The only difference is that we don't need NUM_GROW ghost cells.
-
-	Sb.define(getLevel(lev).grids, getLevel(lev).dmap, NUM_STATE, ng);
-
-	getLevel(lev).expand_state(Sb, old_time, ng);
-
-	MultiFab::Saxpy(S_new, -dt, *(getLevel(lev).old_sources[rot_src]), 0, 0, NUM_STATE, ng);
-	MultiFab::Saxpy(S_new, -dt, *(getLevel(lev).new_sources[rot_src]), 0, 0, NUM_STATE, ng);
-
-	getLevel(lev).construct_old_source(rot_src, old_time, dt);
-	getLevel(lev).construct_new_source(rot_src, new_time, dt);
-
-	MultiFab::Saxpy(S_new, dt, *(getLevel(lev).old_sources[rot_src]), 0, 0, NUM_STATE, ng);
-	MultiFab::Saxpy(S_new, dt, *(getLevel(lev).new_sources[rot_src]), 0, 0, NUM_STATE, ng);
-
-	Sb.clear();
-
-    }
 
     // Check to see whether the relaxation should be turned off.
     // Note that at present the following check is only done on the
