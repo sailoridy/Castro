@@ -311,8 +311,9 @@ Castro::variableSetUp ()
   desc_lst.addDescriptor(State_Type,IndexType::TheCellType(),
 			 StateDescriptor::Point,ngrow_state,NUM_STATE,
 			 interp,state_data_extrap,store_in_checkpoint);
-
+#ifdef CUDA
   desc_lst.setDeviceCopy(State_Type, true);
+#endif
 
 #ifdef SELF_GRAVITY
   store_in_checkpoint = true;

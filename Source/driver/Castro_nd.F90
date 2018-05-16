@@ -420,7 +420,6 @@ subroutine ca_set_method_params(dm, Density, Xmom, &
   integer :: cudaResult
 #endif
 
-  call parallel_initialize()
 
 #ifdef RADIATION
   ngroups = ngroups_in

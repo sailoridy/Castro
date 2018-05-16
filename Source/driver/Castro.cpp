@@ -2601,7 +2601,9 @@ void
 Castro::enforce_consistent_e (MultiFab& S)
 {
 
+#ifdef CUDA
 Device::beginDeviceLaunchRegion();
+#endif
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -2616,8 +2618,9 @@ Device::beginDeviceLaunchRegion();
         ca_enforce_consistent_e(ARLIM_3D(lo), ARLIM_3D(hi), BL_TO_FORTRAN_3D(S[mfi]), &idx);
     }
 
+#ifdef CUDA
 Device::endDeviceLaunchRegion();
-
+#endif
 }
 
 Real
