@@ -620,6 +620,7 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
   integer,  intent(in) :: coord_type_in
   real(rt), intent(in) :: problo_in(dm), probhi_in(dm), center_in(dm)
 
+  allocate(dim)
   dim = dm
 
   physbc_lo(1:dm) = physbc_lo_in(1:dm)
