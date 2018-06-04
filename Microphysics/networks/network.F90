@@ -16,33 +16,39 @@
 !  network_init          -- initialize the isotope properties
 !
 !  network_species_index -- return the index of the species given its name
-!
-!  network_finalize      -- do any network cleanup
 
 module network
 
-  use bl_types, only : dp_t
+  use amrex_fort_module, only: rt => amrex_real
   use actual_network
 
   implicit none
 
-  private :: dp_t
-
   logical :: network_initialized = .false.
 
   ! this will be computed here, not in the actual network
-  real(kind=dp_t) :: aion_inv(nspec)
+  real(rt), allocatable :: aion_inv(:)
 
   !$acc declare create(aion_inv)
 
+#ifdef CUDA
+  attributes(managed) :: aion_inv
+#endif
+
 contains
 
-  subroutine network_init()
+  subroutine network_init
 
-    use bl_error_module, only : bl_error
-    use bl_constants_module, only : ONE
+    use bl_error_module, only: bl_error
+    use bl_constants_module, only: ONE
 
     implicit none
+
+#ifdef CUDA
+    integer :: cuda_result
+#endif
+
+    allocate(aion_inv(nspec))
 
     ! First, we call the specific network initialization.
     ! This should set the number of species and number of
@@ -87,8 +93,14 @@ contains
 
   end function network_species_index
 
-  subroutine network_finalize()
+
+  subroutine network_finalize() bind(c, name='network_finalize')
+
+    use actual_network, only: actual_network_finalize
+
     implicit none
+
+    deallocate(aion_inv)
 
     call actual_network_finalize()
 
