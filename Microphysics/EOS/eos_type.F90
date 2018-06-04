@@ -41,26 +41,45 @@ module eos_type_module
 
   ! Minimum and maximum thermodynamic quantities permitted by the EOS.
 
-  real(dp_t), save :: mintemp = 1.d-200
-  real(dp_t), save :: maxtemp = 1.d200
-  real(dp_t), save :: mindens = 1.d-200
-  real(dp_t), save :: maxdens = 1.d200
-  real(dp_t), save :: minx    = 1.d-200
-  real(dp_t), save :: maxx    = 1.d0 + 1.d-12
-  real(dp_t), save :: minye   = 1.d-200
-  real(dp_t), save :: maxye   = 1.d0 + 1.d-12
-  real(dp_t), save :: mine    = 1.d-200
-  real(dp_t), save :: maxe    = 1.d200
-  real(dp_t), save :: minp    = 1.d-200
-  real(dp_t), save :: maxp    = 1.d200
-  real(dp_t), save :: mins    = 1.d-200
-  real(dp_t), save :: maxs    = 1.d200
-  real(dp_t), save :: minh    = 1.d-200
-  real(dp_t), save :: maxh    = 1.d200
+  real(dp_t), allocatable :: mintemp
+  real(dp_t), allocatable :: maxtemp
+  real(dp_t), allocatable :: mindens
+  real(dp_t), allocatable :: maxdens
+  real(dp_t), allocatable :: minx
+  real(dp_t), allocatable :: maxx
+  real(dp_t), allocatable :: minye
+  real(dp_t), allocatable :: maxye
+  real(dp_t), allocatable :: mine
+  real(dp_t), allocatable :: maxe
+  real(dp_t), allocatable :: minp
+  real(dp_t), allocatable :: maxp
+  real(dp_t), allocatable :: mins
+  real(dp_t), allocatable :: maxs
+  real(dp_t), allocatable :: minh
+  real(dp_t), allocatable :: maxh
 
   !$acc declare &
   !$acc create(mintemp, maxtemp, mindens, maxdens, minx, maxx, minye, maxye) &
   !$acc create(mine, maxe, minp, maxp, mins, maxs, minh, maxh)
+
+#ifdef CUDA
+  attributes(managed) :: mintemp
+  attributes(managed) :: maxtemp
+  attributes(managed) :: mindens
+  attributes(managed) :: maxdens
+  attributes(managed) :: minx
+  attributes(managed) :: maxx
+  attributes(managed) :: minye
+  attributes(managed) :: maxye
+  attributes(managed) :: mine
+  attributes(managed) :: maxe
+  attributes(managed) :: minp
+  attributes(managed) :: maxp
+  attributes(managed) :: mins
+  attributes(managed) :: maxs
+  attributes(managed) :: minh
+  attributes(managed) :: maxh
+#endif
 
   ! A generic structure holding thermodynamic quantities and their derivatives,
   ! plus some other quantities of interest.
@@ -100,8 +119,6 @@ module eos_type_module
   ! dpdZ     -- d pressure/ d zbar
   ! dedA     -- d energy/ d abar
   ! dedZ     -- d energy/ d zbar
-  ! dpde     -- d pressure / d energy |_rho
-  ! dpdr_e   -- d pressure / d rho |_energy
 
   type :: eos_t
 
@@ -135,23 +152,16 @@ module eos_type_module
     real(dp_t) :: mu
     real(dp_t) :: mu_e
     real(dp_t) :: y_e
-#ifdef EXTRA_THERMO
-    real(dp_t) :: dedX(nspec)
-    real(dp_t) :: dpdX(nspec)
-    real(dp_t) :: dhdX(nspec)
-#endif
     real(dp_t) :: gam1
     real(dp_t) :: cs
 
     real(dp_t) :: abar
     real(dp_t) :: zbar
-
-#ifdef EXTRA_THERMO
     real(dp_t) :: dpdA
+
     real(dp_t) :: dpdZ
     real(dp_t) :: dedA
     real(dp_t) :: dedZ
-#endif
 
   end type eos_t
 
@@ -160,14 +170,14 @@ contains
   ! Given a set of mass fractions, calculate quantities that depend
   ! on the composition like abar and zbar.
 
-  subroutine composition(state)
-
-    !$acc routine seq
+  AMREX_DEVICE subroutine composition(state)
 
     use bl_constants_module, only: ONE
     use network, only: aion, aion_inv, zion
 
     implicit none
+
+    !$acc routine seq
 
     type (eos_t), intent(inout) :: state
 
@@ -185,10 +195,11 @@ contains
 
   end subroutine composition
 
+
 #ifdef EXTRA_THERMO
   ! Compute thermodynamic derivatives with respect to xn(:)
 
-  subroutine composition_derivatives(state)
+  AMREX_DEVICE subroutine composition_derivatives(state)
 
     !$acc routine seq
 
@@ -224,14 +235,14 @@ contains
   ! Normalize the mass fractions: they must be individually positive
   ! and less than one, and they must all sum to unity.
 
-  subroutine normalize_abundances(state)
-
-    !$acc routine seq
+  AMREX_DEVICE subroutine normalize_abundances(state)
 
     use bl_constants_module, only: ONE
     use extern_probin_module, only: small_x
 
     implicit none
+
+    !$acc routine seq
 
     type (eos_t), intent(inout) :: state
 
@@ -245,11 +256,11 @@ contains
 
   ! Ensure that inputs are within reasonable limits.
 
-  subroutine clean_state(state)
-
-    !$acc routine seq
+  AMREX_DEVICE subroutine clean_state(state)
 
     implicit none
+
+    !$acc routine seq
 
     type (eos_t), intent(inout) :: state
 
@@ -276,12 +287,11 @@ contains
   end subroutine print_state
 
 
-
-  subroutine eos_get_small_temp(small_temp_out)
-
-    !$acc routine seq
+  AMREX_DEVICE subroutine eos_get_small_temp(small_temp_out)
 
     implicit none
+
+    !$acc routine seq
 
     real(dp_t), intent(out) :: small_temp_out
 
@@ -290,12 +300,11 @@ contains
   end subroutine eos_get_small_temp
 
 
-
-  subroutine eos_get_small_dens(small_dens_out)
-
-    !$acc routine seq
+  AMREX_DEVICE subroutine eos_get_small_dens(small_dens_out)
 
     implicit none
+
+    !$acc routine seq
 
     real(dp_t), intent(out) :: small_dens_out
 
@@ -305,11 +314,11 @@ contains
 
 
 
-  subroutine eos_get_max_temp(max_temp_out)
-
-    !$acc routine seq
+  AMREX_DEVICE subroutine eos_get_max_temp(max_temp_out)
 
     implicit none
+
+    !$acc routine seq
 
     real(dp_t), intent(out) :: max_temp_out
 
@@ -319,11 +328,11 @@ contains
 
 
 
-  subroutine eos_get_max_dens(max_dens_out)
-
-    !$acc routine seq
+  AMREX_DEVICE subroutine eos_get_max_dens(max_dens_out)
 
     implicit none
+
+    !$acc routine seq
 
     real(dp_t), intent(out) :: max_dens_out
 
