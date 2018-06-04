@@ -19,7 +19,7 @@ module prob_params_module
   real(rt)        , save :: center(3), problo(3), probhi(3)
 
   ! dimension information
-  integer         , save :: dim
+  integer, allocatable, save :: dim
 
   ! indices that we use for dimension agnostic routines 
   ! to ensure we don't illegally access non-existent ghost cells
@@ -47,5 +47,9 @@ module prob_params_module
 
   ! one component for each coordinate direction flux
   type (momflux_t), save :: mom_flux_has_p(3)
-  
+
+#ifdef CUDA
+  attributes(managed) :: dx_level, dim
+#endif
+
 end module prob_params_module
