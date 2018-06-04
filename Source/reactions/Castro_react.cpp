@@ -255,12 +255,12 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& mask, MultiFab& w
 	const Box& bx = mfi.growntilebox(ngrow);
 
 	// Note that box is *not* necessarily just the valid region!
-	ca_react_state(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-		       BL_TO_FORTRAN_3D(s[mfi]),
-		       BL_TO_FORTRAN_3D(r[mfi]),
-		       BL_TO_FORTRAN_3D(w[mfi]),
-		       BL_TO_FORTRAN_3D(mask[mfi]),
-		       time, dt_react, strang_half);
+	FORT_LAUNCH(bx, ca_react_state,
+		    BL_TO_FORTRAN_3D(s[mfi]),
+		    BL_TO_FORTRAN_3D(r[mfi]),
+		    BL_TO_FORTRAN_3D(w[mfi]),
+		    BL_TO_FORTRAN_3D(mask[mfi]),
+		    time, dt_react, strang_half);
 
     }
 
