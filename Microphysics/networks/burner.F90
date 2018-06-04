@@ -56,7 +56,7 @@ contains
 
 
 #ifndef SDC
-  subroutine burner(state_in, state_out, dt, time)
+  AMREX_DEVICE subroutine burner(state_in, state_out, dt, time)
 
     !$acc routine seq
 
@@ -68,7 +68,7 @@ contains
 
     ! Make sure the network and burner have been initialized.
 
-#ifndef ACC
+#if !(defined(ACC) || defined(CUDA))
     if (.NOT. network_initialized) then
        call bl_error("ERROR in burner: must initialize network first.")
     endif
