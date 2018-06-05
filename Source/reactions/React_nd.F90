@@ -9,7 +9,7 @@ contains
 
 #ifndef SDC
 
-  AMREX_LAUNCH subroutine ca_react_state(lo, hi, &
+  AMREX_DEVICE subroutine ca_react_state(lo, hi, &
                                          state, s_lo, s_hi, &
                                          reactions, r_lo, r_hi, &
                                          weights, w_lo, w_hi, &

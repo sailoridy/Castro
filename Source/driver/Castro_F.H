@@ -767,12 +767,12 @@ extern "C"
      const int* mask, const int* m_lo, const int* m_hi,
      const amrex::Real& time, const amrex::Real& dt_react, const int& sdc_iter);
 #else
-  AMREX_FORT_LAUNCHABLE(void ca_react_state)(const int* lo, const int* hi,
-					     BL_FORT_FAB_ARG_3D(state),
-					     BL_FORT_FAB_ARG_3D(reactions),
-					     BL_FORT_FAB_ARG_3D(weights),
-					     const BL_FORT_IFAB_ARG_3D(mask),
-					     const amrex::Real& time, const amrex::Real& dt_react, const int& strang_half);
+  void ca_react_state(ARLIM_VAL(lo), ARLIM_VAL(hi),
+		      BL_FORT_FAB_ARG_3D(state),
+		      BL_FORT_FAB_ARG_3D(reactions),
+		      BL_FORT_FAB_ARG_3D(weights),
+		      const BL_FORT_IFAB_ARG_3D(mask),
+		      const amrex::Real& time, const amrex::Real& dt_react, const int& strang_half);
 #endif
 #endif
 
