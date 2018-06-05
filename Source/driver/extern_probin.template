@@ -13,6 +13,10 @@ module extern_probin_module
 
   @@declarationsA@@
 
+#ifdef CUDA
+  @@cudaattributesA@@
+#endif
+
 end module extern_probin_module
 
 subroutine runtime_init(name,namlen)
@@ -31,6 +35,8 @@ subroutine runtime_init(name,namlen)
 
 
   @@namelist@@
+
+  @@allocations@@
 
   @@defaults@@
 
