@@ -1243,21 +1243,23 @@ Castro::estTimeStep (Real dt_old)
               MultiFab& S_old = get_old_data(State_Type);
               MultiFab& R_old = get_old_data(Reactions_Type);
 
-              ca_estdt_burning(ARLIM_3D(box.loVect()),ARLIM_3D(box.hiVect()),
-                               BL_TO_FORTRAN_3D(S_old[mfi]),
-                               BL_TO_FORTRAN_3D(S_new[mfi]),
-                               BL_TO_FORTRAN_3D(R_old[mfi]),
-                               BL_TO_FORTRAN_3D(R_new[mfi]),
-                               ZFILL(dx),&dt_old,&dt);
+              AMREX_DEVICE_LAUNCH(ca_estdt_burning)(ARLIM_ARG(box.loVect()),
+						    ARLIM_ARG(box.hiVect()),
+						    BL_TO_FORTRAN_ANYD(S_old[mfi]),
+						    BL_TO_FORTRAN_ANYD(S_new[mfi]),
+						    BL_TO_FORTRAN_ANYD(R_old[mfi]),
+						    BL_TO_FORTRAN_ANYD(R_new[mfi]),
+						    ZFILL(dx), &dt_old, &dt);
               
             } else {
               
-              ca_estdt_burning(ARLIM_3D(box.loVect()),ARLIM_3D(box.hiVect()),
-                               BL_TO_FORTRAN_3D(S_new[mfi]),
-                               BL_TO_FORTRAN_3D(S_new[mfi]),
-                               BL_TO_FORTRAN_3D(R_new[mfi]),
-                               BL_TO_FORTRAN_3D(R_new[mfi]),
-                               ZFILL(dx),&dt_old,&dt);
+              AMREX_DEVICE_LAUNCH(ca_estdt_burning)(ARLIM_ARG(box.loVect()),
+						    ARLIM_ARG(box.hiVect()),
+						    BL_TO_FORTRAN_ANYD(S_new[mfi]),
+						    BL_TO_FORTRAN_ANYD(S_new[mfi]),
+						    BL_TO_FORTRAN_ANYD(R_new[mfi]),
+						    BL_TO_FORTRAN_ANYD(R_new[mfi]),
+						    ZFILL(dx), &dt_old, &dt);
 
             }
 

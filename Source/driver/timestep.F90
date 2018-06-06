@@ -110,12 +110,12 @@ contains
   ! Reactions-limited timestep
 
 #ifdef REACTIONS
-  subroutine ca_estdt_burning(lo, hi, sold, so_lo, so_hi, &
-                              snew, sn_lo, sn_hi, &
-                              rold, ro_lo, ro_hi, &
-                              rnew, rn_lo, rn_hi, &
-                              dx, dt_old, dt) &
-                              bind(C, name="ca_estdt_burning")
+  AMREX_DEVICE subroutine ca_estdt_burning(lo, hi, sold, so_lo, so_hi, &
+                                           snew, sn_lo, sn_hi, &
+                                           rold, ro_lo, ro_hi, &
+                                           rnew, rn_lo, rn_hi, &
+                                           dx, dt_old, dt) &
+                                           bind(C, name="ca_estdt_burning")
 
     use bl_constants_module, only: HALF, ONE
     use network, only: nspec, naux, aion
@@ -153,6 +153,8 @@ contains
     type (burn_t) :: state_old, state_new
     type (eos_t)  :: eos_state
     real(rt)      :: rhooinv, rhoninv
+
+    logical       :: do_burn = .true.
 
     ! Set a floor on the minimum size of a derivative. This floor
     ! is small enough such that it will result in no timestep limiting.
@@ -207,7 +209,8 @@ contains
              state_new % aux = snew(i,j,k,UFX:UFX+naux-1) * rhoninv
 #endif
 
-             if (.not. ok_to_burn(state_new)) cycle
+             call ok_to_burn(state_new, do_burn)
+             if (.not. do_burn) cycle
 
              e    = state_new % e
              X    = max(state_new % xn, small_x)
