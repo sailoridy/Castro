@@ -2,7 +2,7 @@
   subroutine cuda_enforce_consistent_e(lo,hi,state,s_lo,s_hi)
 
     use amrex_fort_module, only: rt => amrex_real
-    use meth_params_module, only: NVAR => NVAR_d
+    use meth_params_module, only: NVAR
     use castro_util_module, only: enforce_consistent_e
 
     implicit none
