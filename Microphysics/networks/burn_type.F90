@@ -109,7 +109,7 @@ contains
 
   ! Given a burn type, copy the data relevant to the eos type.
 
-  subroutine burn_to_eos(burn_state, eos_state)
+  AMREX_DEVICE subroutine burn_to_eos(burn_state, eos_state)
 
     !$acc routine seq
 
@@ -138,7 +138,7 @@ contains
   end subroutine burn_to_eos
 
 
-  subroutine normalize_abundances_burn(state)
+  AMREX_DEVICE subroutine normalize_abundances_burn(state)
 
     !$acc routine seq
 
