@@ -79,9 +79,7 @@ contains
 
   end function position
 
-
-
-  subroutine enforce_consistent_e(lo,hi,state,s_lo,s_hi)
+  AMREX_DEVICE subroutine enforce_consistent_e(lo,hi,state,s_lo,s_hi)
 
     use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT
     use bl_constants_module, only: HALF, ONE
