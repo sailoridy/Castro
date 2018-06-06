@@ -123,7 +123,7 @@ contains
 
   ! Given an eos type, copy the data relevant to the burn type.
 
-  subroutine eos_to_burn(eos_state, burn_state)
+  AMREX_DEVICE subroutine eos_to_burn(eos_state, burn_state)
 
     !$acc routine seq
 
