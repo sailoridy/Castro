@@ -1237,29 +1237,35 @@ Castro::estTimeStep (Real dt_old)
         for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
           {
             const Box& box = mfi.validbox();
-            
+
+#ifdef CUDA
+	    Real* dt_f = mfi.add_reduce_value(&dt, MFIter::MIN);
+#else
+	    Real* dt_f = &dt;
+#endif
+
             if (state[State_Type].hasOldData() && state[Reactions_Type].hasOldData()) {
 
               MultiFab& S_old = get_old_data(State_Type);
               MultiFab& R_old = get_old_data(Reactions_Type);
 
-              AMREX_DEVICE_LAUNCH(ca_estdt_burning)(ARLIM_ARG(box.loVect()),
-						    ARLIM_ARG(box.hiVect()),
+              AMREX_DEVICE_LAUNCH(ca_estdt_burning)(AMREX_ARLIM_ARG(box.loVect()),
+						    AMREX_ARLIM_ARG(box.hiVect()),
 						    BL_TO_FORTRAN_ANYD(S_old[mfi]),
 						    BL_TO_FORTRAN_ANYD(S_new[mfi]),
 						    BL_TO_FORTRAN_ANYD(R_old[mfi]),
 						    BL_TO_FORTRAN_ANYD(R_new[mfi]),
-						    ZFILL(dx), &dt_old, &dt);
+						    ZFILL(dx), &dt_old, dt_f);
               
             } else {
               
-              AMREX_DEVICE_LAUNCH(ca_estdt_burning)(ARLIM_ARG(box.loVect()),
-						    ARLIM_ARG(box.hiVect()),
+              AMREX_DEVICE_LAUNCH(ca_estdt_burning)(AMREX_ARLIM_ARG(box.loVect()),
+						    AMREX_ARLIM_ARG(box.hiVect()),
 						    BL_TO_FORTRAN_ANYD(S_new[mfi]),
 						    BL_TO_FORTRAN_ANYD(S_new[mfi]),
 						    BL_TO_FORTRAN_ANYD(R_new[mfi]),
 						    BL_TO_FORTRAN_ANYD(R_new[mfi]),
-						    ZFILL(dx), &dt_old, &dt);
+						    ZFILL(dx), &dt_old, dt_f);
 
             }
 
@@ -1269,7 +1275,8 @@ Castro::estTimeStep (Real dt_old)
 
       ParallelDescriptor::ReduceRealMin(estdt_burn);
 
-      if (verbose && ParallelDescriptor::IOProcessor() && estdt_burn < max_dt)
+      //      if (verbose && ParallelDescriptor::IOProcessor() && estdt_burn < max_dt)
+      if (ParallelDescriptor::IOProcessor())
         std::cout << "...estimated burning-limited timestep at level " << level << ": " << estdt_burn << std::endl;
 
       // Determine if this is more restrictive than the hydro limiting
