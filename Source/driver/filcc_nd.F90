@@ -44,6 +44,6 @@ subroutine filcc_nd(adv,adv_lo,adv_hi,domlo,domhi,delta,xlo,bc)
 #ifdef CUDA
        <<<numBlocks, numThreads, 0, cuda_stream>>> &
 #endif
-       (adv_lo, adv_hi, adv, adv_lo, adv_hi, 1, domlo, domhi, delta, xlo, bc)
+       (adv, adv_lo, adv_hi, domlo, domhi, delta, xlo, bc)
 
 end subroutine filcc_nd
