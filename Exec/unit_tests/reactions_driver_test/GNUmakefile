@@ -31,7 +31,7 @@ EOS_DIR     := helmholtz
 NETWORK_DIR := ignition_simple
 
 # This sets the integrator directory in $(MICROPHYSICS_HOME)/integration
-INTEGRATOR_DIR := VODE
+INTEGRATOR_DIR := VODE90
 
 else
 
