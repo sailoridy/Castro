@@ -123,7 +123,18 @@ Radiation*   Castro::radiation = 0;
 
 std::string  Castro::probin_file = "probin";
 
-
+#ifdef CUDA
+#if BL_SPACEDIM == 1
+IntVect      Castro::hydro_tile_size(1024000);
+IntVect      Castro::no_tile_size(1024000);
+#elif BL_SPACEDIM == 2
+IntVect      Castro::hydro_tile_size(1024000,1024000);
+IntVect      Castro::no_tile_size(1024000,1024000);
+#else
+IntVect      Castro::hydro_tile_size(1024000,1024000,1024000);
+IntVect      Castro::no_tile_size(1024000,1024000,1024000);
+#endif
+#else
 #if BL_SPACEDIM == 1
 IntVect      Castro::hydro_tile_size(1024);
 IntVect      Castro::no_tile_size(1024);
@@ -133,6 +144,7 @@ IntVect      Castro::no_tile_size(1024,1024);
 #else
 IntVect      Castro::hydro_tile_size(1024,16,16);
 IntVect      Castro::no_tile_size(1024,1024,1024);
+#endif
 #endif
 
 // this will be reset upon restart

@@ -249,7 +249,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& mask, MultiFab& w
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(s, true); mfi.isValid(); ++mfi)
+    for (MFIter mfi(s, hydro_tile_size); mfi.isValid(); ++mfi)
     {
 
 	const Box& bx = mfi.growntilebox(ngrow);

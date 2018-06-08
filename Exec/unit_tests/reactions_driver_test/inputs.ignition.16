@@ -16,6 +16,8 @@ geometry.prob_hi     = 1.0     1.0    1.0
 castro.lo_bc       =  3   3   3
 castro.hi_bc       =  3   3   3
 
+castro.hydro_tile_size = 16 16 16
+
 # WHICH PHYSICS
 castro.do_hydro  = 0
 castro.do_react  = 1
