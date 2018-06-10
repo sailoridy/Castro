@@ -31,7 +31,7 @@ castro.v              = 1       # verbosity in Castro.cpp
 amr.v                 = 1       # verbosity in Amr.cpp
 
 # REFINEMENT / REGRIDDING 
-amr.max_level        = 1       # maximum level number allowed
+amr.max_level        = 0       # maximum level number allowed
 amr.n_cell           = 16 16 16
 amr.max_grid_size    = 32
 amr.blocking_factor  = 16
@@ -39,13 +39,15 @@ amr.refine_grid_layout = 0
 
 
 # CHECKPOINT FILES
-amr.check_file      = ignition_16_chk       # root name of checkpoint file
-amr.check_int       = 1000      # number of timesteps between checkpoints
+# amr.check_file      = ignition_16_chk       # root name of checkpoint file
+# amr.check_int       = 1000      # number of timesteps between checkpoints
+amr.checkpoint_files_output = 0
 
 # PLOTFILES
-amr.plot_file        = ignition_16_plt      # root name of plotfile
-amr.plot_int         = 1        # number of timesteps between plotfiles
-amr.derive_plot_vars = ALL
+amr.plot_files_output = 0
+# amr.plot_file        = ignition_16_plt      # root name of plotfile
+# amr.plot_int         = 1        # number of timesteps between plotfiles
+# amr.derive_plot_vars = ALL
 
 #PROBIN FILENAME
 amr.probin_file = probin.ignition.16
