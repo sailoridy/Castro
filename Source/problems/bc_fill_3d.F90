@@ -1,7 +1,6 @@
 module bc_fill_module
 
   use amrex_fort_module, only: rt => amrex_real
-  use amrex_filcc_module, only: filccn
 #ifdef CUDA
   use cuda_module, only: numBlocks, numThreads, cuda_stream
 #endif
@@ -19,7 +18,7 @@ contains
 
     use meth_params_module, only: NVAR
     use amrex_fort_module, only: rt => amrex_real, get_loop_bounds
-    use amrex_filcc_module, only: filccn
+    use amrex_filcc_module, only: amrex_filccn
 
     implicit none
 
@@ -42,7 +41,7 @@ contains
 
     call get_loop_bounds(blo, bhi, lo, hi)
 
-    call filccn(blo, bhi, adv, lo, hi, NVAR, domlo, domhi, delta, xlo, bc)
+    call amrex_filccn(blo, bhi, adv, lo, hi, NVAR, domlo, domhi, delta, xlo, bc)
 
   end subroutine hypfill
 
@@ -77,7 +76,7 @@ contains
                                   domlo, domhi, delta, xlo, time, bc)
 
     use amrex_fort_module, only: rt => amrex_real, get_loop_bounds
-    use amrex_filcc_module, only: filccn
+    use amrex_filcc_module, only: amrex_filccn
 
     implicit none
 
@@ -100,7 +99,7 @@ contains
 
     call get_loop_bounds(blo, bhi, lo, hi)
 
-    call filccn(blo, bhi, adv, lo, hi, 1, domlo, domhi, delta, xlo, bc)
+    call amrex_filccn(blo, bhi, adv, lo, hi, 1, domlo, domhi, delta, xlo, bc)
 
   end subroutine denfill
 
@@ -138,7 +137,7 @@ contains
                                       domlo, domhi, delta, xlo, bc)
 
     use amrex_fort_module, only: rt => amrex_real, get_loop_bounds
-    use amrex_filcc_module, only: filccn
+    use amrex_filcc_module, only: amrex_filccn
 
     implicit none
 
@@ -161,7 +160,7 @@ contains
 
     call get_loop_bounds(blo, bhi, lo, hi)
 
-    call filccn(blo, bhi, phi, lo, hi, 1, domlo, domhi, delta, xlo, bc)
+    call amrex_filccn(blo, bhi, phi, lo, hi, 1, domlo, domhi, delta, xlo, bc)
 
   end subroutine phigravfill
 
@@ -197,7 +196,7 @@ contains
                                       domlo, domhi, delta, xlo, bc)
 
     use amrex_fort_module, only: rt => amrex_real, get_loop_bounds
-    use amrex_filcc_module, only: filccn
+    use amrex_filcc_module, only: amrex_filccn
 
     implicit none
 
@@ -220,7 +219,7 @@ contains
 
     call get_loop_bounds(blo, bhi, lo, hi)
 
-    call filccn(blo, bhi, grav, lo, hi, 1, domlo, domhi, delta, xlo, bc)
+    call amrex_filccn(blo, bhi, grav, lo, hi, 1, domlo, domhi, delta, xlo, bc)
 
   end subroutine gravxfill
 
@@ -255,7 +254,7 @@ contains
                                     domlo, domhi, delta, xlo, bc)
 
     use amrex_fort_module, only: rt => amrex_real, get_loop_bounds
-    use amrex_filcc_module, only: filccn
+    use amrex_filcc_module, only: amrex_filccn
 
     implicit none
 
@@ -278,7 +277,7 @@ contains
 
     call get_loop_bounds(blo, bhi, lo, hi)
 
-    call filccn(blo, bhi, grav, lo, hi, 1, domlo, domhi, delta, xlo, bc)
+    call amrex_filccn(blo, bhi, grav, lo, hi, 1, domlo, domhi, delta, xlo, bc)
 
   end subroutine gravyfill
 
@@ -315,7 +314,7 @@ contains
                                     domlo, domhi, delta, xlo, bc)
 
     use amrex_fort_module, only: rt => amrex_real, get_loop_bounds
-    use amrex_filcc_module, only: filccn
+    use amrex_filcc_module, only: amrex_filccn
 
     implicit none
 
@@ -338,7 +337,7 @@ contains
 
     call get_loop_bounds(blo, bhi, lo, hi)
 
-    call filccn(blo, bhi, grav, lo, hi, 1, domlo, domhi, delta, xlo, bc)
+    call amrex_filccn(blo, bhi, grav, lo, hi, 1, domlo, domhi, delta, xlo, bc)
 
   end subroutine gravzfill
 
@@ -376,7 +375,7 @@ contains
                                     domlo, domhi, delta, xlo, bc)
 
     use amrex_fort_module, only: rt => amrex_real, get_loop_bounds
-    use amrex_filcc_module, only: filccn
+    use amrex_filcc_module, only: amrex_filccn
 
     implicit none
 
@@ -399,7 +398,7 @@ contains
 
     call get_loop_bounds(blo, bhi, lo, hi)
 
-    call filccn(blo, bhi, phi, lo, hi, 1, domlo, domhi, delta, xlo, bc)
+    call amrex_filccn(blo, bhi, phi, lo, hi, 1, domlo, domhi, delta, xlo, bc)
 
   end subroutine phirotfill
 
@@ -434,7 +433,7 @@ contains
                                     domlo, domhi, delta, xlo, bc)
 
     use amrex_fort_module, only: rt => amrex_real, get_loop_bounds
-    use amrex_filcc_module, only: filccn
+    use amrex_filcc_module, only: amrex_filccn
 
     implicit none
 
@@ -457,7 +456,7 @@ contains
 
     call get_loop_bounds(blo, bhi, lo, hi)
 
-    call filccn(blo, bhi, rot, lo, hi, 1, domlo, domhi, delta, xlo, bc)
+    call amrex_filccn(blo, bhi, rot, lo, hi, 1, domlo, domhi, delta, xlo, bc)
 
   end subroutine rotxfill
 
@@ -492,7 +491,7 @@ contains
                                     domlo, domhi, delta, xlo, bc)
 
     use amrex_fort_module, only: rt => amrex_real, get_loop_bounds
-    use amrex_filcc_module, only: filccn
+    use amrex_filcc_module, only: amrex_filccn
 
     implicit none
 
@@ -515,7 +514,7 @@ contains
 
     call get_loop_bounds(blo, bhi, lo, hi)
 
-    call filccn(blo, bhi, rot, lo, hi, 1, domlo, domhi, delta, xlo, bc)
+    call amrex_filccn(blo, bhi, rot, lo, hi, 1, domlo, domhi, delta, xlo, bc)
 
   end subroutine rotyfill
 
@@ -550,7 +549,7 @@ contains
                                    domlo, domhi, delta, xlo, bc)
 
     use amrex_fort_module, only: rt => amrex_real, get_loop_bounds
-    use amrex_filcc_module, only: filccn
+    use amrex_filcc_module, only: amrex_filccn
 
     implicit none
 
@@ -573,7 +572,7 @@ contains
 
     call get_loop_bounds(blo, bhi, lo, hi)
 
-    call filccn(blo, bhi, rot, lo, hi, 1, domlo, domhi, delta, xlo, bc)
+    call amrex_filccn(blo, bhi, rot, lo, hi, 1, domlo, domhi, delta, xlo, bc)
 
   end subroutine rotzfill
 
@@ -611,7 +610,7 @@ contains
                                     domlo, domhi, delta, xlo, bc)
 
     use amrex_fort_module, only: rt => amrex_real, get_loop_bounds
-    use amrex_filcc_module, only: filccn
+    use amrex_filcc_module, only: amrex_filccn
 
     implicit none
 
@@ -634,7 +633,7 @@ contains
 
     call get_loop_bounds(blo, bhi, lo, hi)
 
-    call filccn(blo, bhi, react, lo, hi, 1, domlo, domhi, delta, xlo, bc)
+    call amrex_filccn(blo, bhi, react, lo, hi, 1, domlo, domhi, delta, xlo, bc)
 
   end subroutine reactfill
 
@@ -672,7 +671,7 @@ contains
                                   domlo, domhi, delta, xlo, bc)
 
     use amrex_fort_module, only: rt => amrex_real, get_loop_bounds
-    use amrex_filcc_module, only: filccn
+    use amrex_filcc_module, only: amrex_filccn
 
     implicit none
 
@@ -695,7 +694,7 @@ contains
 
     call get_loop_bounds(blo, bhi, lo, hi)
 
-    call filccn(blo, bhi, rad, lo, hi, 1, domlo, domhi, delta, xlo, bc)
+    call amrex_filccn(blo, bhi, rad, lo, hi, 1, domlo, domhi, delta, xlo, bc)
 
   end subroutine radfill
 

@@ -1,7 +1,7 @@
 AMREX_LAUNCH subroutine filcc_nd_wrapper(adv,adv_lo,adv_hi,domlo,domhi,delta,xlo,bc)
   use prob_params_module, only: dim
   use amrex_fort_module, only: rt => amrex_real, get_loop_bounds
-  use amrex_filcc_module, only: filccn
+  use amrex_filcc_module, only: amrex_filccn
 
   implicit none
 
@@ -15,7 +15,7 @@ AMREX_LAUNCH subroutine filcc_nd_wrapper(adv,adv_lo,adv_hi,domlo,domhi,delta,xlo
 
   call get_loop_bounds(blo, bhi, adv_lo, adv_hi)
 
-  call filccn(blo, bhi, adv, adv_lo, adv_hi, 1, domlo, domhi, delta, xlo, bc)
+  call amrex_filccn(blo, bhi, adv, adv_lo, adv_hi, 1, domlo, domhi, delta, xlo, bc)
 
 end subroutine filcc_nd_wrapper
 

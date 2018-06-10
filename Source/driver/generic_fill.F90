@@ -1,7 +1,6 @@
 module generic_fill_module
 
   use amrex_fort_module, only: rt => amrex_real
-  use amrex_filcc_module, only: filccn
   use prob_params_module, only: dim
 #ifdef CUDA
   use cuda_module, only: numBlocks, numThreads, cuda_stream
@@ -15,7 +14,7 @@ contains
   AMREX_LAUNCH subroutine generic_single_fill(s_lo, s_hi, state, domlo, domhi, delta, xlo, bc)
     use prob_params_module, only: dim
     use amrex_fort_module, only: rt => amrex_real, get_loop_bounds
-    use amrex_filcc_module, only: filccn
+    use amrex_filcc_module, only: amrex_filccn
 
     implicit none
 
@@ -29,7 +28,7 @@ contains
 
     call get_loop_bounds(blo, bhi, s_lo, s_hi)
 
-    call filccn(blo, bhi, state, s_lo, s_hi, 1, domlo, domhi, delta, xlo, bc)
+    call amrex_filccn(blo, bhi, state, s_lo, s_hi, 1, domlo, domhi, delta, xlo, bc)
 
   end subroutine generic_single_fill
 
@@ -63,7 +62,7 @@ contains
     use meth_params_module, only: NVAR
     use prob_params_module, only: dim
     use amrex_fort_module, only: rt => amrex_real, get_loop_bounds
-    use amrex_filcc_module, only: filccn
+    use amrex_filcc_module, only: amrex_filccn
 
     implicit none
 
@@ -77,7 +76,7 @@ contains
 
     call get_loop_bounds(blo, bhi, s_lo, s_hi)
 
-    call filccn(blo, bhi, state, s_lo, s_hi, 1, domlo, domhi, delta, xlo, bc)
+    call amrex_filccn(blo, bhi, state, s_lo, s_hi, 1, domlo, domhi, delta, xlo, bc)
 
   end subroutine generic_multi_fill
 
