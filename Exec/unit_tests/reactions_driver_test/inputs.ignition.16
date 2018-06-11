@@ -13,8 +13,8 @@ geometry.prob_hi     = 1.0     1.0    1.0
 # 1 = Inflow             4 = SlipWall
 # 2 = Outflow            5 = NoSlipWall
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
-castro.lo_bc       =  3   3   3
-castro.hi_bc       =  3   3   3
+castro.lo_bc       =  2   2   2
+castro.hi_bc       =  2   2   2
 
 castro.hydro_tile_size = 16 16 16
 
