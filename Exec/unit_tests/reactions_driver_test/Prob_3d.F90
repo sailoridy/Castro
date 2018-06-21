@@ -87,7 +87,9 @@ contains
 
     ! Check to make sure model is initialized
     if (.not. model_initialized) then
+#if !(defined(CUDA) || defined(ACC))
        call amrex_error("Model has not been initialized")
+#endif
     endif
 
     ! Zero the state
@@ -96,9 +98,11 @@ contains
     ! Check to make sure the number of zones in state and model are the same
     nzones_state = (hi(1)-lo(1)+1) * (hi(2)-lo(2)+1) * (hi(3)-lo(3)+1)
     if (.not. nzones_state .eq. npts_model) then
+#if !(defined(CUDA) || defined(ACC))
        write(*,*) "nzones_state: ", nzones_state
        write(*,*) "npts_model: ", npts_model
        call amrex_error("Number of zones in state not equal to number of zones in model! Make sure you are running with one box.")
+#endif
     endif
 
     ! Fill state with model data
