@@ -483,7 +483,7 @@ extern "C"
 #endif
 
 #ifdef REACTIONS
-  void ca_estdt_burning(AMREX_ARLIM_VAL(lo), AMREX_ARLIM_VAL(hi),
+  void ca_estdt_burning(const int* lo, const int* hi,
 			const BL_FORT_FAB_ARG_3D(state_old),
 			const BL_FORT_FAB_ARG_3D(state_new),
 			const BL_FORT_FAB_ARG_3D(reactions_old),
@@ -817,7 +817,7 @@ extern "C"
      const int* mask, const int* m_lo, const int* m_hi,
      const amrex::Real& time, const amrex::Real& dt_react, const int& sdc_iter);
 #else
-  void ca_react_state(AMREX_ARLIM_VAL(lo), AMREX_ARLIM_VAL(hi),
+  void ca_react_state(const int* lo, const int* hi,
 		      BL_FORT_FAB_ARG_3D(state),
 		      BL_FORT_FAB_ARG_3D(reactions),
 		      BL_FORT_FAB_ARG_3D(weights),
