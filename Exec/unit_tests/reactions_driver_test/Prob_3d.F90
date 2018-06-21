@@ -35,34 +35,13 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 end subroutine amrex_probinit
 
 
-! ::: -----------------------------------------------------------
-! ::: This routine is called at problem setup time and is used
-! ::: to initialize data on each grid.  
-! ::: 
-! ::: NOTE:  all arrays have one cell of ghost zones surrounding
-! :::        the grid interior.  Values in these cells need not
-! :::        be set here.
-! ::: 
-! ::: INPUTS/OUTPUTS:
-! ::: 
-! ::: level     => amr level of grid
-! ::: time      => time at which to init data             
-! ::: lo,hi     => index limits of grid interior (cell centered)
-! ::: nvar      => number of state components.
-! ::: state     <= scalar array
-! ::: dx        => cell size
-! ::: xlo, xhi  => physical locations of lower left and upper
-! :::              right hand corner of grid.  (does not include
-! :::		   ghost region).
-! ::: -----------------------------------------------------------
-
 module initdata_module
 
 contains
 
-  AMREX_DEVICE subroutine ca_initdata(level,time,lo,hi,nvar, &
-                                      state,state_l1,state_l2,state_l3,state_h1,state_h2,state_h3, &
-                                      dx,xlo,xhi) bind(c, name="ca_initdata")
+  AMREX_DEVICE subroutine ca_initdata(lo, hi, &
+                                      state, state_lo, state_hi, &
+                                      dx, problo, domlo) bind(c, name='ca_initdata')
 
     use amrex_error_module
 
@@ -71,17 +50,16 @@ contains
     use network, only: nspec
     use eos_module, only : eos
     use eos_type_module, only : eos_t, eos_input_rt
-    use meth_params_module, only: URHO, UTEMP, UFS, UEDEN, UEINT
+    use meth_params_module, only: URHO, UTEMP, UFS, UEDEN, UEINT, NVAR
     use model_parser_module, only: idens_model, itemp_model, ispec_model, npts_model, model_state, model_initialized
     implicit none
 
-    integer :: level, nvar
     integer :: lo(3), hi(3)
-    integer :: state_l1,state_l2,state_l3,state_h1,state_h2,state_h3
-    real(rt)         :: xlo(3), xhi(3), time, dx(3)
-    real(rt)         :: state(state_l1:state_h1, &
-         state_l2:state_h2, &
-         state_l3:state_h3,nvar)
+    integer :: state_lo(3), state_hi(3)
+    real(rt)         :: problo(3), domlo(3), dx(3)
+    real(rt)         :: state(state_lo(1):state_hi(1), &
+                              state_lo(2):state_hi(2), &
+                              state_lo(3):state_hi(3), NVAR)
     integer :: nzones_state, i, j, k, n, ii
     type (eos_t) :: eos_state
 
