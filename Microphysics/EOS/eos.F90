@@ -13,13 +13,6 @@ module eos_module
 #endif
   end interface eos
 
-  interface eos
-     module procedure eos_doit
-#ifdef CUDA
-     module procedure eos_host
-#endif
-  end interface eos
-
 contains
 
   ! EOS initialization routine: read in general EOS parameters, then 
