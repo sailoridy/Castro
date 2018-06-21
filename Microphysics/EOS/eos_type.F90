@@ -221,11 +221,13 @@ contains
 
     to_eos % abar = from_eos % abar
     to_eos % zbar = from_eos % zbar
-    to_eos % dpdA = from_eos % dpdA
 
+#ifdef EXTRA_THERMO
+    to_eos % dpdA = from_eos % dpdA
     to_eos % dpdZ = from_eos % dpdZ
     to_eos % dedA = from_eos % dedA
     to_eos % dedZ = from_eos % dedZ
+#endif
   end subroutine copy_eos_t
 
   ! Given a set of mass fractions, calculate quantities that depend
