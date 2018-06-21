@@ -40,23 +40,22 @@ module eos_type_module
   integer, parameter :: ierr_not_implemented = 12
 
   ! Minimum and maximum thermodynamic quantities permitted by the EOS.
-
-  real(dp_t), allocatable :: mintemp
-  real(dp_t), allocatable :: maxtemp
-  real(dp_t), allocatable :: mindens
-  real(dp_t), allocatable :: maxdens
-  real(dp_t), allocatable :: minx
-  real(dp_t), allocatable :: maxx
-  real(dp_t), allocatable :: minye
-  real(dp_t), allocatable :: maxye
-  real(dp_t), allocatable :: mine
-  real(dp_t), allocatable :: maxe
-  real(dp_t), allocatable :: minp
-  real(dp_t), allocatable :: maxp
-  real(dp_t), allocatable :: mins
-  real(dp_t), allocatable :: maxs
-  real(dp_t), allocatable :: minh
-  real(dp_t), allocatable :: maxh
+  real(rt), allocatable :: mintemp
+  real(rt), allocatable :: maxtemp
+  real(rt), allocatable :: mindens
+  real(rt), allocatable :: maxdens
+  real(rt), allocatable :: minx
+  real(rt), allocatable :: maxx
+  real(rt), allocatable :: minye
+  real(rt), allocatable :: maxye
+  real(rt), allocatable :: mine
+  real(rt), allocatable :: maxe
+  real(rt), allocatable :: minp
+  real(rt), allocatable :: maxp
+  real(rt), allocatable :: mins
+  real(rt), allocatable :: maxs
+  real(rt), allocatable :: minh
+  real(rt), allocatable :: maxh
 
   !$acc declare &
   !$acc create(mintemp, maxtemp, mindens, maxdens, minx, maxx, minye, maxye) &
@@ -234,6 +233,8 @@ contains
 
   AMREX_DEVICE subroutine composition(state)
 
+    !$acc routine seq
+
     use amrex_constants_module, only: ONE
     use network, only: aion, aion_inv, zion
 
@@ -299,6 +300,8 @@ contains
 
   AMREX_DEVICE subroutine normalize_abundances(state)
 
+    !$acc routine seq
+
     use amrex_constants_module, only: ONE
     use extern_probin_module, only: small_x
 
@@ -319,6 +322,8 @@ contains
   ! Ensure that inputs are within reasonable limits.
 
   AMREX_DEVICE subroutine clean_state(state)
+
+    !$acc routine seq
 
     implicit none
 
@@ -378,6 +383,8 @@ contains
 
   AMREX_DEVICE subroutine eos_get_max_temp(max_temp_out)
 
+    !$acc routine seq
+
     implicit none
 
     !$acc routine seq
@@ -391,6 +398,8 @@ contains
 
 
   AMREX_DEVICE subroutine eos_get_max_dens(max_dens_out)
+
+    !$acc routine seq
 
     implicit none
 

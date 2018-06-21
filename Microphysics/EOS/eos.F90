@@ -13,6 +13,13 @@ module eos_module
 #endif
   end interface eos
 
+  interface eos
+     module procedure eos_doit
+#ifdef CUDA
+     module procedure eos_host
+#endif
+  end interface eos
+
 contains
 
   ! EOS initialization routine: read in general EOS parameters, then 
@@ -23,8 +30,9 @@ contains
     use amrex_fort_module, only: rt => amrex_real
     use amrex_error_module
     use amrex_paralleldescriptor_module, only : amrex_pd_ioprocessor
-    use eos_type_module, only: mintemp, maxtemp, mindens, maxdens, minx, maxx, &
-                               minye, maxye, mine, maxe, minp, maxp, minh, maxh, mins, maxs
+    use eos_type_module, only: mintemp, mindens, maxtemp, maxdens, &
+                               minx, maxx, minye, maxye, mine, maxe, &
+                               minp, maxp, mins, maxs, minh, maxh
     use actual_eos_module, only: actual_eos_init
 
     implicit none
@@ -128,7 +136,7 @@ contains
     use actual_eos_module, only: actual_eos
     use eos_override_module, only: eos_override
 
-#if !(defined(ACC) || defined(CUDA))
+#if (!(defined(CUDA) || defined(ACC)))
     use amrex_error_module, only: amrex_error
 #endif
 
@@ -143,7 +151,7 @@ contains
 
     ! Local variables
 
-#if !(defined(ACC) || defined(CUDA))
+#if (!(defined(CUDA) || defined(ACC)))
     if (.not. initialized) call amrex_error('EOS: not initialized')
 #endif
 
@@ -374,7 +382,7 @@ contains
 
 
 
-#if !(defined(ACC) || defined(CUDA))
+#if (!(defined(CUDA) || defined(ACC)))
   subroutine check_inputs(input, state)
 
     !$acc routine seq

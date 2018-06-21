@@ -44,10 +44,6 @@ contains
 
     implicit none
 
-#ifdef CUDA
-    integer :: cuda_result
-#endif
-
     allocate(aion_inv(nspec))
 
     ! First, we call the specific network initialization.

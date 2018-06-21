@@ -12,7 +12,9 @@
 
 module meth_params_module
 
-  use amrex_fort_module, only : rt => amrex_real
+  use amrex_error_module
+  use amrex_fort_module, only: rt => amrex_real
+
   implicit none
 
   ! number of ghost cells for the hyperbolic solver
@@ -24,18 +26,18 @@ module meth_params_module
   integer, allocatable, save :: USHK
 
   ! primitive variables
-  integer, save :: QVAR
-  integer, save :: QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME
-  integer, save :: NQAUX, QGAMC, QC, QDPDR, QDPDE
+  integer, allocatable, save :: QVAR
+  integer, allocatable, save :: QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME
+  integer, allocatable, save :: NQAUX, QGAMC, QC, QDPDR, QDPDE
 #ifdef RADIATION
-  integer, save :: QGAMCG, QCG, QLAMS
+  integer, allocatable, save :: QGAMCG, QCG, QLAMS
 #endif
-  integer, save :: QFA, QFS, QFX
+  integer, allocatable, save :: QFA, QFS, QFX
 
-  integer, save :: nadv
+  integer, allocatable, save :: nadv
 
   ! NQ will be the total number of primitive variables, hydro + radiation
-  integer, save :: NQ         
+  integer, allocatable, save :: NQ         
 
 #ifdef RADIATION
   integer, save :: QRAD, QRADHI, QPTOT, QREITOT
@@ -46,15 +48,15 @@ module meth_params_module
   real(rt)        , save :: flatten_pp_threshold = -1.e0_rt
 #endif
 
-  integer, save :: npassive
+  integer, save, allocatable :: npassive
   integer, save, allocatable :: qpass_map(:), upass_map(:)
 
   ! These are used for the Godunov state
   ! Note that the velocity indices here are picked to be the same value
   ! as in the primitive variable array
-  integer, save :: NGDNV, GDRHO, GDU, GDV, GDW, GDPRES, GDGAME
+  integer, save, allocatable :: NGDNV, GDRHO, GDU, GDV, GDW, GDPRES, GDGAME
 #ifdef RADIATION
-  integer, save :: GDLAMS, GDERADS
+  integer, save, allocatable :: GDLAMS, GDERADS
 #endif
 
   integer         , save :: numpts_1d
@@ -73,7 +75,7 @@ module meth_params_module
   integer, parameter :: EXT_HSE = 1
   integer, parameter :: EXT_INTERP = 2 
   
-  integer, save :: xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext
+  integer, allocatable, save :: xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext
 
   ! Create versions of these variables on the GPU
   ! the device update is then done in Castro_nd.f90
@@ -82,6 +84,23 @@ module meth_params_module
   attributes(managed) :: NVAR
   attributes(managed) :: URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX
   attributes(managed) :: USHK
+
+  attributes(managed) :: QVAR
+  attributes(managed) :: QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME
+  attributes(managed) :: NQAUX, QGAMC, QC, QDPDR, QDPDE
+#ifdef RADIATION
+  attributes(managed) :: QGAMCG, QCG, QLAMS
+#endif
+  attributes(managed) :: QFA, QFS, QFX
+  attributes(managed) :: nadv
+  attributes(managed) :: NQ
+  attributes(managed) :: npassive
+  attributes(managed) :: qpass_map, upass_map
+  attributes(managed) :: NGDNV, GDRHO, GDU, GDV, GDW, GDPRES, GDGAME
+#ifdef RADIATION
+  attributes(managed) :: GDLAMS, GDERADS
+#endif
+  attributes(managed) :: xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext
 #endif
 
   !$acc declare &
@@ -315,6 +334,22 @@ contains
     allocate(URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX)
     allocate(USHK)
 
+    allocate(QVAR)
+    allocate(QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME)
+    allocate(NQAUX, QGAMC, QC, QDPDR, QDPDE)
+#ifdef RADIATION
+    allocate(QGAMCG, QCG, QLAMS)
+#endif
+    allocate(QFA, QFS, QFX)
+    allocate(nadv)
+    allocate(NQ)
+    allocate(npassive)
+    allocate(NGDNV, GDRHO, GDU, GDV, GDW, GDPRES, GDGAME)
+#ifdef RADIATION
+    allocate(GDLAMS, GDERADS)
+#endif
+    allocate(xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext)
+
     allocate(const_grav)
     const_grav = 0.0d0;
     allocate(get_g_from_phi)
@@ -325,6 +360,14 @@ contains
     call pp%query("get_g_from_phi", get_g_from_phi)
     call amrex_parmparse_destroy(pp)
 
+
+
+#ifdef DIFFUSION
+    allocate(diffuse_cutoff_density)
+    diffuse_cutoff_density = -1.d200;
+    allocate(diffuse_cond_scale_fac)
+    diffuse_cond_scale_fac = 1.0d0;
+#endif
 
     allocate(difmag)
     difmag = 0.1d0;
@@ -456,11 +499,14 @@ contains
     grown_factor = 1;
     allocate(track_grid_losses)
     track_grid_losses = 0;
-#ifdef DIFFUSION
-    allocate(diffuse_cutoff_density)
-    diffuse_cutoff_density = -1.d200;
-    allocate(diffuse_cond_scale_fac)
-    diffuse_cond_scale_fac = 1.0d0;
+
+#ifdef POINTMASS
+    allocate(use_point_mass)
+    use_point_mass = 1;
+    allocate(point_mass)
+    point_mass = 0.0d0;
+    allocate(point_mass_fix_solution)
+    point_mass_fix_solution = 0;
 #endif
 #ifdef ROTATION
     allocate(rot_period)
@@ -482,16 +528,9 @@ contains
     allocate(rot_axis)
     rot_axis = 3;
 #endif
-#ifdef POINTMASS
-    allocate(use_point_mass)
-    use_point_mass = 1;
-    allocate(point_mass)
-    point_mass = 0.0d0;
-    allocate(point_mass_fix_solution)
-    point_mass_fix_solution = 0;
-#endif
 
     call amrex_parmparse_build(pp, "castro")
+
     call pp%query("difmag", difmag)
     call pp%query("small_dens", small_dens)
     call pp%query("small_temp", small_temp)
@@ -557,10 +596,18 @@ contains
     call pp%query("do_acc", do_acc)
     call pp%query("grown_factor", grown_factor)
     call pp%query("track_grid_losses", track_grid_losses)
+
 #ifdef DIFFUSION
     call pp%query("diffuse_cutoff_density", diffuse_cutoff_density)
     call pp%query("diffuse_cond_scale_fac", diffuse_cond_scale_fac)
 #endif
+    
+#ifdef POINTMASS
+    call pp%query("use_point_mass", use_point_mass)
+    call pp%query("point_mass", point_mass)
+    call pp%query("point_mass_fix_solution", point_mass_fix_solution)
+#endif
+
 #ifdef ROTATION
     call pp%query("rotational_period", rot_period)
     call pp%query("rotational_dPdt", rot_period_dot)
@@ -572,11 +619,7 @@ contains
     call pp%query("implicit_rotation_update", implicit_rotation_update)
     call pp%query("rot_axis", rot_axis)
 #endif
-#ifdef POINTMASS
-    call pp%query("use_point_mass", use_point_mass)
-    call pp%query("point_mass", point_mass)
-    call pp%query("point_mass_fix_solution", point_mass_fix_solution)
-#endif
+
     call amrex_parmparse_destroy(pp)
 
 
@@ -676,6 +719,22 @@ contains
     deallocate(NVAR)
     deallocate(URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX)
     deallocate(USHK)
+
+    deallocate(QVAR)
+    deallocate(QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME)
+    deallocate(NQAUX, QGAMC, QC, QDPDR, QDPDE)
+#ifdef RADIATION
+    deallocate(QGAMCG, QCG, QLAMS)
+#endif
+    deallocate(QFA, QFS, QFX)
+    deallocate(nadv)
+    deallocate(NQ)
+    deallocate(npassive)
+    deallocate(NGDNV, GDRHO, GDU, GDV, GDW, GDPRES, GDGAME)
+#ifdef RADIATION
+    deallocate(GDLAMS, GDERADS)
+    deallocate(xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext)
+#endif
 
     if (allocated(difmag)) then
         deallocate(difmag)
@@ -932,7 +991,6 @@ contains
 
     use rad_params_module, only : ngroups
 
-    use amrex_error_module
     use amrex_fort_module, only : rt => amrex_real
 
     implicit none
@@ -946,10 +1004,12 @@ contains
     else
        fspace_type = fsp_type_in
     end if
-    
+
+#ifndef AMREX_USE_CUDA    
     if (fsp_type_in .ne. 1 .and. fsp_type_in .ne. 2) then
        call amrex_error("Unknown fspace_type", fspace_type)
     end if
+#endif
     
     do_inelastic_scattering = (do_is_in .ne. 0)
     
@@ -958,7 +1018,9 @@ contains
     else if (com_in .eq. 0) then
        comoving = .false.
     else
+#ifndef AMREX_USE_CUDA
        call amrex_error("Wrong value for comoving", fspace_type)
+#endif
     end if
     
     flatten_pp_threshold = fppt
