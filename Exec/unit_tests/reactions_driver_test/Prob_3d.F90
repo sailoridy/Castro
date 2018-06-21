@@ -82,7 +82,7 @@ contains
     real(rt)         :: state(state_l1:state_h1, &
          state_l2:state_h2, &
          state_l3:state_h3,nvar)
-    integer :: nzones_state, i, j, k, n
+    integer :: nzones_state, i, j, k, n, ii
     type (eos_t) :: eos_state
 
     ! Check to make sure model is initialized
@@ -124,7 +124,9 @@ contains
 
              state(i, j, k, UEINT) = state(i, j, k, URHO) * eos_state % e
              state(i, j, k, UEDEN) = state(i, j, k, URHO) * eos_state % e
-             state(i, j, k, UFS:UFS-1+nspec) = state(i, j, k, URHO) * state(i, j, k, UFS:UFS-1+nspec)
+             do ii = UFS, UFS-1+nspec
+                state(i, j, k, ii) = state(i, j, k, URHO) * state(i, j, k, ii)
+             enddo
           enddo
        enddo
     enddo
