@@ -95,9 +95,9 @@ module initdata_module
 
 contains
 
-    AMREX_DEVICE subroutine ca_initdata(lo, hi, &
-                                        state, state_lo, state_hi, &
-                                        dx, problo, domlo) bind(c, name='ca_initdata')
+    subroutine ca_initdata(lo, hi, &
+                           state, state_lo, state_hi, &
+                           dx, problo, domlo) bind(c, name='ca_initdata')
 
       use probdata_module
       use amrex_constants_module, only: M_PI, FOUR3RD, ZERO, ONE
@@ -128,6 +128,8 @@ contains
       integer :: npert, nambient
       real(rt) :: e_zone
       type(eos_t) :: eos_state
+
+      !$gpu
 
       ! set explosion pressure -- we will convert the point-explosion energy into
       ! a corresponding pressure distributed throughout the perturbed volume
