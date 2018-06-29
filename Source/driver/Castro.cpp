@@ -207,6 +207,7 @@ Castro::variableCleanUp ()
     ca_finalize_meth_params();
 
     network_finalize();
+    eos_finalize();
 }
 
 void
@@ -2984,6 +2985,12 @@ void
 Castro::network_finalize ()
 {
    ca_network_finalize();
+}
+
+void
+Castro::eos_finalize ()
+{
+   ca_eos_finalize();
 }
 
 void
