@@ -300,6 +300,18 @@ clamp_subcycles              int           1
 sdc_iters                    int           2
 
 #-----------------------------------------------------------------------------
+# category: simulation control
+#-----------------------------------------------------------------------------
+
+# Stop the simulation if the maximum temperature on the domain crosses
+# this threshold. Not applied if <= 0.
+T_stopping_criterion         Real          -1.e200
+
+# Stop the simulation if the maximum t_sound / t_enuc on the domain crosses
+# this threshold. Not applied if <= 0.
+ts_te_stopping_criterion     Real          -1.e200            n     REACTIONS
+
+#-----------------------------------------------------------------------------
 # category: reactions
 #-----------------------------------------------------------------------------
 

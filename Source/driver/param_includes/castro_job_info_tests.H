@@ -6,6 +6,14 @@ jobInfoFile << (Castro::diffuse_vel == 0 ? "    " : "[*] ") << "castro.diffuse_v
 jobInfoFile << (Castro::diffuse_cutoff_density == -1.e200 ? "    " : "[*] ") << "castro.diffuse_cutoff_density = " << Castro::diffuse_cutoff_density << std::endl;
 jobInfoFile << (Castro::diffuse_cond_scale_fac == 1.0 ? "    " : "[*] ") << "castro.diffuse_cond_scale_fac = " << Castro::diffuse_cond_scale_fac << std::endl;
 #endif
+#ifdef REACTIONS
+jobInfoFile << (Castro::ts_te_stopping_criterion == -1.e200 ? "    " : "[*] ") << "castro.ts_te_stopping_criterion = " << Castro::ts_te_stopping_criterion << std::endl;
+#endif
+#ifdef POINTMASS
+jobInfoFile << (Castro::use_point_mass == 1 ? "    " : "[*] ") << "castro.use_point_mass = " << Castro::use_point_mass << std::endl;
+jobInfoFile << (Castro::point_mass == 0.0 ? "    " : "[*] ") << "castro.point_mass = " << Castro::point_mass << std::endl;
+jobInfoFile << (Castro::point_mass_fix_solution == 0 ? "    " : "[*] ") << "castro.point_mass_fix_solution = " << Castro::point_mass_fix_solution << std::endl;
+#endif
 #ifdef AMREX_PARTICLES
 jobInfoFile << (Castro::do_tracer_particles == 0 ? "    " : "[*] ") << "castro.do_tracer_particles = " << Castro::do_tracer_particles << std::endl;
 #endif
@@ -19,11 +27,6 @@ jobInfoFile << (Castro::state_in_rotating_frame == 1 ? "    " : "[*] ") << "cast
 jobInfoFile << (Castro::rot_source_type == 4 ? "    " : "[*] ") << "castro.rot_source_type = " << Castro::rot_source_type << std::endl;
 jobInfoFile << (Castro::implicit_rotation_update == 1 ? "    " : "[*] ") << "castro.implicit_rotation_update = " << Castro::implicit_rotation_update << std::endl;
 jobInfoFile << (Castro::rot_axis == 3 ? "    " : "[*] ") << "castro.rot_axis = " << Castro::rot_axis << std::endl;
-#endif
-#ifdef POINTMASS
-jobInfoFile << (Castro::use_point_mass == 1 ? "    " : "[*] ") << "castro.use_point_mass = " << Castro::use_point_mass << std::endl;
-jobInfoFile << (Castro::point_mass == 0.0 ? "    " : "[*] ") << "castro.point_mass = " << Castro::point_mass << std::endl;
-jobInfoFile << (Castro::point_mass_fix_solution == 0 ? "    " : "[*] ") << "castro.point_mass_fix_solution = " << Castro::point_mass_fix_solution << std::endl;
 #endif
 jobInfoFile << (Castro::state_interp_order == 1 ? "    " : "[*] ") << "castro.state_interp_order = " << Castro::state_interp_order << std::endl;
 jobInfoFile << (Castro::lin_limit_state_interp == 0 ? "    " : "[*] ") << "castro.lin_limit_state_interp = " << Castro::lin_limit_state_interp << std::endl;
@@ -96,6 +99,7 @@ jobInfoFile << (Castro::use_post_step_regrid == 0 ? "    " : "[*] ") << "castro.
 jobInfoFile << (Castro::max_subcycles == 10 ? "    " : "[*] ") << "castro.max_subcycles = " << Castro::max_subcycles << std::endl;
 jobInfoFile << (Castro::clamp_subcycles == 1 ? "    " : "[*] ") << "castro.clamp_subcycles = " << Castro::clamp_subcycles << std::endl;
 jobInfoFile << (Castro::sdc_iters == 2 ? "    " : "[*] ") << "castro.sdc_iters = " << Castro::sdc_iters << std::endl;
+jobInfoFile << (Castro::T_stopping_criterion == -1.e200 ? "    " : "[*] ") << "castro.T_stopping_criterion = " << Castro::T_stopping_criterion << std::endl;
 jobInfoFile << (Castro::dtnuc_e == 1.e200 ? "    " : "[*] ") << "castro.dtnuc_e = " << Castro::dtnuc_e << std::endl;
 jobInfoFile << (Castro::dtnuc_X == 1.e200 ? "    " : "[*] ") << "castro.dtnuc_X = " << Castro::dtnuc_X << std::endl;
 jobInfoFile << (Castro::dtnuc_X_threshold == 1.e-3 ? "    " : "[*] ") << "castro.dtnuc_X_threshold = " << Castro::dtnuc_X_threshold << std::endl;

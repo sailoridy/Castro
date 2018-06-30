@@ -11,6 +11,14 @@ pp.query("diffuse_vel", diffuse_vel);
 pp.query("diffuse_cutoff_density", diffuse_cutoff_density);
 pp.query("diffuse_cond_scale_fac", diffuse_cond_scale_fac);
 #endif
+#ifdef REACTIONS
+pp.query("ts_te_stopping_criterion", ts_te_stopping_criterion);
+#endif
+#ifdef POINTMASS
+pp.query("use_point_mass", use_point_mass);
+pp.query("point_mass", point_mass);
+pp.query("point_mass_fix_solution", point_mass_fix_solution);
+#endif
 #ifdef AMREX_PARTICLES
 pp.query("do_tracer_particles", do_tracer_particles);
 #endif
@@ -24,11 +32,6 @@ pp.query("state_in_rotating_frame", state_in_rotating_frame);
 pp.query("rot_source_type", rot_source_type);
 pp.query("implicit_rotation_update", implicit_rotation_update);
 pp.query("rot_axis", rot_axis);
-#endif
-#ifdef POINTMASS
-pp.query("use_point_mass", use_point_mass);
-pp.query("point_mass", point_mass);
-pp.query("point_mass_fix_solution", point_mass_fix_solution);
 #endif
 pp.query("state_interp_order", state_interp_order);
 pp.query("lin_limit_state_interp", lin_limit_state_interp);
@@ -101,6 +104,7 @@ pp.query("use_post_step_regrid", use_post_step_regrid);
 pp.query("max_subcycles", max_subcycles);
 pp.query("clamp_subcycles", clamp_subcycles);
 pp.query("sdc_iters", sdc_iters);
+pp.query("T_stopping_criterion", T_stopping_criterion);
 pp.query("dtnuc_e", dtnuc_e);
 pp.query("dtnuc_X", dtnuc_X);
 pp.query("dtnuc_X_threshold", dtnuc_X_threshold);

@@ -389,6 +389,10 @@ public:
     //
     virtual void post_timestep (int iteration) override;
     //
+    // Check if we want to stop the simulation.
+    //
+    void check_stopping_criteria();
+    //
     // Contains operations to be done only after a full coarse timestep.
     //
     virtual void postCoarseTimeStep (amrex::Real cumtime) override;

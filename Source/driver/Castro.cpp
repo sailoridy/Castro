@@ -1663,7 +1663,76 @@ Castro::post_timestep (int iteration)
 	}
     }
 #endif
+
+    // Check whether we need to terminate the simulation at this point.
+
+    check_stopping_criteria();
+
 }
+
+
+
+void
+Castro::check_stopping_criteria()
+{
+
+    int finest_level = parent->finestLevel();
+
+    bool local_flag = false;
+
+    Real time = state[State_Type].curTime();
+
+    if (T_stopping_criterion > 0.0) {
+
+        Real T_curr_max = 0.0;
+
+        for (int lev = 0; lev <= finest_level; lev++) {
+
+            MultiFab& S_new = parent->getLevel(lev).get_new_data(State_Type);
+            T_curr_max = std::max(T_curr_max, S_new.max(Temp, 0, local_flag));
+
+        }
+
+        if (T_curr_max > T_stopping_criterion) {
+
+            signalStopJob = true;
+
+            amrex::Print() << std::endl
+                           << "Ending simulation because we are above the temperature threshold."
+                           << std::endl;
+
+        }
+
+    }
+
+#ifdef REACTIONS
+    if (ts_te_stopping_criterion > 0.0) {
+
+        Real ts_te_curr_max = 0.0;
+
+        for (int lev = 0; lev <= finest_level; lev++) {
+
+            auto ts_te_MF = parent->getLevel(lev).derive("t_sound_t_enuc", time, 0);
+            ts_te_curr_max = std::max(ts_te_curr_max, ts_te_MF->max(0,0,local_flag));
+
+        }
+
+        if (ts_te_curr_max >= ts_te_stopping_criterion) {
+
+            signalStopJob = true;
+
+            amrex::Print() << std::endl
+                           << "Ending simulation because we are above the threshold for unstable burning."
+                           << std::endl;
+
+        }
+
+    }
+#endif
+
+}
+
+
 
 void
 Castro::post_restart ()

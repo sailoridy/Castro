@@ -11,6 +11,14 @@ int         Castro::diffuse_vel = 0;
 amrex::Real Castro::diffuse_cutoff_density = -1.e200;
 amrex::Real Castro::diffuse_cond_scale_fac = 1.0;
 #endif
+#ifdef REACTIONS
+amrex::Real Castro::ts_te_stopping_criterion = -1.e200;
+#endif
+#ifdef POINTMASS
+int         Castro::use_point_mass = 1;
+amrex::Real Castro::point_mass = 0.0;
+int         Castro::point_mass_fix_solution = 0;
+#endif
 #ifdef AMREX_PARTICLES
 int         Castro::do_tracer_particles = 0;
 #endif
@@ -24,11 +32,6 @@ int         Castro::state_in_rotating_frame = 1;
 int         Castro::rot_source_type = 4;
 int         Castro::implicit_rotation_update = 1;
 int         Castro::rot_axis = 3;
-#endif
-#ifdef POINTMASS
-int         Castro::use_point_mass = 1;
-amrex::Real Castro::point_mass = 0.0;
-int         Castro::point_mass_fix_solution = 0;
 #endif
 int         Castro::state_interp_order = 1;
 int         Castro::lin_limit_state_interp = 0;
@@ -101,6 +104,7 @@ int         Castro::use_post_step_regrid = 0;
 int         Castro::max_subcycles = 10;
 int         Castro::clamp_subcycles = 1;
 int         Castro::sdc_iters = 2;
+amrex::Real Castro::T_stopping_criterion = -1.e200;
 amrex::Real Castro::dtnuc_e = 1.e200;
 amrex::Real Castro::dtnuc_X = 1.e200;
 amrex::Real Castro::dtnuc_X_threshold = 1.e-3;
