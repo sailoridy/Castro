@@ -19,7 +19,7 @@ module actual_eos_module
   logical, allocatable, save :: assume_neutral
 
 #ifdef CUDA
-  attributes(managed) :: gamma_const, assume_neutral
+  attributes(pinned) :: gamma_const, assume_neutral
 #endif
 
 contains

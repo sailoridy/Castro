@@ -63,22 +63,22 @@ module eos_type_module
   !$acc create(mine, maxe, minp, maxp, mins, maxs, minh, maxh)
 
 #ifdef CUDA
-  attributes(managed) :: mintemp
-  attributes(managed) :: maxtemp
-  attributes(managed) :: mindens
-  attributes(managed) :: maxdens
-  attributes(managed) :: minx
-  attributes(managed) :: maxx
-  attributes(managed) :: minye
-  attributes(managed) :: maxye
-  attributes(managed) :: mine
-  attributes(managed) :: maxe
-  attributes(managed) :: minp
-  attributes(managed) :: maxp
-  attributes(managed) :: mins
-  attributes(managed) :: maxs
-  attributes(managed) :: minh
-  attributes(managed) :: maxh
+  attributes(pinned) :: mintemp
+  attributes(pinned) :: maxtemp
+  attributes(pinned) :: mindens
+  attributes(pinned) :: maxdens
+  attributes(pinned) :: minx
+  attributes(pinned) :: maxx
+  attributes(pinned) :: minye
+  attributes(pinned) :: maxye
+  attributes(pinned) :: mine
+  attributes(pinned) :: maxe
+  attributes(pinned) :: minp
+  attributes(pinned) :: maxp
+  attributes(pinned) :: mins
+  attributes(pinned) :: maxs
+  attributes(pinned) :: minh
+  attributes(pinned) :: maxh
 #endif
 
   ! A generic structure holding thermodynamic quantities and their derivatives,

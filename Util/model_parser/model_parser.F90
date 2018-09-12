@@ -43,7 +43,7 @@ module model_parser_module
   real (rt), allocatable, save :: model_r(:)
 
 #ifdef CUDA
-  attributes(managed) :: model_state, model_r, npts_model
+  attributes(pinned) :: model_state, model_r, npts_model
 #endif
 
   ! model_initialized will be .true. once the model is read in and the

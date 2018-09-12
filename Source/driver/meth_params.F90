@@ -75,21 +75,21 @@ module meth_params_module
   ! the device update is then done in Castro_nd.f90
 
 #ifdef AMREX_USE_CUDA
-  attributes(managed) :: URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX
-  attributes(managed) :: USHK
-  attributes(managed) :: QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME
-  attributes(managed) :: QGAMC, QC, QDPDR, QDPDE
+  attributes(pinned) :: URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX
+  attributes(pinned) :: USHK
+  attributes(pinned) :: QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME
+  attributes(pinned) :: QGAMC, QC, QDPDR, QDPDE
 #ifdef RADIATION
-  attributes(managed) :: QGAMCG, QCG, QLAMS
+  attributes(pinned) :: QGAMCG, QCG, QLAMS
 #endif
-  attributes(managed) :: QFA, QFS, QFX
-  attributes(managed) :: npassive
-  attributes(managed) :: qpass_map, upass_map
-  attributes(managed) :: GDRHO, GDU, GDV, GDW, GDPRES, GDGAME
+  attributes(pinned) :: QFA, QFS, QFX
+  attributes(pinned) :: npassive
+  attributes(pinned) :: qpass_map, upass_map
+  attributes(pinned) :: GDRHO, GDU, GDV, GDW, GDPRES, GDGAME
 #ifdef RADIATION
-  attributes(managed) :: GDLAMS, GDERADS
+  attributes(pinned) :: GDLAMS, GDERADS
 #endif
-  attributes(managed) :: xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext
+  attributes(pinned) :: xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext
 #endif
 
   !$acc declare &
@@ -189,86 +189,86 @@ module meth_params_module
   integer,  allocatable, save :: get_g_from_phi
 
 #ifdef AMREX_USE_CUDA
-  attributes(managed) :: difmag
-  attributes(managed) :: small_dens
-  attributes(managed) :: small_temp
-  attributes(managed) :: small_pres
-  attributes(managed) :: small_ener
-  attributes(managed) :: do_hydro
-  attributes(managed) :: do_ctu
-  attributes(managed) :: fourth_order
-  attributes(managed) :: hybrid_hydro
-  attributes(managed) :: ppm_type
-  attributes(managed) :: ppm_temp_fix
-  attributes(managed) :: ppm_predict_gammae
-  attributes(managed) :: ppm_reference_eigenvectors
-  attributes(managed) :: plm_iorder
-  attributes(managed) :: hybrid_riemann
-  attributes(managed) :: riemann_solver
-  attributes(managed) :: cg_maxiter
-  attributes(managed) :: cg_tol
-  attributes(managed) :: cg_blend
-  attributes(managed) :: use_eos_in_riemann
-  attributes(managed) :: use_flattening
-  attributes(managed) :: transverse_use_eos
-  attributes(managed) :: transverse_reset_density
-  attributes(managed) :: transverse_reset_rhoe
-  attributes(managed) :: dual_energy_eta1
-  attributes(managed) :: dual_energy_eta2
-  attributes(managed) :: use_pslope
-  attributes(managed) :: fix_mass_flux
-  attributes(managed) :: limit_fluxes_on_small_dens
-  attributes(managed) :: density_reset_method
-  attributes(managed) :: allow_negative_energy
-  attributes(managed) :: allow_small_energy
-  attributes(managed) :: do_sponge
-  attributes(managed) :: sponge_implicit
-  attributes(managed) :: first_order_hydro
+  attributes(pinned) :: difmag
+  attributes(pinned) :: small_dens
+  attributes(pinned) :: small_temp
+  attributes(pinned) :: small_pres
+  attributes(pinned) :: small_ener
+  attributes(pinned) :: do_hydro
+  attributes(pinned) :: do_ctu
+  attributes(pinned) :: fourth_order
+  attributes(pinned) :: hybrid_hydro
+  attributes(pinned) :: ppm_type
+  attributes(pinned) :: ppm_temp_fix
+  attributes(pinned) :: ppm_predict_gammae
+  attributes(pinned) :: ppm_reference_eigenvectors
+  attributes(pinned) :: plm_iorder
+  attributes(pinned) :: hybrid_riemann
+  attributes(pinned) :: riemann_solver
+  attributes(pinned) :: cg_maxiter
+  attributes(pinned) :: cg_tol
+  attributes(pinned) :: cg_blend
+  attributes(pinned) :: use_eos_in_riemann
+  attributes(pinned) :: use_flattening
+  attributes(pinned) :: transverse_use_eos
+  attributes(pinned) :: transverse_reset_density
+  attributes(pinned) :: transverse_reset_rhoe
+  attributes(pinned) :: dual_energy_eta1
+  attributes(pinned) :: dual_energy_eta2
+  attributes(pinned) :: use_pslope
+  attributes(pinned) :: fix_mass_flux
+  attributes(pinned) :: limit_fluxes_on_small_dens
+  attributes(pinned) :: density_reset_method
+  attributes(pinned) :: allow_negative_energy
+  attributes(pinned) :: allow_small_energy
+  attributes(pinned) :: do_sponge
+  attributes(pinned) :: sponge_implicit
+  attributes(pinned) :: first_order_hydro
   
   
   
   
   
   
-  attributes(managed) :: hse_zero_vels
-  attributes(managed) :: hse_interp_temp
-  attributes(managed) :: hse_reflect_vels
-  attributes(managed) :: mol_order
-  attributes(managed) :: cfl
-  attributes(managed) :: dtnuc_e
-  attributes(managed) :: dtnuc_X
-  attributes(managed) :: dtnuc_X_threshold
-  attributes(managed) :: dxnuc
-  attributes(managed) :: dxnuc_max
-  attributes(managed) :: max_dxnuc_lev
-  attributes(managed) :: do_react
-  attributes(managed) :: react_T_min
-  attributes(managed) :: react_T_max
-  attributes(managed) :: react_rho_min
-  attributes(managed) :: react_rho_max
-  attributes(managed) :: disable_shock_burning
-  attributes(managed) :: diffuse_cutoff_density
-  attributes(managed) :: diffuse_cond_scale_fac
-  attributes(managed) :: do_grav
-  attributes(managed) :: grav_source_type
-  attributes(managed) :: do_rotation
-  attributes(managed) :: rot_period
-  attributes(managed) :: rot_period_dot
-  attributes(managed) :: rotation_include_centrifugal
-  attributes(managed) :: rotation_include_coriolis
-  attributes(managed) :: rotation_include_domegadt
-  attributes(managed) :: state_in_rotating_frame
-  attributes(managed) :: rot_source_type
-  attributes(managed) :: implicit_rotation_update
-  attributes(managed) :: rot_axis
-  attributes(managed) :: use_point_mass
-  attributes(managed) :: point_mass
-  attributes(managed) :: point_mass_fix_solution
-  attributes(managed) :: do_acc
-  attributes(managed) :: grown_factor
-  attributes(managed) :: track_grid_losses
-  attributes(managed) :: const_grav
-  attributes(managed) :: get_g_from_phi
+  attributes(pinned) :: hse_zero_vels
+  attributes(pinned) :: hse_interp_temp
+  attributes(pinned) :: hse_reflect_vels
+  attributes(pinned) :: mol_order
+  attributes(pinned) :: cfl
+  attributes(pinned) :: dtnuc_e
+  attributes(pinned) :: dtnuc_X
+  attributes(pinned) :: dtnuc_X_threshold
+  attributes(pinned) :: dxnuc
+  attributes(pinned) :: dxnuc_max
+  attributes(pinned) :: max_dxnuc_lev
+  attributes(pinned) :: do_react
+  attributes(pinned) :: react_T_min
+  attributes(pinned) :: react_T_max
+  attributes(pinned) :: react_rho_min
+  attributes(pinned) :: react_rho_max
+  attributes(pinned) :: disable_shock_burning
+  attributes(pinned) :: diffuse_cutoff_density
+  attributes(pinned) :: diffuse_cond_scale_fac
+  attributes(pinned) :: do_grav
+  attributes(pinned) :: grav_source_type
+  attributes(pinned) :: do_rotation
+  attributes(pinned) :: rot_period
+  attributes(pinned) :: rot_period_dot
+  attributes(pinned) :: rotation_include_centrifugal
+  attributes(pinned) :: rotation_include_coriolis
+  attributes(pinned) :: rotation_include_domegadt
+  attributes(pinned) :: state_in_rotating_frame
+  attributes(pinned) :: rot_source_type
+  attributes(pinned) :: implicit_rotation_update
+  attributes(pinned) :: rot_axis
+  attributes(pinned) :: use_point_mass
+  attributes(pinned) :: point_mass
+  attributes(pinned) :: point_mass_fix_solution
+  attributes(pinned) :: do_acc
+  attributes(pinned) :: grown_factor
+  attributes(pinned) :: track_grid_losses
+  attributes(pinned) :: const_grav
+  attributes(pinned) :: get_g_from_phi
 #endif
 
   !$acc declare &
@@ -340,6 +340,40 @@ contains
     call amrex_parmparse_destroy(pp)
 
 
+#ifdef DIFFUSION
+    allocate(diffuse_cutoff_density)
+    diffuse_cutoff_density = -1.d200;
+    allocate(diffuse_cond_scale_fac)
+    diffuse_cond_scale_fac = 1.0d0;
+#endif
+#ifdef ROTATION
+    allocate(rot_period)
+    rot_period = -1.d200;
+    allocate(rot_period_dot)
+    rot_period_dot = 0.0d0;
+    allocate(rotation_include_centrifugal)
+    rotation_include_centrifugal = 1;
+    allocate(rotation_include_coriolis)
+    rotation_include_coriolis = 1;
+    allocate(rotation_include_domegadt)
+    rotation_include_domegadt = 1;
+    allocate(state_in_rotating_frame)
+    state_in_rotating_frame = 1;
+    allocate(rot_source_type)
+    rot_source_type = 4;
+    allocate(implicit_rotation_update)
+    implicit_rotation_update = 1;
+    allocate(rot_axis)
+    rot_axis = 3;
+#endif
+#ifdef POINTMASS
+    allocate(use_point_mass)
+    use_point_mass = 1;
+    allocate(point_mass)
+    point_mass = 0.0d0;
+    allocate(point_mass_fix_solution)
+    point_mass_fix_solution = 0;
+#endif
     allocate(difmag)
     difmag = 0.1d0;
     allocate(small_dens)
@@ -468,42 +502,28 @@ contains
     grown_factor = 1;
     allocate(track_grid_losses)
     track_grid_losses = 0;
-#ifdef DIFFUSION
-    allocate(diffuse_cutoff_density)
-    diffuse_cutoff_density = -1.d200;
-    allocate(diffuse_cond_scale_fac)
-    diffuse_cond_scale_fac = 1.0d0;
-#endif
-#ifdef ROTATION
-    allocate(rot_period)
-    rot_period = -1.d200;
-    allocate(rot_period_dot)
-    rot_period_dot = 0.0d0;
-    allocate(rotation_include_centrifugal)
-    rotation_include_centrifugal = 1;
-    allocate(rotation_include_coriolis)
-    rotation_include_coriolis = 1;
-    allocate(rotation_include_domegadt)
-    rotation_include_domegadt = 1;
-    allocate(state_in_rotating_frame)
-    state_in_rotating_frame = 1;
-    allocate(rot_source_type)
-    rot_source_type = 4;
-    allocate(implicit_rotation_update)
-    implicit_rotation_update = 1;
-    allocate(rot_axis)
-    rot_axis = 3;
-#endif
-#ifdef POINTMASS
-    allocate(use_point_mass)
-    use_point_mass = 1;
-    allocate(point_mass)
-    point_mass = 0.0d0;
-    allocate(point_mass_fix_solution)
-    point_mass_fix_solution = 0;
-#endif
 
     call amrex_parmparse_build(pp, "castro")
+#ifdef DIFFUSION
+    call pp%query("diffuse_cutoff_density", diffuse_cutoff_density)
+    call pp%query("diffuse_cond_scale_fac", diffuse_cond_scale_fac)
+#endif
+#ifdef ROTATION
+    call pp%query("rotational_period", rot_period)
+    call pp%query("rotational_dPdt", rot_period_dot)
+    call pp%query("rotation_include_centrifugal", rotation_include_centrifugal)
+    call pp%query("rotation_include_coriolis", rotation_include_coriolis)
+    call pp%query("rotation_include_domegadt", rotation_include_domegadt)
+    call pp%query("state_in_rotating_frame", state_in_rotating_frame)
+    call pp%query("rot_source_type", rot_source_type)
+    call pp%query("implicit_rotation_update", implicit_rotation_update)
+    call pp%query("rot_axis", rot_axis)
+#endif
+#ifdef POINTMASS
+    call pp%query("use_point_mass", use_point_mass)
+    call pp%query("point_mass", point_mass)
+    call pp%query("point_mass_fix_solution", point_mass_fix_solution)
+#endif
     call pp%query("difmag", difmag)
     call pp%query("small_dens", small_dens)
     call pp%query("small_temp", small_temp)
@@ -568,26 +588,6 @@ contains
     call pp%query("do_acc", do_acc)
     call pp%query("grown_factor", grown_factor)
     call pp%query("track_grid_losses", track_grid_losses)
-#ifdef DIFFUSION
-    call pp%query("diffuse_cutoff_density", diffuse_cutoff_density)
-    call pp%query("diffuse_cond_scale_fac", diffuse_cond_scale_fac)
-#endif
-#ifdef ROTATION
-    call pp%query("rotational_period", rot_period)
-    call pp%query("rotational_dPdt", rot_period_dot)
-    call pp%query("rotation_include_centrifugal", rotation_include_centrifugal)
-    call pp%query("rotation_include_coriolis", rotation_include_coriolis)
-    call pp%query("rotation_include_domegadt", rotation_include_domegadt)
-    call pp%query("state_in_rotating_frame", state_in_rotating_frame)
-    call pp%query("rot_source_type", rot_source_type)
-    call pp%query("implicit_rotation_update", implicit_rotation_update)
-    call pp%query("rot_axis", rot_axis)
-#endif
-#ifdef POINTMASS
-    call pp%query("use_point_mass", use_point_mass)
-    call pp%query("point_mass", point_mass)
-    call pp%query("point_mass_fix_solution", point_mass_fix_solution)
-#endif
     call amrex_parmparse_destroy(pp)
 
 

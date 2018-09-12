@@ -396,7 +396,7 @@ EXTERN_PARAMETERS := $(shell $(AMREX_HOME)/Tools/F_scripts/findparams.py $(EXTER
 extern.F90: $(EXTERN_PARAMETERS) $(EXTERN_TEMPLATE)
 	$(AMREX_HOME)/Tools/F_scripts/write_probin.py \
            -t $(EXTERN_TEMPLATE) -o extern.F90 -n extern \
-           --pa "$(EXTERN_PARAMETERS)" --managed
+           --pa "$(EXTERN_PARAMETERS)" --pinned
 
 #------------------------------------------------------------------------------
 # state variable info

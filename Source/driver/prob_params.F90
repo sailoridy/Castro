@@ -50,12 +50,12 @@ module prob_params_module
   type (momflux_t), save :: mom_flux_has_p(3)
 
 #ifdef AMREX_USE_CUDA
-  attributes(managed) :: physbc_lo, physbc_hi
-  attributes(managed) :: Interior, Inflow, Outflow, Symmetry, Slipwall, NoSlipWall
-  attributes(managed) :: dim
-  attributes(managed) :: dg
-  attributes(managed) :: center, problo, probhi
-  attributes(managed) :: domlo_level, domhi_level
+  attributes(pinned) :: physbc_lo, physbc_hi
+  attributes(pinned) :: Interior, Inflow, Outflow, Symmetry, Slipwall, NoSlipWall
+  attributes(pinned) :: dim
+  attributes(pinned) :: dg
+  attributes(pinned) :: center, problo, probhi
+  attributes(pinned) :: domlo_level, domhi_level
 #endif
   
 end module prob_params_module

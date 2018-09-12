@@ -70,21 +70,21 @@ module meth_params_module
   ! the device update is then done in Castro_nd.f90
 
 #ifdef AMREX_USE_CUDA
-  attributes(managed) :: URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX
-  attributes(managed) :: USHK
-  attributes(managed) :: QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME
-  attributes(managed) :: QGAMC, QC, QDPDR, QDPDE
+  attributes(pinned) :: URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX
+  attributes(pinned) :: USHK
+  attributes(pinned) :: QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME
+  attributes(pinned) :: QGAMC, QC, QDPDR, QDPDE
 #ifdef RADIATION
-  attributes(managed) :: QGAMCG, QCG, QLAMS
+  attributes(pinned) :: QGAMCG, QCG, QLAMS
 #endif
-  attributes(managed) :: QFA, QFS, QFX
-  attributes(managed) :: npassive
-  attributes(managed) :: qpass_map, upass_map
-  attributes(managed) :: GDRHO, GDU, GDV, GDW, GDPRES, GDGAME
+  attributes(pinned) :: QFA, QFS, QFX
+  attributes(pinned) :: npassive
+  attributes(pinned) :: qpass_map, upass_map
+  attributes(pinned) :: GDRHO, GDU, GDV, GDW, GDPRES, GDGAME
 #ifdef RADIATION
-  attributes(managed) :: GDLAMS, GDERADS
+  attributes(pinned) :: GDLAMS, GDERADS
 #endif
-  attributes(managed) :: xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext
+  attributes(pinned) :: xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext
 #endif
 
   !$acc declare &

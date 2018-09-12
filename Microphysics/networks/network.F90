@@ -34,7 +34,7 @@ module network
   !$acc declare create(aion_inv)
 
 #ifdef CUDA
-  attributes(managed) :: aion_inv
+  attributes(pinned) :: aion_inv
 #endif
 
 contains
