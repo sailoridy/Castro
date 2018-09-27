@@ -5,6 +5,7 @@
 # include "Radiation.H"
 # include "RAD_F.H"
 #endif
+#include <Castro_error.H>
 #include <Castro_prob_err_F.H>
 
 using std::string;
@@ -55,3 +56,158 @@ Castro::ErrorSetUp ()
 #include <Castro_prob_err_list.H>
 
 }
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
+  void ca_laplac_error
+    (int* tag, const int* tag_lo, const int* tag_hi,
+     const int* tagval, const int* clearval,
+     amrex::Real* data, const int* data_lo, const int* data_hi,
+     const int* lo, const int* hi,
+     const int* ncomp,
+     const int* domlo, const int* domhi,
+     const amrex::Real* dx, const amrex::Real* xlo, const amrex::Real* problo,
+     const amrex::Real* time, const int* level)
+  {
+#pragma gpu
+      laplac_error(tag, AMREX_INT_ANYD(tag_lo), AMREX_INT_ANYD(tag_hi),
+                   *tagval, *clearval,
+                   data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi),
+                   AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+                   *ncomp, *level);
+  }
+
+  void ca_denerror
+    (int* tag, const int* tag_lo, const int* tag_hi,
+     const int* tagval, const int* clearval,
+     amrex::Real* data, const int* data_lo, const int* data_hi,
+     const int* lo, const int* hi,
+     const int* ncomp,
+     const int* domlo, const int* domhi,
+     const amrex::Real* dx, const amrex::Real* xlo, const amrex::Real* problo,
+     const amrex::Real* time, const int* level)
+  {
+#pragma gpu
+      denerror(tag, AMREX_INT_ANYD(tag_lo), AMREX_INT_ANYD(tag_hi),
+               *tagval, *clearval,
+               data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi),
+               AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+               *ncomp, *level);
+  }
+
+  void ca_velerror
+    (int* tag, const int* tag_lo, const int* tag_hi,
+     const int* tagval, const int* clearval,
+     amrex::Real* data, const int* data_lo, const int* data_hi,
+     const int* lo, const int* hi,
+     const int* ncomp,
+     const int* domlo, const int* domhi,
+     const amrex::Real* dx, const amrex::Real* xlo, const amrex::Real* problo,
+     const amrex::Real* time, const int* level)
+  {
+#pragma gpu
+      velerror(tag, AMREX_INT_ANYD(tag_lo), AMREX_INT_ANYD(tag_hi),
+               *tagval, *clearval,
+               data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi),
+               AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+               *ncomp, *level);
+  }
+
+  void ca_temperror
+    (int* tag, const int* tag_lo, const int* tag_hi,
+     const int* tagval, const int* clearval,
+     amrex::Real* data, const int* data_lo, const int* data_hi,
+     const int* lo, const int* hi,
+     const int* ncomp,
+     const int* domlo, const int* domhi,
+     const amrex::Real* dx, const amrex::Real* xlo, const amrex::Real* problo,
+     const amrex::Real* time, const int* level)
+  {
+#pragma gpu
+      temperror(tag, AMREX_INT_ANYD(tag_lo), AMREX_INT_ANYD(tag_hi),
+                *tagval, *clearval,
+                data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi),
+                AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+                *ncomp, *level);
+  }
+
+  void ca_presserror
+    (int* tag, const int* tag_lo, const int* tag_hi,
+     const int* tagval, const int* clearval,
+     amrex::Real* data, const int* data_lo, const int* data_hi,
+     const int* lo, const int* hi,
+     const int* ncomp,
+     const int* domlo, const int* domhi,
+     const amrex::Real* dx, const amrex::Real* xlo, const amrex::Real* problo,
+     const amrex::Real* time, const int* level)
+  {
+#pragma gpu
+      presserror(tag, AMREX_INT_ANYD(tag_lo), AMREX_INT_ANYD(tag_hi),
+                 *tagval, *clearval,
+                 data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi),
+                 AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+                 *ncomp, *level);
+  }
+
+  void ca_nucerror
+    (int* tag, const int* tag_lo, const int* tag_hi,
+     const int* tagval, const int* clearval,
+     amrex::Real* data, const int* data_lo, const int* data_hi,
+     const int* lo, const int* hi,
+     const int* ncomp,
+     const int* domlo, const int* domhi,
+     const amrex::Real* dx, const amrex::Real* xlo, const amrex::Real* problo,
+     const amrex::Real* time, const int* level)
+  {
+#pragma gpu
+      nucerror(tag, AMREX_INT_ANYD(tag_lo), AMREX_INT_ANYD(tag_hi),
+               *tagval, *clearval,
+               data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi),
+               AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+               *ncomp, *level);
+  }
+
+#ifdef RADIATION
+  void ca_raderror
+    (int* tag, const int* tag_lo, const int* tag_hi,
+     const int* tagval, const int* clearval,
+     amrex::Real* data, const int* data_lo, const int* data_hi,
+     const int* lo, const int* hi,
+     const int* ncomp,
+     const int* domlo, const int* domhi,
+     const amrex::Real* dx, const amrex::Real* xlo, const amrex::Real* problo,
+     const amrex::Real* time, const int* level)
+  {
+#pragma gpu
+      raderror(tag, AMREX_INT_ANYD(tag_lo), AMREX_INT_ANYD(tag_hi),
+               *tagval, *clearval,
+               data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi),
+               AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+               *ncomp, *level);
+  }
+#endif
+  
+  void ca_enterror
+    (int* tag, const int* tag_lo, const int* tag_hi,
+     const int* tagval, const int* clearval,
+     amrex::Real* data, const int* data_lo, const int* data_hi,
+     const int* lo, const int* hi,
+     const int* ncomp,
+     const int* domlo, const int* domhi,
+     const amrex::Real* dx, const amrex::Real* xlo, const amrex::Real* problo,
+     const amrex::Real* time, const int* level)
+  {
+#pragma gpu
+      enterror(tag, AMREX_INT_ANYD(tag_lo), AMREX_INT_ANYD(tag_hi),
+               *tagval, *clearval,
+               data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi),
+               AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+               *ncomp, *level);
+  }
+
+#ifdef __cplusplus
+}
+#endif

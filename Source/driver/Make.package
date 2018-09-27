@@ -6,7 +6,6 @@ ca_F90EXE_sources += filcc_nd.F90
 CEXE_sources += Castro.cpp
 CEXE_sources += Castro_advance.cpp
 CEXE_sources += Castro_setup.cpp
-CEXE_sources += Castro_error.cpp
 CEXE_sources += Castro_io.cpp
 CEXE_sources += CastroBld.cpp
 CEXE_sources += main.cpp
@@ -20,6 +19,8 @@ CEXE_sources += sum_integrated_quantities.cpp
 
 FEXE_headers += Castro_F.H
 FEXE_headers += Castro_error_F.H
+CEXE_headers += Castro_err_list.H
+CEXE_sources += Castro_error.cpp
 
 FEXE_headers += Derive_F.H
 CEXE_headers += Derive.H

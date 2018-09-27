@@ -832,12 +832,27 @@ subroutine ca_get_tagging_params(name, namlen) &
        max_raderr_lev, max_radgrad_lev, max_radgrad_rel_lev
 
   ! Set namelist defaults
+
+  allocate(denerr)
+  allocate(dengrad)
+  allocate(dengrad_rel)
+  allocate(max_denerr_lev)
+  allocate(max_dengrad_lev)
+  allocate(max_dengrad_rel_lev)
+
   denerr = 1.e20_rt
   dengrad = 1.e20_rt
   dengrad_rel = 1.e20_rt
   max_denerr_lev = -1
   max_dengrad_lev = -1
   max_dengrad_rel_lev = -1
+
+  allocate(enterr)
+  allocate(entgrad)
+  allocate(entgrad_rel)
+  allocate(max_enterr_lev)
+  allocate(max_entgrad_lev)
+  allocate(max_entgrad_rel_lev)
 
   enterr = 1.e20_rt
   entgrad = 1.e20_rt
@@ -846,12 +861,26 @@ subroutine ca_get_tagging_params(name, namlen) &
   max_entgrad_lev = -1
   max_entgrad_rel_lev = -1
 
+  allocate(presserr)
+  allocate(pressgrad)
+  allocate(pressgrad_rel)
+  allocate(max_presserr_lev)
+  allocate(max_pressgrad_lev)
+  allocate(max_pressgrad_rel_lev)
+
   presserr = 1.e20_rt
   pressgrad = 1.e20_rt
   pressgrad_rel = 1.e20_rt
   max_presserr_lev = -1
   max_pressgrad_lev = -1
   max_pressgrad_rel_lev = -1
+
+  allocate(velerr)
+  allocate(velgrad)
+  allocate(velgrad_rel)
+  allocate(max_velerr_lev)
+  allocate(max_velgrad_lev)
+  allocate(max_velgrad_rel_lev)
 
   velerr  = 1.e20_rt
   velgrad = 1.e20_rt
@@ -860,12 +889,26 @@ subroutine ca_get_tagging_params(name, namlen) &
   max_velgrad_lev = -1
   max_velgrad_rel_lev = -1
 
+  allocate(temperr)
+  allocate(tempgrad)
+  allocate(tempgrad_rel)
+  allocate(max_temperr_lev)
+  allocate(max_tempgrad_lev)
+  allocate(max_tempgrad_rel_lev)
+
   temperr  = 1.e20_rt
   tempgrad = 1.e20_rt
   tempgrad_rel = 1.e20_rt
   max_temperr_lev = -1
   max_tempgrad_lev = -1
   max_tempgrad_rel_lev = -1
+
+  allocate(raderr)
+  allocate(radgrad)
+  allocate(radgrad_rel)
+  allocate(max_raderr_lev)
+  allocate(max_radgrad_lev)
+  allocate(max_radgrad_rel_lev)
 
   raderr  = 1.e20_rt
   radgrad = 1.e20_rt
