@@ -430,7 +430,6 @@ Castro::do_advance_mol (Real time,
 
       for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
         const Box& bx = mfi.tilebox();
-        const int idx = mfi.tileIndex();
         ca_make_cell_center(BL_TO_FORTRAN_BOX(bx),
                             BL_TO_FORTRAN_FAB(Sborder[mfi]),
                             BL_TO_FORTRAN_FAB(sources_for_hydro[mfi]));
@@ -446,7 +445,6 @@ Castro::do_advance_mol (Real time,
       // cell averages.  This loop cannot be tiled.
       for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
         const Box& bx = mfi.tilebox();
-        const int idx = mfi.tileIndex();
         ca_make_fourth_in_place(BL_TO_FORTRAN_BOX(bx),
                                 BL_TO_FORTRAN_FAB(old_source[mfi]));
 
@@ -1238,9 +1236,7 @@ Castro::subcycle_advance(const Real time, const Real dt, int amr_iteration, int 
         do_advance(subcycle_time, dt_subcycle, amr_iteration, amr_ncycle);
 
         if (verbose && ParallelDescriptor::IOProcessor()) {
-            std::cout << std::endl;
-            std::cout << "  Subcycle completed" << std::endl;
-            std::cout << std::endl;
+            std::cout << "  Subcycle completed" << std::endl << std::endl;
         }
 
         subcycle_time += dt_subcycle;
